@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from "@nestjs/common";
+import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import {
   COURIER_METHODS,
@@ -22,8 +22,20 @@ import { cartItemInclude, toCartView } from "../cart/cart.mapper";
 import { AppError } from "../common/errors/app-error";
 import { PrismaService } from "../prisma/prisma.service";
 import { ShippingService, shipmentCreateData } from "../shipping/shipping.service";
+import { lockCheckoutGraph, lockListings, MONEY_TX } from "./checkout.lock";
 import { checkoutInclude, orderInclude, toCheckoutView, toOrderView } from "./order.mapper";
-import { consumeReservedStock, releaseStock, reserveStock, restoreSoldStock } from "./stock";
+import { consumeReservedStock, releaseStock, reserveStock } from "./stock";
+import { RefundsService } from "../payments/refunds.service";
+
+const LATE_PAYMENT_NOTE =
+  "[late_payment] Cobro Mercado Pago tras checkout terminal. Sin fulfillment. Reembolso pendiente.";
+export const LATE_PAYMENT_REFUND_REASON = "late_payment_after_expiry";
+
+export type ApplyApprovedResult =
+  | { kind: "paid" }
+  | { kind: "duplicate" }
+  | { kind: "late_payment" }
+  | { kind: "missing" };
 
 const STAFF_ROLES = new Set(["MODERATOR", "ADMIN", "SUPER_ADMIN"]);
 
@@ -33,6 +45,8 @@ export class OrdersService {
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     private readonly shipping: ShippingService,
+    @Inject(forwardRef(() => RefundsService))
+    private readonly refunds: RefundsService,
   ) {}
 
   async createCheckout(
@@ -78,6 +92,10 @@ export class OrdersService {
       }
 
       const groups = view.groups.filter((group) => group.items.every((item) => item.purchasable));
+      await lockListings(
+        tx,
+        purchasable.map((item) => item.listingId),
+      );
       const selectionBySeller = new Map(input.shippingSelections.map((row) => [row.sellerId, row]));
       if (groups.length !== input.shippingSelections.length) {
         throw new AppError(
@@ -175,7 +193,7 @@ export class OrdersService {
       await tx.checkout.update({ where: { id: created.id }, data: { totalClp: checkoutTotal } });
       await tx.cartItem.deleteMany({ where: { cartId: cart.id } });
       return created.id;
-    });
+    }, MONEY_TX);
 
     await this.audit.log({
       actorId: actor.id,
@@ -232,12 +250,14 @@ export class OrdersService {
   async prepare(actor: RequestUser, id: string): Promise<OrderView> {
     const order = await this.requireSeller(actor, id);
     this.assertStatus(order.status, ["PAID"]);
+    await this.assertNoBlockingRefund(id);
     return this.transition(actor, id, { status: "PREPARING" }, "order.prepared");
   }
 
   async ship(actor: RequestUser, id: string, input: ShipOrderInput): Promise<OrderView> {
     const order = await this.requireSeller(actor, id);
     this.assertStatus(order.status, ["PREPARING"]);
+    await this.assertNoBlockingRefund(id);
     if (order.shippingMethod === "MEETUP") {
       if (!input.meetupPlace) {
         throw new AppError(
@@ -372,9 +392,15 @@ export class OrdersService {
     if (!isBuyer && !isSeller && !this.isStaff(actor)) {
       throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Orden no encontrada");
     }
-    if (order.status === "PENDING_PAYMENT") {
-      await this.prisma.$transaction(async (tx) => {
-        for (const item of order.items) {
+    let refundId: string | null = null;
+    await this.prisma.$transaction(async (tx) => {
+      const graph = await lockCheckoutGraph(tx, order.checkoutId);
+      const fresh = graph?.orders.find((row) => row.id === id);
+      if (!graph || !fresh) {
+        throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Orden no encontrada");
+      }
+      if (fresh.status === "PENDING_PAYMENT") {
+        for (const item of fresh.items) {
           await releaseStock(tx, item.listingId, item.quantity);
         }
         await tx.order.update({ where: { id }, data: { status: "CANCELLED" } });
@@ -388,24 +414,39 @@ export class OrdersService {
             data: { status: "CANCELLED" },
           });
         }
-      });
-      await this.audit.log({
-        actorId: actor.id,
-        action: "order.cancelled",
-        entityType: "Order",
-        entityId: id,
-        metadata: { reason: input.reason ?? null, stage: "PENDING_PAYMENT" },
-      });
-      return this.get(actor, id);
-    }
-    if (order.status === "PAID" || order.status === "PREPARING") {
-      await this.prisma.$transaction(async (tx) => {
-        for (const item of order.items) {
-          await restoreSoldStock(tx, item.listingId, item.quantity);
-        }
+        await this.audit.log(
+          {
+            actorId: actor.id,
+            action: "order.cancelled",
+            entityType: "Order",
+            entityId: id,
+            metadata: { reason: input.reason ?? null, stage: "PENDING_PAYMENT" },
+          },
+          tx,
+        );
+        return;
+      }
+      if (fresh.status === "REFUNDED") {
+        return;
+      }
+      if (fresh.status === "PAID" || fresh.status === "PREPARING") {
         const payment = await tx.payment.findUnique({ where: { orderId: id } });
-        if (payment) {
-          await tx.refund.create({
+        if (!payment) {
+          throw new AppError(
+            HttpStatus.CONFLICT,
+            ERROR_CODES.ORDER_ILLEGAL_TRANSITION,
+            "La orden no tiene pago para reembolsar",
+          );
+        }
+        let refund = await tx.refund.findFirst({
+          where: { paymentId: payment.id },
+          orderBy: { createdAt: "asc" },
+        });
+        if (refund?.status === "COMPLETED") {
+          return;
+        }
+        if (!refund) {
+          refund = await tx.refund.create({
             data: {
               paymentId: payment.id,
               amountClp: payment.amountClp,
@@ -413,28 +454,48 @@ export class OrdersService {
               status: "PENDING",
             },
           });
-          await tx.payment.update({
-            where: { id: payment.id },
-            data: { status: "REFUNDED", refundedAt: new Date() },
+          await this.audit.log(
+            {
+              actorId: actor.id,
+              action: "refund.requested",
+              entityType: "Refund",
+              entityId: refund.id,
+              metadata: {
+                event: "REFUND_REQUESTED",
+                orderId: id,
+                paymentId: payment.id,
+                amountClp: payment.amountClp,
+                reason: input.reason ?? "cancelacion",
+              },
+            },
+            tx,
+          );
+        } else if (refund.status === "FAILED") {
+          refund = await tx.refund.update({
+            where: { id: refund.id },
+            data: { status: "PENDING" },
           });
         }
-        await tx.order.update({ where: { id }, data: { status: "REFUNDED" } });
-        await tx.shipment.updateMany({ where: { orderId: id }, data: { status: "CANCELLED" } });
-      });
-      await this.audit.log({
-        actorId: actor.id,
-        action: "order.refunded",
-        entityType: "Order",
-        entityId: id,
-        metadata: { reason: input.reason ?? null },
-      });
-      return this.get(actor, id);
+        refundId = refund.id;
+        return;
+      }
+      throw new AppError(
+        HttpStatus.CONFLICT,
+        ERROR_CODES.ORDER_ILLEGAL_TRANSITION,
+        "No se puede cancelar en este estado",
+      );
+    }, MONEY_TX);
+    if (refundId) {
+      const outcome = await this.refunds.execute(refundId);
+      if (outcome !== "completed") {
+        throw new AppError(
+          HttpStatus.CONFLICT,
+          ERROR_CODES.REFUND_PROVIDER_ERROR,
+          "No se pudo completar el reembolso. Reintenta.",
+        );
+      }
     }
-    throw new AppError(
-      HttpStatus.CONFLICT,
-      ERROR_CODES.ORDER_ILLEGAL_TRANSITION,
-      "No se puede cancelar en este estado",
-    );
+    return this.get(actor, id);
   }
 
   async dispute(actor: RequestUser, id: string, input: DisputeOrderInput): Promise<OrderView> {
@@ -462,89 +523,118 @@ export class OrdersService {
     checkoutId: string,
     providerPaymentId: string,
     payload: Prisma.InputJsonValue,
-  ): Promise<void> {
-    await this.expireIfNeeded(checkoutId);
-    const checkout = await this.prisma.checkout.findUnique({
-      where: { id: checkoutId },
-      include: { orders: { include: { items: true, payment: true } } },
-    });
-    if (!checkout) return;
-    if (checkout.status === "PAID") return;
+  ): Promise<ApplyApprovedResult> {
+    const result = await this.prisma.$transaction(
+      (tx) => this.applyApprovedInTx(tx, checkoutId, providerPaymentId, payload),
+      MONEY_TX,
+    );
+    if (result.kind === "late_payment") {
+      await this.refunds.executeOpenForCheckout(checkoutId);
+    }
+    return result;
+  }
+
+  async applyApprovedInTx(
+    tx: Prisma.TransactionClient,
+    checkoutId: string,
+    providerPaymentId: string,
+    payload: Prisma.InputJsonValue,
+  ): Promise<ApplyApprovedResult> {
+    const checkout = await lockCheckoutGraph(tx, checkoutId);
+    if (!checkout) {
+      return { kind: "missing" };
+    }
+    if (checkout.status === "PAID") {
+      return { kind: "duplicate" };
+    }
+    if (checkout.status === "EXPIRED" || checkout.status === "CANCELLED") {
+      return this.recordLatePayment(tx, checkout, providerPaymentId, payload);
+    }
     if (checkout.status !== "PENDING_PAYMENT") {
       throw new AppError(HttpStatus.CONFLICT, ERROR_CODES.CHECKOUT_EXPIRED, "El checkout ya no admite pago");
     }
+
     const now = new Date();
-    await this.prisma.$transaction(async (tx) => {
-      for (const order of checkout.orders) {
-        if (order.status !== "PENDING_PAYMENT") continue;
-        for (const item of order.items) {
-          await consumeReservedStock(tx, item.listingId, item.quantity);
-        }
-        if (order.payment) {
-          await tx.payment.update({
-            where: { id: order.payment.id },
-            data: {
-              status: "HELD",
-              providerPaymentId,
-              heldAt: now,
-              rawPayload: payload,
-            },
-          });
-        } else {
-          await tx.payment.create({
-            data: {
-              orderId: order.id,
-              provider: "MERCADOPAGO",
-              providerPaymentId,
-              status: "HELD",
-              amountClp: order.totalClp,
-              heldAt: now,
-              rawPayload: payload,
-            },
-          });
-        }
-        await tx.order.update({
-          where: { id: order.id },
-          data: { status: "PAID", paidAt: now },
+    for (const order of checkout.orders) {
+      if (order.status !== "PENDING_PAYMENT") continue;
+      for (const item of order.items) {
+        await consumeReservedStock(tx, item.listingId, item.quantity);
+      }
+      if (order.payment) {
+        await tx.payment.update({
+          where: { id: order.payment.id },
+          data: {
+            status: "HELD",
+            providerPaymentId,
+            heldAt: now,
+            rawPayload: payload,
+          },
+        });
+      } else {
+        await tx.payment.create({
+          data: {
+            orderId: order.id,
+            provider: "MERCADOPAGO",
+            providerPaymentId,
+            status: "HELD",
+            amountClp: order.totalClp,
+            heldAt: now,
+            rawPayload: payload,
+          },
         });
       }
-      await tx.checkout.update({ where: { id: checkoutId }, data: { status: "PAID" } });
-    });
-    await this.audit.log({
-      action: "checkout.paid",
-      entityType: "Checkout",
-      entityId: checkoutId,
-      metadata: { providerPaymentId, paymentStatus: "HELD" },
-    });
+      await tx.order.update({
+        where: { id: order.id },
+        data: { status: "PAID", paidAt: now },
+      });
+    }
+    await tx.checkout.update({ where: { id: checkoutId }, data: { status: "PAID" } });
+    await this.audit.log(
+      {
+        action: "checkout.paid",
+        entityType: "Checkout",
+        entityId: checkoutId,
+        metadata: { providerPaymentId, paymentStatus: "HELD" },
+      },
+      tx,
+    );
+    return { kind: "paid" };
   }
 
   async applyRejected(checkoutId: string, payload: Prisma.InputJsonValue): Promise<void> {
-    const checkout = await this.prisma.checkout.findUnique({
-      where: { id: checkoutId },
-      include: { orders: { include: { items: true, payment: true } } },
-    });
+    await this.prisma.$transaction((tx) => this.applyRejectedInTx(tx, checkoutId, payload), MONEY_TX);
+  }
+
+  async applyRejectedInTx(
+    tx: Prisma.TransactionClient,
+    checkoutId: string,
+    payload: Prisma.InputJsonValue,
+  ): Promise<void> {
+    const checkout = await lockCheckoutGraph(tx, checkoutId);
     if (!checkout || checkout.status !== "PENDING_PAYMENT") return;
-    await this.prisma.$transaction(async (tx) => {
-      for (const order of checkout.orders) {
-        for (const item of order.items) {
-          await releaseStock(tx, item.listingId, item.quantity);
-        }
-        if (order.payment) {
-          await tx.payment.update({
-            where: { id: order.payment.id },
-            data: { status: "REJECTED", rawPayload: payload },
-          });
-        }
-        await tx.order.update({ where: { id: order.id }, data: { status: "CANCELLED" } });
-        await tx.shipment.updateMany({ where: { orderId: order.id }, data: { status: "CANCELLED" } });
+    for (const order of checkout.orders) {
+      if (order.status !== "PENDING_PAYMENT") continue;
+      for (const item of order.items) {
+        await releaseStock(tx, item.listingId, item.quantity);
       }
-      await tx.checkout.update({ where: { id: checkoutId }, data: { status: "CANCELLED" } });
-    });
-    await this.audit.log({
-      action: "checkout.payment_rejected",
-      entityType: "Checkout",
-      entityId: checkoutId,
-    });
+      if (order.payment) {
+        await tx.payment.update({
+          where: { id: order.payment.id },
+          data: { status: "REJECTED", rawPayload: payload },
+        });
+      }
+      await tx.order.update({ where: { id: order.id }, data: { status: "CANCELLED" } });
+      await tx.shipment.updateMany({ where: { orderId: order.id }, data: { status: "CANCELLED" } });
+    }
+    await tx.checkout.update({ where: { id: checkoutId }, data: { status: "CANCELLED" } });
+    await this.audit.log(
+      {
+        action: "checkout.payment_rejected",
+        entityType: "Checkout",
+        entityId: checkoutId,
+      },
+      tx,
+    );
   }
 
   async attachPreference(checkoutId: string, preferenceId: string): Promise<void> {
@@ -588,14 +678,22 @@ export class OrdersService {
     }
   }
 
-  private async expireIfNeeded(checkoutId: string): Promise<void> {
-    const checkout = await this.prisma.checkout.findUnique({
+  async expireCheckoutIfNeeded(checkoutId: string): Promise<boolean> {
+    return this.expireIfNeeded(checkoutId);
+  }
+
+  private async expireIfNeeded(checkoutId: string): Promise<boolean> {
+    const peek = await this.prisma.checkout.findUnique({
       where: { id: checkoutId },
-      include: { orders: { include: { items: true } } },
+      select: { status: true, expiresAt: true },
     });
-    if (!checkout || checkout.status !== "PENDING_PAYMENT") return;
-    if (checkout.expiresAt > new Date()) return;
-    await this.prisma.$transaction(async (tx) => {
+    if (!peek || peek.status !== "PENDING_PAYMENT" || peek.expiresAt > new Date()) {
+      return false;
+    }
+    return this.prisma.$transaction(async (tx) => {
+      const checkout = await lockCheckoutGraph(tx, checkoutId);
+      if (!checkout || checkout.status !== "PENDING_PAYMENT") return false;
+      if (checkout.expiresAt > new Date()) return false;
       for (const order of checkout.orders) {
         if (order.status !== "PENDING_PAYMENT") continue;
         for (const item of order.items) {
@@ -605,12 +703,110 @@ export class OrdersService {
         await tx.shipment.updateMany({ where: { orderId: order.id }, data: { status: "CANCELLED" } });
       }
       await tx.checkout.update({ where: { id: checkoutId }, data: { status: "EXPIRED" } });
-    });
-    await this.audit.log({
-      action: "checkout.expired",
-      entityType: "Checkout",
-      entityId: checkoutId,
-    });
+      await this.audit.log(
+        {
+          action: "checkout.expired",
+          entityType: "Checkout",
+          entityId: checkoutId,
+        },
+        tx,
+      );
+      return true;
+    }, MONEY_TX);
+  }
+
+  private async recordLatePayment(
+    tx: Prisma.TransactionClient,
+    checkout: Prisma.CheckoutGetPayload<{ include: typeof checkoutInclude }>,
+    providerPaymentId: string,
+    payload: Prisma.InputJsonValue,
+  ): Promise<ApplyApprovedResult> {
+    let createdRefund = false;
+    for (const order of checkout.orders) {
+      let payment = order.payment;
+      if (payment) {
+        const alreadyRecorded =
+          payment.providerPaymentId === providerPaymentId &&
+          (payment.status === "APPROVED" || payment.status === "HELD" || payment.status === "REFUNDED");
+        if (!alreadyRecorded) {
+          payment = await tx.payment.update({
+            where: { id: payment.id },
+            data: {
+              status: "APPROVED",
+              providerPaymentId,
+              rawPayload: payload,
+            },
+          });
+        }
+      } else {
+        payment = await tx.payment.create({
+          data: {
+            orderId: order.id,
+            provider: "MERCADOPAGO",
+            providerPaymentId,
+            status: "APPROVED",
+            amountClp: order.totalClp,
+            rawPayload: payload,
+          },
+        });
+      }
+
+      const existingRefund = await tx.refund.findFirst({
+        where: { paymentId: payment.id, reason: LATE_PAYMENT_REFUND_REASON },
+      });
+      if (!existingRefund) {
+        const created = await tx.refund.create({
+          data: {
+            paymentId: payment.id,
+            amountClp: payment.amountClp,
+            reason: LATE_PAYMENT_REFUND_REASON,
+            status: "PENDING",
+          },
+        });
+        createdRefund = true;
+        await this.audit.log(
+          {
+            action: "refund.requested",
+            entityType: "Refund",
+            entityId: created.id,
+            metadata: {
+              event: "REFUND_REQUESTED",
+              reason: LATE_PAYMENT_REFUND_REASON,
+              paymentId: payment.id,
+              amountClp: payment.amountClp,
+            },
+          },
+          tx,
+        );
+      }
+
+      if (!order.notes.includes("[late_payment]")) {
+        await tx.order.update({
+          where: { id: order.id },
+          data: {
+            notes: order.notes.trim().length > 0 ? `${order.notes.trim()}\n${LATE_PAYMENT_NOTE}` : LATE_PAYMENT_NOTE,
+          },
+        });
+      }
+    }
+
+    if (createdRefund) {
+      await this.audit.log(
+        {
+          action: "checkout.late_payment",
+          entityType: "Checkout",
+          entityId: checkout.id,
+          metadata: {
+            alert: "HIGH_PRIORITY",
+            providerPaymentId,
+            checkoutStatus: checkout.status,
+            refundStatus: "PENDING",
+          },
+        },
+        tx,
+      );
+    }
+    return { kind: createdRefund ? "late_payment" : "duplicate" };
   }
 
   private assertShipping(
@@ -646,6 +842,16 @@ export class OrdersService {
           "Este vendedor no ofrece envío",
         );
       }
+    }
+  }
+
+  private async assertNoBlockingRefund(orderId: string): Promise<void> {
+    if (await this.refunds.hasBlockingRefund(orderId)) {
+      throw new AppError(
+        HttpStatus.CONFLICT,
+        ERROR_CODES.ORDER_ILLEGAL_TRANSITION,
+        "Hay un reembolso en curso",
+      );
     }
   }
 

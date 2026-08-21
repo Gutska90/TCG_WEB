@@ -391,8 +391,8 @@ File
 WebhookEvent            // Fase 7
   provider, providerEventId unique, payload Json, processedAt
 
-Refund                  // Fase 7
-  paymentId, amountClp, reason, status, providerRefundId
+Refund                  // Fase 7 / P0-3
+  paymentId, amountClp, reason, status, providerRefundId unique
 
 Payout                  // Fase 7
   sellerId, amountClp, status, providerRef, periodStart, periodEnd
@@ -428,6 +428,7 @@ ShippingRate            // Fase 8
 - `quantityReserved <= quantity`.
 - No vender más que `quantity - quantityReserved`.
 - Al pagar: reservar stock; al cancelar: liberar.
+- Transiciones de checkout/pago: lock `FOR UPDATE` checkout → orders → listings (ver [07-PAYMENTS](07-PAYMENTS.md)).
 - `Order.sellerId` debe coincidir con `Listing.sellerId` de todos sus items.
 - Un `SellerRating` por `Order`.
 - Precios de listing `> 0`.

@@ -1,6 +1,6 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
-import { HttpStatus, Injectable } from "@nestjs/common";
+import { forwardRef, HttpStatus, Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { Prisma } from "@prisma/client";
 import { ERROR_CODES } from "@tcg/config";
 import type { CheckoutView } from "@tcg/types";
 import { AppError } from "../common/errors/app-error";
@@ -8,24 +8,26 @@ import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import { OrdersService } from "../orders/orders.service";
 import { toCheckoutView } from "../orders/order.mapper";
-
-type MpPreference = {
-  id: string;
-  init_point?: string;
-  sandbox_init_point?: string;
-};
+import { claimWebhookEvent } from "./webhook-event";
+import { MONEY_TX } from "../orders/checkout.lock";
+import { PAYMENT_PROVIDER, type PaymentProvider, type ProviderPayment } from "./payment-provider";
+import { RefundsService } from "./refunds.service";
+import { assertMercadoPagoWebhookSignature } from "./webhook-signature";
 
 @Injectable()
 export class PaymentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    @Inject(forwardRef(() => OrdersService))
     private readonly orders: OrdersService,
     private readonly audit: AuditService,
+    @Inject(PAYMENT_PROVIDER) private readonly provider: PaymentProvider,
+    private readonly refunds: RefundsService,
   ) {}
 
   mockEnabled(): boolean {
-    return !this.accessToken();
+    return !this.provider.isConfigured();
   }
 
   async decorate(checkoutId: string): Promise<CheckoutView["mercadopago"]> {
@@ -71,36 +73,20 @@ export class PaymentsService {
       return { initPoint: null, sandboxInitPoint: null, mock: true };
     }
     if (checkout.mercadoPagoPreferenceId) {
-      const created = await this.mpRequest<MpPreference>(
-        "GET",
-        `/checkout/preferences/${checkout.mercadoPagoPreferenceId}`,
-      );
+      const created = await this.provider.getPreference(checkout.mercadoPagoPreferenceId);
       return {
-        initPoint: created.init_point ?? null,
-        sandboxInitPoint: created.sandbox_init_point ?? null,
+        initPoint: created.initPoint,
+        sandboxInitPoint: created.sandboxInitPoint,
         mock: false,
       };
     }
 
-    const body = {
-      items: [
-        {
-          title: "Compra TCG Platform",
-          quantity: 1,
-          unit_price: checkout.totalClp,
-          currency_id: "CLP",
-        },
-      ],
-      external_reference: checkout.id,
-      notification_url: `${this.apiPublicUrl()}/v1/webhooks/mercadopago`,
-      back_urls: {
-        success: `${this.webUrl()}/checkout/retorno?checkoutId=${checkout.id}`,
-        failure: `${this.webUrl()}/checkout/retorno?checkoutId=${checkout.id}`,
-        pending: `${this.webUrl()}/checkout/retorno?checkoutId=${checkout.id}`,
-      },
-      auto_return: "approved",
-    };
-    const created = await this.mpRequest<MpPreference>("POST", "/checkout/preferences", body);
+    const created = await this.provider.createPreference({
+      checkoutId: checkout.id,
+      totalClp: checkout.totalClp,
+      notificationUrl: `${this.apiPublicUrl()}/v1/webhooks/mercadopago`,
+      backUrl: `${this.webUrl()}/checkout/retorno?checkoutId=${checkout.id}`,
+    });
     await this.orders.attachPreference(checkout.id, created.id);
     await this.audit.log({
       actorId,
@@ -110,8 +96,8 @@ export class PaymentsService {
       metadata: { preferenceId: created.id },
     });
     return {
-      initPoint: created.init_point ?? null,
-      sandboxInitPoint: created.sandbox_init_point ?? null,
+      initPoint: created.initPoint,
+      sandboxInitPoint: created.sandboxInitPoint,
       mock: false,
     };
   }
@@ -146,122 +132,79 @@ export class PaymentsService {
   async handleWebhook(headers: Record<string, string | string[] | undefined>, body: unknown): Promise<void> {
     this.verifySignature(headers, body);
     const payload = asRecord(body);
-    const eventId =
-      stringValue(payload.id) ??
-      stringValue(payload.data) ??
-      `${stringValue(payload.type) ?? "mp"}:${stringValue(asRecord(payload.data).id) ?? Date.now()}`;
-    const existing = await this.prisma.webhookEvent.findUnique({
-      where: { provider_providerEventId: { provider: "MERCADOPAGO", providerEventId: eventId } },
-    });
-    if (existing?.processedAt) return;
-
-    const event = existing
-      ? existing
-      : await this.prisma.webhookEvent.create({
-          data: { provider: "MERCADOPAGO", providerEventId: eventId, payload: payload as object },
-        });
+    const dataId = stringValue(asRecord(payload.data).id) ?? stringValue(payload.id);
+    const eventId = stringValue(payload.id) ?? (dataId ? `payment:${dataId}` : undefined);
+    if (!eventId) {
+      throw new AppError(
+        HttpStatus.BAD_REQUEST,
+        ERROR_CODES.VALIDATION_ERROR,
+        "Webhook Mercado Pago sin identificador",
+      );
+    }
 
     const type = stringValue(payload.type) ?? stringValue(payload.topic) ?? "";
-    const dataId = stringValue(asRecord(payload.data).id) ?? stringValue(payload.id);
-    if (!dataId || (type && !type.includes("payment"))) {
-      await this.prisma.webhookEvent.update({
-        where: { id: event.id },
+    const isPayment = !type || type.includes("payment");
+    const mpPayment = dataId && isPayment ? await this.provider.getPayment(dataId) : null;
+    const checkoutId = mpPayment ? await this.resolveCheckoutId(mpPayment, payload) : null;
+
+    await this.prisma.$transaction(async (tx) => {
+      const claim = await claimWebhookEvent(tx, "MERCADOPAGO", eventId, payload as Prisma.InputJsonValue);
+      if (claim.alreadyProcessed) {
+        return;
+      }
+
+      if (mpPayment && checkoutId && isPayment) {
+        const status = mpPayment.status ?? "";
+        if (status === "approved") {
+          await this.orders.applyApprovedInTx(tx, checkoutId, mpPayment.id, toJson(mpPayment));
+        } else if (status === "rejected" || status === "cancelled") {
+          await this.orders.applyRejectedInTx(tx, checkoutId, toJson(mpPayment));
+        } else if (status === "refunded") {
+          const checkout = await tx.checkout.findUnique({ where: { id: checkoutId }, select: { status: true } });
+          if (checkout?.status === "PENDING_PAYMENT") {
+            await this.orders.applyRejectedInTx(tx, checkoutId, toJson(mpPayment));
+          } else {
+            await this.refunds.syncProviderRefundedInTx(tx, checkoutId);
+          }
+        }
+      }
+
+      await tx.webhookEvent.update({
+        where: { id: claim.id },
         data: { processedAt: new Date() },
       });
-      return;
-    }
+    }, MONEY_TX);
 
-    const payment = await this.fetchMpPayment(dataId);
-    const checkoutId =
-      payment.external_reference ??
-      (payment.preference_id ? await this.orders.findByPreferenceId(payment.preference_id) : null);
-    if (!checkoutId) {
-      await this.prisma.webhookEvent.update({
-        where: { id: event.id },
-        data: { processedAt: new Date() },
-      });
-      return;
+    if (checkoutId) {
+      await this.refunds.executeOpenForCheckout(checkoutId);
     }
+  }
 
-    const status = payment.status ?? "";
-    if (status === "approved") {
-      // Money stays HELD until the buyer confirms delivery. Never payout here.
-      await this.orders.applyApproved(checkoutId, payment.id, payment);
-    } else if (status === "rejected" || status === "cancelled" || status === "refunded") {
-      await this.orders.applyRejected(checkoutId, payment);
+  private async resolveCheckoutId(
+    mpPayment: ProviderPayment,
+    payload: Record<string, unknown>,
+  ): Promise<string | null> {
+    if (mpPayment.externalReference) return mpPayment.externalReference;
+    if (this.mockEnabled()) {
+      const fromPayload = stringValue(payload.external_reference);
+      if (fromPayload) return fromPayload;
     }
-
-    await this.prisma.webhookEvent.update({
-      where: { id: event.id },
-      data: { processedAt: new Date() },
-    });
+    if (mpPayment.preferenceId) {
+      return this.orders.findByPreferenceId(mpPayment.preferenceId);
+    }
+    return null;
   }
 
   private verifySignature(
     headers: Record<string, string | string[] | undefined>,
     body: unknown,
   ): void {
-    const secret = this.config.get<string>("MP_WEBHOOK_SECRET")?.trim();
-    if (!secret) {
-      if (process.env.NODE_ENV === "production") {
-        throw new AppError(HttpStatus.UNAUTHORIZED, ERROR_CODES.UNAUTHORIZED, "Webhook sin firma");
-      }
-      return;
-    }
-    const signature = header(headers, "x-signature");
-    const requestId = header(headers, "x-request-id");
-    if (!signature || !requestId) {
-      throw new AppError(HttpStatus.UNAUTHORIZED, ERROR_CODES.UNAUTHORIZED, "Firma inválida");
-    }
-    const ts = /ts=([^,]+)/.exec(signature)?.[1];
-    const v1 = /v1=([^,]+)/.exec(signature)?.[1];
-    const dataId = stringValue(asRecord(asRecord(body).data).id);
-    if (!ts || !v1 || !dataId) {
-      throw new AppError(HttpStatus.UNAUTHORIZED, ERROR_CODES.UNAUTHORIZED, "Firma inválida");
-    }
-    const manifest = `id:${dataId};request-id:${requestId};ts:${ts};`;
-    const expected = createHmac("sha256", secret).update(manifest).digest("hex");
-    const a = Buffer.from(v1);
-    const b = Buffer.from(expected);
-    if (a.length !== b.length || !timingSafeEqual(a, b)) {
-      throw new AppError(HttpStatus.UNAUTHORIZED, ERROR_CODES.UNAUTHORIZED, "Firma inválida");
-    }
-  }
-
-  private async fetchMpPayment(id: string): Promise<{
-    id: string;
-    status?: string;
-    external_reference?: string;
-    preference_id?: string;
-  }> {
-    if (this.mockEnabled()) {
-      return { id, status: "approved", external_reference: undefined };
-    }
-    return this.mpRequest(`GET`, `/v1/payments/${id}`);
-  }
-
-  private async mpRequest<T>(method: string, path: string, body?: unknown): Promise<T> {
-    const token = this.accessToken();
-    if (!token) {
-      throw new AppError(HttpStatus.BAD_REQUEST, ERROR_CODES.VALIDATION_ERROR, "Mercado Pago no está configurado");
-    }
-    const res = await fetch(`https://api.mercadopago.com${path}`, {
-      method,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: body ? JSON.stringify(body) : undefined,
+    assertMercadoPagoWebhookSignature({
+      mpConfigured: this.provider.isConfigured(),
+      webhookSecret: this.config.get<string>("MP_WEBHOOK_SECRET"),
+      headers,
+      body,
     });
-    if (!res.ok) {
-      throw new AppError(HttpStatus.BAD_REQUEST, ERROR_CODES.VALIDATION_ERROR, "No se pudo hablar con Mercado Pago");
-    }
-    return (await res.json()) as T;
-  }
-
-  private accessToken(): string | undefined {
-    const value = this.config.get<string>("MP_ACCESS_TOKEN")?.trim();
-    return value ? value : undefined;
   }
 
   private webUrl(): string {
@@ -273,12 +216,8 @@ export class PaymentsService {
   }
 }
 
-function header(
-  headers: Record<string, string | string[] | undefined>,
-  name: string,
-): string | undefined {
-  const value = headers[name] ?? headers[name.toLowerCase()];
-  return Array.isArray(value) ? value[0] : value;
+function toJson(payment: ProviderPayment): Prisma.InputJsonValue {
+  return payment.raw as Prisma.InputJsonValue;
 }
 
 function asRecord(value: unknown): Record<string, unknown> {

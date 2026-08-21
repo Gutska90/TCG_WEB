@@ -29,6 +29,7 @@ El cliente ramifica por `error.code`, no por el texto.
 | `CHECKOUT_EXPIRED` | 409 | |
 | `ORDER_ILLEGAL_TRANSITION` | 409 | |
 | `PAYMENT_NOT_HELD` | 409 | release |
+| `REFUND_PROVIDER_ERROR` | 409 | refund MP timeout/error; reintentable |
 | `SHIPPING_METHOD_UNAVAILABLE` | 400 | |
 | `IDEMPOTENCY_REPLAY` | 200 | misma respuesta (no error) |
 
@@ -59,7 +60,7 @@ Cambios de comisión **no** recalculan órdenes ya creadas.
 NODE_ENV
 DATABASE_URL
 REDIS_URL                 # desde colas
-JWT_ACCESS_SECRET
+JWT_ACCESS_SECRET         # obligatorio, ≥32 chars, sin placeholders
 JWT_ISSUER
 APP_WEB_URL
 APP_ADMIN_URL
@@ -68,8 +69,8 @@ CORS_ORIGINS
 GOOGLE_CLIENT_ID
 APPLE_CLIENT_ID
 
-MP_ACCESS_TOKEN
-MP_WEBHOOK_SECRET
+MP_ACCESS_TOKEN           # si está set, MP_WEBHOOK_SECRET es obligatorio en runtime
+MP_WEBHOOK_SECRET         # HMAC x-signature; fail-closed con token MP
 MP_PUBLIC_KEY             # solo clientes, vía endpoint config público limitado
 
 R2_ACCOUNT_ID

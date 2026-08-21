@@ -4,16 +4,19 @@ Cada fase es un incremento mergeable. No se adelanta la siguiente sin criterios 
 
 ```text
 FASE 0   Arquitectura y diseño          ✓ scaffold listo
-FASE 1   Usuarios + autenticación       ✓
+FASE 1   Usuarios + autenticación       ✓ implementation
 FASE 2   Catálogo TCG                   ✓
 FASE 3   Buscador                       ✓
 FASE 4   Marketplace (listings)         ✓
 FASE 5   Carrito                        ✓
 FASE 6   Órdenes                        ✓
-FASE 7   Pagos                          ✓
-FASE 8   Envíos                         ✓
+FASE 7   Pagos                          🟡 implementation (hardening 9.5)
+FASE 8   Envíos                         ✓ MVP
 FASE 9   Reputación                     ✓
-FASE 10  Admin                          ← siguiente
+FASE 9.5A MONEY SAFETY                  ✓
+FASE 9.5B SECURITY                      ✓
+FASE 9.5C RELEASE GATE                  ← siguiente
+FASE 10  Admin
 FASE 11  Mobile
 FASE 12  Colecciones
 FASE 13  Historial de precios
@@ -116,7 +119,28 @@ FASE 17  Scanner IA
 - `GET /v1/users/:id/ratings` público. Promedio visible en perfil, listings y ficha.
 - Web: valorar en `/me/compras/:id`; estrellas en `/vendedores/:slug`.
 
-**Estado: listo.** Siguiente: Fase 10 (admin). No implementar panel admin aquí.
+**Estado: listo.** Siguiente: Fase 9.5A (money safety). No implementar panel admin aquí.
+
+## Fase 9.5A — Money safety (P0-1, P0-2, P0-3)
+
+Checkout, reservas y cobro Mercado Pago deben ser consistentes bajo concurrencia. Un `approved` tardío **no revive** un checkout `EXPIRED`/`CANCELLED`: se registra el Payment, se audita `HIGH_PRIORITY` y se reembolsa en Mercado Pago (P0-3).
+
+- [x] P0-1 — carrera Mercado Pago vs expiración de checkout
+- [x] P0-2 — transiciones financieras con `SELECT … FOR UPDATE` (checkout → orders → listings)
+- [x] P0-3 — refund real Mercado Pago
+
+**Estado: listo.** Siguiente: Fase 9.5B (P0-4 JWT, P0-5 firma webhook). No Admin.
+
+## Fase 9.5B — Security (P0-4, P0-5)
+
+- [x] P0-4 — `JWT_ACCESS_SECRET` obligatorio, sin fallback `dev-only-change-me`
+- [x] P0-5 — firma webhook Mercado Pago fail-closed si la integración MP está habilitada
+
+**Estado: P0-4 y P0-5 listos.** Siguiente: Fase 9.5C (CI con tests, E2E crítico). No Admin.
+
+## Fase 9.5C
+
+- 9.5C Release gate: CI con tests, integración Postgres, E2E crítico.
 
 ## Fases 10–11+
 

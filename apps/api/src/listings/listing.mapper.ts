@@ -69,7 +69,7 @@ export function toListingView(row: ListingRow): ListingView {
     createdAt: row.createdAt.toISOString(),
     seller: {
       ...row.seller,
-      reputation: { averageStars: null, count: 0 },
+      reputation: EMPTY_REPUTATION,
     },
     variant: {
       id: row.variant.id,

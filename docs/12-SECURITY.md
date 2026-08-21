@@ -9,7 +9,7 @@
 | Account takeover | argon2id, rate limit, rotación refresh, más adelante MFA |
 | IDOR | Guards de ownership en cada mutación |
 | Inflar precios / wash trading | Más adelante; no prioridad MVP |
-| Webhook spoofing | Firma MP, idempotencia |
+| Webhook spoofing | Firma MP fail-closed si hay `MP_ACCESS_TOKEN`; idempotencia |
 | Subida de malware | MIME allowlist, tamaño máx, virus scan futuro |
 | XSS | React default + sanitizar markdown si hay |
 | CSRF | cookies SameSite + no cookies de access |
@@ -29,6 +29,12 @@ Ver [05-AUTH](05-AUTH.md). Toda ruta no pública: JWT + roles + ownership. Tests
 
 - `AuditLog` obligatorio: login fail masivo no; sí: onboard seller, listing price change opcional, **toda** transición de Order/Payment/Payout/Refund.
 - Admins no “editan el saldo”; usan acciones de dominio (`release_payment`, `refund`).
+- Transiciones de checkout/pago/stock: transacción Postgres + `SELECT … FOR UPDATE` en orden fijo (checkout → orders → listings). Ver [07-PAYMENTS](07-PAYMENTS.md).
+- Un `approved` de Mercado Pago sobre checkout `EXPIRED`/`CANCELLED` no se ignora: se registra el cobro, no hay fulfillment, se audita `HIGH_PRIORITY` y se ejecuta refund real contra MP (P0-3). Si el proveedor falla, `Refund FAILED` y Order no se marca `REFUNDED`.
+- Webhook: unique + lock de fila. Sin `Date.now()` como id de evento.
+- Firma webhook: si hay `MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET` y HMAC son obligatorios en cualquier entorno. Sin token MP, el endpoint público no acepta eventos (usar `simulate` en local).
+- `JWT_ACCESS_SECRET` sin fallback ni placeholders; el API no arranca si falta.
+- Refund: idempotente (`providerRefundId` unique + `X-Idempotency-Key`). Nunca confiar en `amountClp` del cliente.
 
 ## Headers y API
 

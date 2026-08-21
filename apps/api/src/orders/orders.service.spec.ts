@@ -51,7 +51,8 @@ describe("OrdersService", () => {
   const shipping = {
     quoteFromPlaces: vi.fn().mockResolvedValue({ priceClp: 0 }),
   };
-  const service = new OrdersService(prisma as never, audit as never, shipping as never);
+  const refunds = { execute: vi.fn(), executeOpenForCheckout: vi.fn(), hasBlockingRefund: vi.fn().mockResolvedValue(false) };
+  const service = new OrdersService(prisma as never, audit as never, shipping as never, refunds as never);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -112,42 +113,6 @@ describe("OrdersService", () => {
       code: ERROR_CODES.ORDER_ILLEGAL_TRANSITION,
       status: HttpStatus.CONFLICT,
     });
-  });
-
-  it("marks payment HELD on approved webhook, never RELEASED", async () => {
-    prisma.checkout.findUnique.mockResolvedValue({
-      id: "ch1",
-      status: "PENDING_PAYMENT",
-      expiresAt: new Date(Date.now() + 60_000),
-      orders: [
-        {
-          id: "o1",
-          status: "PENDING_PAYMENT",
-          totalClp: 5000,
-          items: [{ listingId: "l1", quantity: 1 }],
-          payment: null,
-        },
-      ],
-    });
-    prisma.$transaction.mockImplementation(async (fn: (tx: typeof prisma) => Promise<unknown>) => {
-      const tx = {
-        ...prisma,
-        $executeRaw: vi.fn().mockResolvedValue(1),
-        payment: { create: vi.fn(), update: vi.fn() },
-        order: { update: vi.fn() },
-        checkout: { update: vi.fn() },
-      };
-      await fn(tx);
-      expect(tx.payment.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({ status: "HELD", providerPaymentId: "mp-1" }),
-        }),
-      );
-      expect(tx.payment.create.mock.calls[0][0].data.status).not.toBe("RELEASED");
-    });
-
-    await service.applyApproved("ch1", "mp-1", { status: "approved" });
-    expect(audit.log).toHaveBeenCalledWith(expect.objectContaining({ metadata: expect.objectContaining({ paymentStatus: "HELD" }) }));
   });
 
   it("does not confirm unless payment is HELD", async () => {

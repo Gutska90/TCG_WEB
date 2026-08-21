@@ -8,6 +8,7 @@ import { AccessAuthGuard } from "../common/guards/access-auth.guard";
 import { RolesGuard } from "../common/guards/roles.guard";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
+import { resolveJwtAccessSecret } from "./jwt-secret";
 import { OauthService } from "./oauth.service";
 import { PasswordService } from "./password.service";
 
@@ -20,7 +21,7 @@ import { PasswordService } from "./password.service";
       global: true,
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        secret: config.get<string>("JWT_ACCESS_SECRET") ?? "dev-only-change-me",
+        secret: resolveJwtAccessSecret(config.get<string>("JWT_ACCESS_SECRET")),
         signOptions: {
           issuer: config.get<string>("JWT_ISSUER") ?? "tcg-platform",
           expiresIn: `${PLATFORM.accessTokenTtlSec}s`,

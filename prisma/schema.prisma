@@ -627,7 +627,7 @@ model Refund {
   amountClp        Int          @map("amount_clp")
   reason           String
   status           RefundStatus @default(PENDING)
-  providerRefundId String?      @map("provider_refund_id")
+  providerRefundId String?      @unique @map("provider_refund_id")
   createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
 

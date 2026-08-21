@@ -44,6 +44,10 @@ Después: Facebook no es prioridad. MFA TOTP opcional post-MVP 3.
 
 Claims access (mínimo): `sub`, `roles`, `sid` (session id), `ver` (email verified bool).
 
+`JWT_ACCESS_SECRET` es obligatorio al boot (mínimo 32 caracteres). No hay fallback `dev-only-change-me`. Placeholders (`change-me`, `dev-only`) abortan el proceso. Rotar el secreto invalida access tokens; las sesiones refresh siguen hasta revocar o subir `User.tokenVersion`.
+
+El refresh es opaco (hash en `Session`), no JWT: no se usa un segundo secreto de firma.
+
 No guardar PII innecesaria en JWT.
 
 ## RBAC

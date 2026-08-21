@@ -6,15 +6,19 @@ import { PrismaService } from "../prisma/prisma.service";
 export class AuditService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async log(input: {
-    actorId?: string | null;
-    action: string;
-    entityType: string;
-    entityId?: string | null;
-    metadata?: Prisma.InputJsonValue;
-    ip?: string | null;
-  }): Promise<void> {
-    await this.prisma.auditLog.create({
+  async log(
+    input: {
+      actorId?: string | null;
+      action: string;
+      entityType: string;
+      entityId?: string | null;
+      metadata?: Prisma.InputJsonValue;
+      ip?: string | null;
+    },
+    client?: Prisma.TransactionClient,
+  ): Promise<void> {
+    const auditLog = client?.auditLog ?? this.prisma.auditLog;
+    await auditLog.create({
       data: {
         actorId: input.actorId ?? null,
         action: input.action,

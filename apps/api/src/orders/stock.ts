@@ -30,12 +30,20 @@ export async function releaseStock(
   listingId: string,
   qty: number,
 ): Promise<void> {
-  await tx.$executeRaw`
+  const rows = await tx.$executeRaw`
     UPDATE listings
-    SET quantity_reserved = GREATEST(quantity_reserved - ${qty}, 0), updated_at = NOW()
+    SET quantity_reserved = quantity_reserved - ${qty}, updated_at = NOW()
     WHERE id = ${listingId}::uuid
       AND quantity_reserved >= ${qty}
   `;
+  if (rows !== 1) {
+    throw new AppError(
+      HttpStatus.CONFLICT,
+      ERROR_CODES.LISTING_INSUFFICIENT_STOCK,
+      "No hay reserva de stock para liberar",
+      { listingId, requested: qty },
+    );
+  }
 }
 
 export async function consumeReservedStock(
