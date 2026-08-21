@@ -55,13 +55,6 @@ export class MercadoPagoPaymentProvider implements PaymentProvider {
   }
 
   async getPayment(providerPaymentId: string): Promise<ProviderPayment> {
-    if (!this.isConfigured()) {
-      return {
-        id: providerPaymentId,
-        status: "approved",
-        raw: { mock: true, id: providerPaymentId },
-      };
-    }
     const raw = await this.request<Record<string, unknown>>("GET", `/v1/payments/${providerPaymentId}`);
     return {
       id: stringValue(raw.id) ?? providerPaymentId,
@@ -77,13 +70,6 @@ export class MercadoPagoPaymentProvider implements PaymentProvider {
     amountClp: number;
     idempotencyKey: string;
   }): Promise<ProviderRefundResult> {
-    if (!this.isConfigured()) {
-      return {
-        id: `mock_rf_${input.idempotencyKey}`,
-        status: "approved",
-        amountClp: input.amountClp,
-      };
-    }
     try {
       const raw = await this.request<Record<string, unknown>>(
         "POST",

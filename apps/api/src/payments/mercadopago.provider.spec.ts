@@ -81,4 +81,14 @@ describe("MercadoPagoPaymentProvider.refundPayment", () => {
       provider.refundPayment({ providerPaymentId: "missing", amountClp: 80000, idempotencyKey: "refund-1" }),
     ).rejects.toMatchObject({ code: "not_found" });
   });
+
+  it("never invents an approved payment when MP_ACCESS_TOKEN is missing", async () => {
+    const bare = new MercadoPagoPaymentProvider({
+      get: () => undefined,
+    } as ConfigService);
+    await expect(bare.getPayment("pay-1")).rejects.toMatchObject({ code: "invalid" });
+    await expect(
+      bare.refundPayment({ providerPaymentId: "pay-1", amountClp: 80000, idempotencyKey: "refund-1" }),
+    ).rejects.toMatchObject({ code: "invalid" });
+  });
 });

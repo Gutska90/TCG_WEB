@@ -2,8 +2,8 @@
 
 **Nombre de trabajo:** TCG Market Chile  
 **Nombre interno:** `tcg-platform`  
-**Fecha:** 19 agosto 2026  
-**Estado:** Fase 9 lista (reputación). Siguiente: Fase 10 (admin). Especificación v1.1.
+**Fecha:** 20 agosto 2026  
+**Estado:** Fase 9.5C lista (release gate). Siguiente: Fase 9.6 (Mercado Pago Marketplace). Especificación v1.1.
 
 Este repositorio no es una copia de TCGMatch. TCGMatch es **referencia funcional** de un marketplace chileno de cartas. El producto objetivo es una **plataforma TCG integral** para coleccionistas, jugadores y tiendas, con web, PWA y apps móviles sobre **un solo backend y una sola base de datos**.
 
@@ -33,7 +33,7 @@ Este repositorio no es una copia de TCGMatch. TCGMatch es **referencia funcional
 | 12 | [SECURITY](12-SECURITY.md) | Amenazas, auditoría, cumplimiento |
 | 13 | [TESTING](13-TESTING.md) | Pirámide de tests |
 | 14 | [DEPLOYMENT](14-DEPLOYMENT.md) | Entornos, Docker, CI |
-| 15 | [ROADMAP](15-ROADMAP.md) | Fases 0–17 |
+| 15 | [ROADMAP](15-ROADMAP.md) | Fases 0–20 |
 | 16 | [FLOWS](16-FLOWS.md) | Comprador, vendedor, tienda, colección, búsqueda |
 | 17 | [COLLECTION / PRECIOS / WISHLIST](17-COLLECTION-PRICES-WISHLIST.md) | Retención post-MVP |
 | 18 | [NOTIFICATIONS](18-NOTIFICATIONS.md) | Eventos, canales, copy |
@@ -41,6 +41,7 @@ Este repositorio no es una copia de TCGMatch. TCGMatch es **referencia funcional
 | 20 | [SCREENS](20-SCREENS.md) | Inventario web, mobile, admin |
 | 21 | [ERRORS AND CONFIG](21-ERRORS-AND-CONFIG.md) | Códigos, env, comisión |
 | 22 | [GLOSSARY](22-GLOSSARY.md) | Vocabulario del proyecto |
+| 23 | [PRODUCT BACKLOG](23-PRODUCT-BACKLOG.md) | Confianza, compra, colección, comunidad, ops |
 | — | [CURSOR](CURSOR.md) | Reglas del agente + prompt inicial |
 
 ## Cobertura del Documento Maestro
@@ -49,7 +50,7 @@ Los 20 puntos acordados:
 
 1. Alcance — `01`
 2. MVP — `01`
-3. Futuro — `01` + `15` + `17`
+3. Futuro — `01` + `15` + `17` + `23`
 4. Arquitectura — `02`
 5. Modelo de datos — `03`
 6–8. Flujos comprador / vendedor / tienda — `16`
@@ -76,11 +77,11 @@ Los 20 puntos acordados:
 | Catálogo | Agnóstico al juego: `TcgGame → Set → Card → CardVariant` |
 | TCG Fase 1 | Pokémon, Magic: The Gathering, One Piece |
 | Moneda | CLP entero (sin decimales) |
-| Auth MVP | Email+password, Google, Apple |
+| Auth web | Google-first; email+password fallback; Apple en iOS |
 | Pagos MVP | Mercado Pago + retención hasta confirmación |
 | Envíos MVP | Chilexpress, Blue Express, encuentro, retiro en tienda |
-| Subastas | Diseñadas, no implementadas hasta Fase 16 |
-| Scanner IA | Diseñado, no implementado hasta Fase 17 |
+| Subastas | Diseñadas, no implementadas hasta Fase 17 |
+| Scanner IA | Diseñado, no implementado hasta Fase 15 |
 | Idioma UI | Español (Chile); código e identificadores en inglés |
 | Monorepo | pnpm + Turborepo |
 | ORM | Prisma; ninguna tabla fuera de `schema.prisma` |
@@ -112,4 +113,4 @@ Los 20 puntos acordados:
 
 TCGMatch hoy cubre marketplace de cartas, catálogo/buscador, vendedores, accesorios, ofertas, subastas, blog y soluciones para tiendas; publicación de cartas (condición, fotos, precio, carga masiva); Mercado Pago; despacho y entrega presencial.
 
-Nosotros cubriremos ese núcleo con arquitectura, UX e identidad propias, y nos diferenciaremos con **colección valorizada, historial de precios, wishlist con alertas y (más adelante) escáner de cartas**.
+Nosotros cubriremos ese núcleo con arquitectura, UX e identidad propias, y nos diferenciaremos con **scanner → colección, Completar set, precios por ventas reales, wishlist y optimizador de carrito**. Ver [23-PRODUCT-BACKLOG](23-PRODUCT-BACKLOG.md).

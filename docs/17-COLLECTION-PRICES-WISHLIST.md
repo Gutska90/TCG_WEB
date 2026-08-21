@@ -76,6 +76,23 @@ Al completar una orden, CTA “Añadir a colección” prellena `purchasePriceCl
 - Condición opcional pero recomendada.
 - No usa stock de listings.
 
+### Completar set (misma fase)
+
+Sobre un `Set`, cruzar colección del usuario vs cartas del set vs listings ACTIVE:
+
+```text
+Pokémon 151
+142 / 207  (68.6%)
+Faltan 65 · Duplicadas 23
+Valor estimado $487.900
+
+Comprar faltantes: $… · N vendedores · envío estimado
+```
+
+El CTA **Comprar faltantes** arma carrito (o checkout) con la combinación. Si hay varias combinaciones, reutilizar el optimizador (Fase 20) o, en 12, una heurística simple (greedy por vendedor). No fingir un solver que no existe.
+
+Vender desde colección: CTA que abre el wizard de listing con `variantId` y condición prellenados.
+
 ---
 
 ## Historial de precios (Fase 13)
@@ -108,9 +125,19 @@ Job (diario o cada 6 h) por variante con actividad:
 | `LISTING_AVG` | promedio ponderado por cantidad de listings ACTIVE |
 | `SALE` | mediana (o promedio) de `OrderItem.unitPriceClp` COMPLETED en la ventana |
 
-MVP de historial: al menos `LISTING_MIN` + `LISTING_AVG` diarios. `SALE` cuando haya volumen.
+MVP de historial: al menos `LISTING_MIN` + `LISTING_AVG` diarios. El dato que hay que privilegiar en ficha es **`SALE`** (órdenes `COMPLETED`), no el promedio de publicaciones que nadie pagó.
 
-No copiar series de TCGPlayer/Cardmarket. Si más adelante se importan precios externos, `source = IMPORT` + atribución, y **no** se muestran como “precio Chile” sin etiquetar.
+Mostrar por separado, cuando haya datos:
+
+```text
+Última venta        $28.500
+Promedio 30 días    $27.900
+Mediana 30 días     $27.500
+Menor listing       $30.000
+Confianza           Alta | Media | Baja  (según N ventas)
+```
+
+Índice interno **TCG Market Price** (Fase 13+): ventas recientes, condición, idioma, variante, outliers fuera, volumen. Nunca copiar series de TCGPlayer/Cardmarket/TCGMatch. Import externo, si existe: `source = IMPORT` + atribución, no como “precio Chile”.
 
 ### API (reservada)
 

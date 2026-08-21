@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:integration": "vitest run test/integration",
     "catalog:seed": "tsx src/catalog/cli.ts seed",
     "catalog:import-scryfall": "tsx src/catalog/cli.ts import-scryfall"
   },

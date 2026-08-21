@@ -1,7 +1,7 @@
 import { HttpStatus } from "@nestjs/common";
 import { describe, expect, it } from "vitest";
 import { ERROR_CODES } from "@tcg/config";
-import { assertMercadoPagoWebhookSignature, mercadoPagoWebhookHeaders } from "./webhook-signature";
+import { assertMercadoPagoWebhookSignature, mercadoPagoWebhookHeaders, WEBHOOK_MAX_AGE_SEC } from "./webhook-signature";
 
 const SECRET = "it-webhook-secret-not-a-placeholder-32";
 const BODY = { id: "evt-1", type: "payment", data: { id: "pay-1" } };
@@ -85,5 +85,20 @@ describe("assertMercadoPagoWebhookSignature", () => {
         body: BODY,
       }),
     ).not.toThrow();
+  });
+
+  it("rejects a signed webhook whose timestamp is outside the replay window", () => {
+    const staleTs = String(Math.floor(Date.now() / 1000) - WEBHOOK_MAX_AGE_SEC - 30);
+    expectDenied(
+      () =>
+        assertMercadoPagoWebhookSignature({
+          mpConfigured: true,
+          webhookSecret: SECRET,
+          headers: mercadoPagoWebhookHeaders(SECRET, "pay-1", staleTs),
+          body: BODY,
+        }),
+      HttpStatus.UNAUTHORIZED,
+      ERROR_CODES.UNAUTHORIZED,
+    );
   });
 });

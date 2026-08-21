@@ -13,6 +13,7 @@
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
+    "test:integration": "pnpm --filter @tcg/api test:integration",
     "db:up": "docker compose -f docker/compose.yml up -d",
     "db:down": "docker compose -f docker/compose.yml down",
     "db:generate": "prisma generate",
@@ -31,6 +32,10 @@
     "typescript": "^5.9.2"
   },
   "pnpm": {
+    "overrides": {
+      "react": "19.0.0",
+      "react-dom": "19.0.0"
+    },
     "onlyBuiltDependencies": [
       "@nestjs/core",
       "@prisma/client",

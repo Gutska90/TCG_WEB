@@ -12,9 +12,9 @@
 
 Debe existir:
 
-- Registro / login (email+password, Google, Apple).
-- Verificación de email.
-- Recuperación de contraseña.
+- Login web con Google (crear cuenta en el primer ingreso). Email+password y verificación propia quedan como fallback, no como onboarding principal.
+- Apple en iOS cuando exista la app (regla App Store si hay login de terceros).
+- Recuperación de contraseña solo para cuentas con password.
 - Perfil básico (nombre, avatar, ubicación a nivel comuna opcional).
 - Listado de TCG, sets y cartas.
 - Ficha de carta (variantes, rareza, número, idioma).
@@ -53,19 +53,24 @@ Con MVP 3 se puede operar un marketplace real en Chile.
 
 ## Segunda etapa (post-MVP)
 
+Orden de código en [15-ROADMAP](15-ROADMAP.md). Inventario completo en [23-PRODUCT-BACKLOG](23-PRODUCT-BACKLOG.md).
+
 | Feature | Requisito resumido |
 |---------|-------------------|
-| Colecciones | Ítems poseídos, qty, condición, costo de compra, valor actual |
-| Wishlist | Precio objetivo + alerta cuando un listing ≤ objetivo |
-| Historial de precios | Serie temporal por `CardVariant` |
+| Disputas + reportes | Evidencia, motivos, Compra Protegida (Fase 10.5) |
+| Colecciones | Ítems, qty, condición, costo, valor, % set, Completar set |
+| Historial de precios | Ventas reales + listings; mediana; **confianza** |
+| Wishlist | Precio objetivo, condición, idioma, alertas agrupadas |
+| Scanner | Identificar → precio → colección → vender; modo lote |
+| Optimizador de carrito | Menor precio / menos vendedores / más rápido |
 | Importación masiva | CSV de listings para tiendas/vendedores |
 | Tiendas | Cuenta `STORE`, branding, retiro en local |
 
 ## Tercera etapa (diferenciación)
 
-Escáner IA, tasación, portfolio, recomendaciones, deck builder, marketplace de decks, subastas en vivo, eventos, torneos, comunidades.
+Ofertas, intercambios Tengo–Quiero, seguidores/feed, deck builder, subastas, sellados/preventas, eventos/torneos, API B2B, graded con certificado.
 
-Estas capacidades se **modelan** cuando afecta el esquema (p. ej. `Auction`), pero **no se implementan**.
+Estas capacidades se **modelan** cuando afecta el esquema (p. ej. `Auction`, `Offer`), pero **no se implementan** hasta la fase nombrada.
 
 ## Requisitos no funcionales
 

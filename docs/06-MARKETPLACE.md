@@ -113,6 +113,8 @@ Tab Ventas es privado del dueño, no público.
 
 Cualquier USER puede reportar listing o usuario. Moderación en admin. No auto-ocultar salvo umbral futuro.
 
+Disputas con evidencia, Compra Protegida y `ListingRevision`: [23-PRODUCT-BACKLOG](23-PRODUCT-BACKLOG.md), Fase 10.5. No implementar aquí.
+
 ## Accesorios y sellados
 
 `ProductType` existe en el modelo. La UI de publicación de no-singles **no** entra en MVP 1–3. No borrar el enum.

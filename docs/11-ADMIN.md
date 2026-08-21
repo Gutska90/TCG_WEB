@@ -25,14 +25,14 @@ KPIs:
 |--------|-------------|
 | Usuarios | buscar, ver roles, ban, verificar |
 | Vendedores | onboarding, listings |
-| Tiendas | cuando exista Fase 15 |
+| Tiendas | cuando exista Fase 16 |
 | Cartas / Sets / Games | CRUD, activar, reimportar |
 | Publicaciones | pausar, quitar, motivo |
 | Ventas | ver órdenes, forzar transiciones excepcionales |
 | Pagos | HELD/RELEASED, reembolsos, payouts |
 | Reclamos / disputas | resolver |
 | Reportes | cola de moderación |
-| Subastas | Fase 16 |
+| Subastas | Fase 17 |
 | Notificaciones | broadcast (ADMIN+) |
 | Configuración | comisión, timeouts, tarifas envío, feature flags |
 

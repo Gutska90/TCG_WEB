@@ -4,6 +4,10 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  react: 19.0.0
+  react-dom: 19.0.0
+
 importers:
 
   .:
@@ -25,13 +29,13 @@ importers:
         version: link:../../packages/config
       next:
         specifier: ^15.5.2
-        version: 15.5.23(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        version: 15.5.23(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       react:
-        specifier: ^19.1.1
-        version: 19.2.8
+        specifier: 19.0.0
+        version: 19.0.0
       react-dom:
-        specifier: ^19.1.1
-        version: 19.2.8(react@19.2.8)
+        specifier: 19.0.0
+        version: 19.0.0(react@19.0.0)
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.3.1
@@ -46,11 +50,11 @@ importers:
         specifier: ^22.18.0
         version: 22.20.1
       '@types/react':
-        specifier: ^19.1.12
-        version: 19.2.18
+        specifier: ~19.0.10
+        version: 19.0.14
       '@types/react-dom':
-        specifier: ^19.1.9
-        version: 19.2.4(@types/react@19.2.18)
+        specifier: ~19.0.4
+        version: 19.0.6(@types/react@19.0.14)
       eslint:
         specifier: ^9.34.0
         version: 9.39.5(jiti@2.7.0)
@@ -205,13 +209,13 @@ importers:
         version: link:../../packages/ui
       next:
         specifier: ^15.5.2
-        version: 15.5.23(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        version: 15.5.23(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
       react:
-        specifier: ^19.1.1
-        version: 19.2.8
+        specifier: 19.0.0
+        version: 19.0.0
       react-dom:
-        specifier: ^19.1.1
-        version: 19.2.8(react@19.2.8)
+        specifier: 19.0.0
+        version: 19.0.0(react@19.0.0)
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3.3.1
@@ -226,11 +230,11 @@ importers:
         specifier: ^22.18.0
         version: 22.20.1
       '@types/react':
-        specifier: ^19.1.12
-        version: 19.2.18
+        specifier: ~19.0.10
+        version: 19.0.14
       '@types/react-dom':
-        specifier: ^19.1.9
-        version: 19.2.4(@types/react@19.2.18)
+        specifier: ~19.0.4
+        version: 19.0.6(@types/react@19.0.14)
       eslint:
         specifier: ^9.34.0
         version: 9.39.5(jiti@2.7.0)
@@ -305,20 +309,20 @@ importers:
         specifier: workspace:*
         version: link:../tsconfig
       '@types/react':
-        specifier: ^19.1.12
-        version: 19.2.18
+        specifier: ~19.0.10
+        version: 19.0.14
       '@types/react-dom':
-        specifier: ^19.1.9
-        version: 19.2.4(@types/react@19.2.18)
+        specifier: ~19.0.4
+        version: 19.0.6(@types/react@19.0.14)
       eslint:
         specifier: ^9.34.0
         version: 9.39.5(jiti@2.7.0)
       react:
-        specifier: ^19.1.1
-        version: 19.2.8
+        specifier: 19.0.0
+        version: 19.0.0
       react-dom:
-        specifier: ^19.1.1
-        version: 19.2.8(react@19.2.8)
+        specifier: 19.0.0
+        version: 19.0.0(react@19.0.0)
       typescript:
         specifier: ^5.9.2
         version: 5.9.3
@@ -1162,7 +1166,7 @@ packages:
     resolution: {integrity: sha512-7T09UE9h8QDTsUeMGymB4i+iqvtEeaO5VvUjryFB4tugDTG/bkzViWA74hm5pfjjDEhYMXWaX112mcvhccmIwQ==}
     peerDependencies:
       expo-font: '*'
-      react: '*'
+      react: 19.0.0
       react-native: '*'
 
   '@expo/ws-tunnel@1.0.6':
@@ -1807,7 +1811,7 @@ packages:
     engines: {node: '>=18'}
     peerDependencies:
       '@types/react': ^19.0.0
-      react: '*'
+      react: 19.0.0
       react-native: '*'
     peerDependenciesMeta:
       '@types/react':
@@ -2167,16 +2171,13 @@ packages:
   '@types/range-parser@1.2.7':
     resolution: {integrity: sha512-hKormJbkJqzQGhziax5PItDUTMAM9uE2XXQmM37dyd4hVM+5aVl7oVxMVUiVQn2oCQFN/LKCZdvSM0pFRqbSmQ==}
 
-  '@types/react-dom@19.2.4':
-    resolution: {integrity: sha512-Bsc+QHgp+P/F02XDzNCY9jnZNCUuLki36KT7VKrTXXLdHf+vHMNZnW1rVu5DNW/rCK+fya3DATySbLM4yhtKUw==}
+  '@types/react-dom@19.0.6':
+    resolution: {integrity: sha512-lo6MuY+rFr8kIiFnr+7TzO+Av0wUPcEcepiPV4epGP0eTQpkDfp9czudg73isV8UxKauCUNlL1N8fXhcnx4iBw==}
     peerDependencies:
-      '@types/react': ^19.2.0
+      '@types/react': ^19.0.0
 
   '@types/react@19.0.14':
     resolution: {integrity: sha512-ixLZ7zG7j1fM0DijL9hDArwhwcCb4vqmePgwtV0GfnkHRSCUEv4LvzarcTdhoqgyMznUx/EhoTUv31CKZzkQlw==}
-
-  '@types/react@19.2.18':
-    resolution: {integrity: sha512-AnzbBERsrLKtk2XSfTbYRLjQPdy116Sty4q+T+Bp3IC4l6jNBvreVPAHmpq9qhXQM7CXZPjLVmGMw9sy+hxQ3w==}
 
   '@types/send@1.2.1':
     resolution: {integrity: sha512-arsCikDvlU99zl1g69TcAB3mzZPpxgw0UQnaHeC1Nwb015xp8bknZv5rIfri9xTOcMuaVgvabfIRA7PSZVuZIQ==}
@@ -3392,6 +3393,7 @@ packages:
   eslint@9.39.5:
     resolution: {integrity: sha512-DgZS62aPLXKlnxILS/AYCoRvHaZeXceIzlXPkkGGzJWSow1aEk0lbTlxUSlyjC8jcaKxAdOnTDz+o1JFSBsyjw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -3451,7 +3453,7 @@ packages:
     resolution: {integrity: sha512-b5P8GpjUh08fRCf6m5XPVAh7ra42cQrHBIMgH2UXP+xsj4Wufl6pLy6jRF5w6U7DranUMbsXm8TOyq4EHy7ADg==}
     peerDependencies:
       expo: '*'
-      react: '*'
+      react: 19.0.0
       react-native: '*'
 
   expo-constants@17.1.8:
@@ -3470,13 +3472,13 @@ packages:
     resolution: {integrity: sha512-wUlMdpqURmQ/CNKK/+BIHkDA5nGjMqNlYmW0pJFXY/KE/OG80Qcavdu2sHsL4efAIiNGvYdBS10WztuQYU4X0A==}
     peerDependencies:
       expo: '*'
-      react: '*'
+      react: 19.0.0
 
   expo-keep-awake@14.1.4:
     resolution: {integrity: sha512-wU9qOnosy4+U4z/o4h8W9PjPvcFMfZXrlUoKTMBW7F4pLqhkkP/5G4EviPZixv4XWFMjn1ExQ5rV6BX8GwJsWA==}
     peerDependencies:
       expo: '*'
-      react: '*'
+      react: 19.0.0
 
   expo-modules-autolinking@2.1.15:
     resolution: {integrity: sha512-IUITUERdkgooXjr9bXsX0PmhrZUIGTMyP6NtmQpAxN5+qtf/I7ewbwLx1/rX7tgiAOzaYme+PZOp/o6yqIhFsw==}
@@ -3488,7 +3490,7 @@ packages:
   expo-status-bar@2.2.3:
     resolution: {integrity: sha512-+c8R3AESBoduunxTJ8353SqKAKpxL6DvcD8VKBuh81zzJyUUbfB4CVjr1GufSJEKsMzNPXZU+HJwXx7Xh7lx8Q==}
     peerDependencies:
-      react: '*'
+      react: 19.0.0
       react-native: '*'
 
   expo@53.0.27:
@@ -3497,7 +3499,7 @@ packages:
     peerDependencies:
       '@expo/dom-webview': '*'
       '@expo/metro-runtime': '*'
-      react: '*'
+      react: 19.0.0
       react-native: '*'
       react-native-webview: '*'
     peerDependenciesMeta:
@@ -4654,8 +4656,8 @@ packages:
       '@opentelemetry/api': ^1.1.0
       '@playwright/test': ^1.51.1
       babel-plugin-react-compiler: '*'
-      react: ^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0
-      react-dom: ^18.2.0 || 19.0.0-rc-de68d2f4-20241204 || ^19.0.0
+      react: 19.0.0
+      react-dom: 19.0.0
       sass: ^1.3.0
     peerDependenciesMeta:
       '@opentelemetry/api':
@@ -5034,10 +5036,10 @@ packages:
   react-devtools-core@6.1.5:
     resolution: {integrity: sha512-ePrwPfxAnB+7hgnEr8vpKxL9cmnp7F322t8oqcPshbIQQhDKgFDW4tjhF2wjVbdXF9O/nyuy3sQWd9JGpiLPvA==}
 
-  react-dom@19.2.8:
-    resolution: {integrity: sha512-rVprimfGBG3DR+Tq0IQG2DT5PxKth1WIGDmj5yPmlzr4YBe7uyE+Du4oVqTDXZSHGGGXRtTJEGSSePyQCMBglQ==}
+  react-dom@19.0.0:
+    resolution: {integrity: sha512-4GV5sHFG0e/0AD4X+ySy6UJd3jVl1iNsNHdpad0qhABJ11twS3TTBnseqsKurKcsNqCEFeGL3uLpVChpIO3QfQ==}
     peerDependencies:
-      react: ^19.2.8
+      react: 19.0.0
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -5048,13 +5050,13 @@ packages:
   react-native-edge-to-edge@1.6.0:
     resolution: {integrity: sha512-2WCNdE3Qd6Fwg9+4BpbATUxCLcouF6YRY7K+J36KJ4l3y+tWN6XCqAC4DuoGblAAbb2sLkhEDp4FOlbOIot2Og==}
     peerDependencies:
-      react: '*'
+      react: 19.0.0
       react-native: '*'
 
   react-native-is-edge-to-edge@1.3.1:
     resolution: {integrity: sha512-NIXU/iT5+ORyCc7p0z2nnlkouYKX425vuU1OEm6bMMtWWR9yvb+Xg5AZmImTKoF9abxCPqrKC3rOZsKzUYgYZA==}
     peerDependencies:
-      react: '*'
+      react: 19.0.0
       react-native: '*'
 
   react-native@0.79.5:
@@ -5063,7 +5065,7 @@ packages:
     hasBin: true
     peerDependencies:
       '@types/react': ^19.0.0
-      react: ^19.0.0
+      react: 19.0.0
     peerDependenciesMeta:
       '@types/react':
         optional: true
@@ -5074,10 +5076,6 @@ packages:
 
   react@19.0.0:
     resolution: {integrity: sha512-V8AVnmPIICiWpGfm6GLzCR/W5FXLchHop40W4nXBmdlEceh16rCN8O8LNWm5bh5XUX91fh7KpA+W0TgMKmgTpQ==}
-    engines: {node: '>=0.10.0'}
-
-  react@19.2.8:
-    resolution: {integrity: sha512-PWaYA1L/q9u2u7xYQi+Y3L3Yfnie7XyLeaJICV1MGD6LprsBxcAqGjYyr0eY3p+QdsA+x/Irkt4Qif8D63+Sbw==}
     engines: {node: '>=0.10.0'}
 
   readable-stream@3.6.2:
@@ -5226,9 +5224,6 @@ packages:
 
   scheduler@0.25.0:
     resolution: {integrity: sha512-xFVuu11jh+xcO7JOAGJNOXld8/TcEHK/4CituBUeUb5hqxJLj9YuemAEuvm9gQ/+pgXYfbQuqAkiYu+u7YEsNA==}
-
-  scheduler@0.27.0:
-    resolution: {integrity: sha512-eNv+WrVbKu1f3vbYJT/xtiF5syA5HPIMtf9IgY/nKg0sWqzAUEvqY/xm7OcZc/qafLx/iO9FgOmeSAp4v5ti/Q==}
 
   schema-utils@3.3.0:
     resolution: {integrity: sha512-pN/yOAvcC+5rQ5nERGuwrjLlYvLTbCibnZ1I7B1LaiAz9BRBlE9GMgE/eqV30P7aJQUf7Ddimy/RsbYO/GrVGg==}
@@ -5474,7 +5469,7 @@ packages:
     peerDependencies:
       '@babel/core': '*'
       babel-plugin-macros: '*'
-      react: '>= 16.8.0 || 17.x.x || ^18.0.0-0 || ^19.0.0-0'
+      react: 19.0.0
     peerDependenciesMeta:
       '@babel/core':
         optional: true
@@ -8132,15 +8127,11 @@ snapshots:
 
   '@types/range-parser@1.2.7': {}
 
-  '@types/react-dom@19.2.4(@types/react@19.2.18)':
+  '@types/react-dom@19.0.6(@types/react@19.0.14)':
     dependencies:
-      '@types/react': 19.2.18
+      '@types/react': 19.0.14
 
   '@types/react@19.0.14':
-    dependencies:
-      csstype: 3.2.3
-
-  '@types/react@19.2.18':
     dependencies:
       csstype: 3.2.3
 
@@ -10966,15 +10957,15 @@ snapshots:
 
   nested-error-stacks@2.0.1: {}
 
-  next@15.5.23(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
+  next@15.5.23(react-dom@19.0.0(react@19.0.0))(react@19.0.0):
     dependencies:
       '@next/env': 15.5.23
       '@swc/helpers': 0.5.15
       caniuse-lite: 1.0.30001809
       postcss: 8.4.31
-      react: 19.2.8
-      react-dom: 19.2.8(react@19.2.8)
-      styled-jsx: 5.1.6(react@19.2.8)
+      react: 19.0.0
+      react-dom: 19.0.0(react@19.0.0)
+      styled-jsx: 5.1.6(react@19.0.0)
     optionalDependencies:
       '@next/swc-darwin-arm64': 15.5.23
       '@next/swc-darwin-x64': 15.5.23
@@ -11366,10 +11357,10 @@ snapshots:
       - bufferutil
       - utf-8-validate
 
-  react-dom@19.2.8(react@19.2.8):
+  react-dom@19.0.0(react@19.0.0):
     dependencies:
-      react: 19.2.8
-      scheduler: 0.27.0
+      react: 19.0.0
+      scheduler: 0.25.0
 
   react-is@16.13.1: {}
 
@@ -11436,8 +11427,6 @@ snapshots:
   react-refresh@0.14.2: {}
 
   react@19.0.0: {}
-
-  react@19.2.8: {}
 
   readable-stream@3.6.2:
     dependencies:
@@ -11630,8 +11619,6 @@ snapshots:
   sax@1.6.1: {}
 
   scheduler@0.25.0: {}
-
-  scheduler@0.27.0: {}
 
   schema-utils@3.3.0:
     dependencies:
@@ -11953,10 +11940,10 @@ snapshots:
 
   structured-headers@0.4.1: {}
 
-  styled-jsx@5.1.6(react@19.2.8):
+  styled-jsx@5.1.6(react@19.0.0):
     dependencies:
       client-only: 0.0.1
-      react: 19.2.8
+      react: 19.0.0
 
   sucrase@3.35.0:
     dependencies:

@@ -9,7 +9,7 @@
 | Account takeover | argon2id, rate limit, rotación refresh, más adelante MFA |
 | IDOR | Guards de ownership en cada mutación |
 | Inflar precios / wash trading | Más adelante; no prioridad MVP |
-| Webhook spoofing | Firma MP fail-closed si hay `MP_ACCESS_TOKEN`; idempotencia |
+| Webhook spoofing | Firma MP fail-closed + ventana `ts` 5 min + `WebhookEvent` unique |
 | Subida de malware | MIME allowlist, tamaño máx, virus scan futuro |
 | XSS | React default + sanitizar markdown si hay |
 | CSRF | cookies SameSite + no cookies de access |
@@ -33,6 +33,8 @@ Ver [05-AUTH](05-AUTH.md). Toda ruta no pública: JWT + roles + ownership. Tests
 - Un `approved` de Mercado Pago sobre checkout `EXPIRED`/`CANCELLED` no se ignora: se registra el cobro, no hay fulfillment, se audita `HIGH_PRIORITY` y se ejecuta refund real contra MP (P0-3). Si el proveedor falla, `Refund FAILED` y Order no se marca `REFUNDED`.
 - Webhook: unique + lock de fila. Sin `Date.now()` como id de evento.
 - Firma webhook: si hay `MP_ACCESS_TOKEN`, `MP_WEBHOOK_SECRET` y HMAC son obligatorios en cualquier entorno. Sin token MP, el endpoint público no acepta eventos (usar `simulate` en local).
+- Replay: `ts` entra en el HMAC (integración MP). Además la plataforma rechaza `|now - ts| > 300s`. `WebhookEvent UNIQUE(provider, providerEventId)` bloquea reentregas del mismo evento.
+- `MercadoPagoPaymentProvider` **no** inventa `approved` si falta `MP_ACCESS_TOKEN`: falla cerrado. Tests usan `FakePaymentProvider`. Local sin token usa `LocalPaymentProvider` (nunca en production).
 - `JWT_ACCESS_SECRET` sin fallback ni placeholders; el API no arranca si falta.
 - Refund: idempotente (`providerRefundId` unique + `X-Idempotency-Key`). Nunca confiar en `amountClp` del cliente.
 

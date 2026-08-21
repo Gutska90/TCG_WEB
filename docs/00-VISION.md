@@ -31,7 +31,7 @@ No es solo un marketplace. El marketplace es el primer pilar comercial. La reten
 | Marketplace | Publicar, comprar, pagar, enviar | MVP 2–3 |
 | Colección | Inventario personal valorizado | Fase 12 |
 | Precios | Historial, mercado, sugerencia al vender | Fase 13 |
-| Tiendas | Cuenta negocio, stock, retiro | Fase 15 |
+| Tiendas | Cuenta negocio, stock, retiro | Fase 16 |
 | Juego | Decks, eventos, torneos | Fase 3 del producto |
 | Comunidad | Perfiles, reputación, mensajes | Reputación en MVP 3; resto después |
 
@@ -77,15 +77,29 @@ Cualquier usuario verificado puede vender. `SELLER` no es una casta aparte: es u
 6. **Chile real.** CLP, comunas, Chilexpress/Blue Express, encuentro presencial, Mercado Pago.
 7. **API-first.** Las pantallas consumen contratos; no al revés.
 
+## Cinco frentes (después de dejar segura la parte transaccional)
+
+| Frente | Qué |
+|--------|-----|
+| Confianza | Compra Protegida, disputas con evidencia, niveles de vendedor, límites a cuentas nuevas |
+| Compra | Precio final con envío, ofertas, **optimizador** (precio / menos vendedores / más rápido) |
+| Coleccionista | Colección valorizada, Completar set, scanner lote, wishlist |
+| Comunidad | Perfil coleccionista, seguidores, feed útil, trending — no red social completa |
+| Operación | Admin, dashboard vendedor, jobs, observabilidad, flags |
+
+Backlog mapeado a fases: [23-PRODUCT-BACKLOG](23-PRODUCT-BACKLOG.md). No adelantar código.
+
 ## Ventaja competitiva (no copiar el techo de TCGMatch)
 
-El MVP debe ser un marketplace sólido. La diferenciación explícita, en este orden:
+El MVP debe ser un marketplace sólido. La diferenciación explícita, cuando toque cada fase:
 
-1. Historial de precios por variante.
-2. Colección personal con valor estimado en CLP.
-3. Wishlist con precio objetivo y notificación.
-4. Precio sugerido al publicar (mercado / mínimo / sugerido).
-5. Escáner de cartas en la app (Fase 17), con el botón central de la tab bar como firma visual.
+1. Scanner → colección → vender.
+2. Completar set (faltantes + comprar en el marketplace).
+3. Optimizador de carrito multivendedor.
+4. Wishlist con alertas agrupadas.
+5. Precios desde **ventas reales** + nivel de confianza (índice propio, no listings solos).
+
+Loop a proteger: `SCANNER → COLECCIÓN → PRECIOS → WISHLIST → VENDER / COMPRAR`.
 
 ## Tono e identidad (provisional)
 
@@ -110,4 +124,4 @@ Navegación mobile objetivo:
 Inicio | Buscar | Escanear | Lista | Perfil
 ```
 
-`Escanear` puede existir como placeholder en la app antes de la Fase 17, sin reconocimiento real.
+`Escanear` puede existir como placeholder en la app antes de la Fase 15, sin reconocimiento real.

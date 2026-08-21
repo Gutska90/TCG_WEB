@@ -10,9 +10,9 @@
 | E2E mobile | Maestro o Detox **después** de Fase 11; no bloquear MVP API |
 | Contract | `packages/validation` | schemas usados por web y api |
 
-Los tests de dinero **P0-1/P0-2/P0-3** no se cubren solo con Prisma mockeado: las carreras necesitan locks reales; el refund necesita Postgres + `PaymentProvider` falso (HTTP mockeado).
+Los tests de dinero **P0-1/P0-2/P0-3** no se cubren solo con Prisma mockeado: las carreras necesitan locks reales; el refund necesita Postgres + `FakePaymentProvider` (nunca `MercadoPagoPaymentProvider` fingiendo `approved`).
 
-Casos de integración obligatorios (Fase 9.5A):
+Casos de integración obligatorios (Fase 9.5):
 
 1. `approved` normal → `HELD` / `PAID`
 2. `approved` duplicado (idempotente, un solo `AuditLog`)
@@ -32,8 +32,17 @@ Casos de integración obligatorios (Fase 9.5A):
 18. fixtures de respuesta MP (`approved`, already refunded, 404, timeout)
 19. webhook sin firma con MP habilitado → 401; mock → 403
 20. JWT placeholder / vacío aborta boot (excepto `NODE_ENV=test`)
+21. smoke 9.5C: qty 1 → checkout reservado → PAID → refund → stock restaurado; webhook duplicado no duplica Payment/Refund/stock/AuditLog
+22. `MercadoPagoPaymentProvider` sin token no inventa `approved`
 
-Correr: `pnpm test` (carga `.env` / `DATABASE_URL`). Postgres debe estar arriba.
+Correr:
+
+```text
+pnpm test
+pnpm test:integration
+```
+
+Postgres debe estar arriba (`DATABASE_URL`). CI corre migrate + ambos.
 
 ## Reglas
 
@@ -49,4 +58,4 @@ Correr: `pnpm test` (carga `.env` / `DATABASE_URL`). Postgres debe estar arriba.
 
 ## CI
 
-PR: lint + typecheck + unit/integration api + build web. E2E nightly o en main.
+GitHub Actions (`.github/workflows/ci.yml`): Postgres 16 → `prisma migrate deploy` → lint → typecheck → `pnpm test` → `pnpm test:integration` → `pnpm build`. El PR falla si algún gate falla. El smoke de dinero vive en integración API.

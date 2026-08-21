@@ -3,27 +3,38 @@
 Cada fase es un incremento mergeable. No se adelanta la siguiente sin criterios de salida.
 
 ```text
-FASE 0   Arquitectura y diseño          ✓ scaffold listo
-FASE 1   Usuarios + autenticación       ✓ implementation
-FASE 2   Catálogo TCG                   ✓
-FASE 3   Buscador                       ✓
-FASE 4   Marketplace (listings)         ✓
-FASE 5   Carrito                        ✓
-FASE 6   Órdenes                        ✓
-FASE 7   Pagos                          🟡 implementation (hardening 9.5)
-FASE 8   Envíos                         ✓ MVP
-FASE 9   Reputación                     ✓
-FASE 9.5A MONEY SAFETY                  ✓
-FASE 9.5B SECURITY                      ✓
-FASE 9.5C RELEASE GATE                  ← siguiente
-FASE 10  Admin
-FASE 11  Mobile
-FASE 12  Colecciones
-FASE 13  Historial de precios
-FASE 14  Wishlist + alertas
-FASE 15  Tiendas
-FASE 16  Subastas
-FASE 17  Scanner IA
+FASE 0    Arquitectura y diseño          ✓ scaffold listo
+FASE 1    Usuarios + autenticación       ✓ (Google-first en docs; UI pendiente)
+FASE 2    Catálogo TCG                   ✓
+FASE 3    Buscador                       ✓
+FASE 4    Marketplace (listings)         ✓
+FASE 5    Carrito                        ✓
+FASE 6    Órdenes                        ✓
+FASE 7    Pagos                          🟡 implementation (hardening 9.5)
+FASE 8    Envíos                         ✓ MVP
+FASE 9    Reputación                     ✓
+FASE 9.5A MONEY SAFETY                   ✓
+FASE 9.5B SECURITY                       ✓
+FASE 9.5C RELEASE GATE                   ✓
+FASE 9.6  MP MARKETPLACE (decisión)      ← siguiente
+FASE 10   Admin (operación)
+FASE 10.5 Disputas + reports + moderación
+FASE 11   Mobile
+FASE 12   Colecciones
+FASE 13   Historial de precios
+FASE 14   Wishlist + alertas
+FASE 15   Scanner
+FASE 16   Tiendas
+FASE 17   Subastas
+FASE 18   Intercambios
+FASE 19   Deck builder
+FASE 20   Optimización de compras
+```
+
+Núcleo diferencial post-transaccional (no adelantar hasta que 9.6–10.5 estén resueltos):
+
+```text
+SCANNER → COLECCIÓN → PRECIOS → WISHLIST → VENDER / COMPRAR
 ```
 
 ## Relación con MVPs de producto
@@ -33,10 +44,12 @@ FASE 17  Scanner IA
 | 1 Catálogo | 0–3 (+ web mínima) | Gente se registra y explora cartas |
 | 2 Marketplace | 4–6 | Publicar y “comprar” sin plata real |
 | 3 Transacciones | 7–10 | Marketplace usable en Chile (sandbox → prod) |
-| App | 11 | Mismos flujos en Expo |
-| Retención | 12–14 | Colección, precios, alertas |
-| B2B | 15 | Tiendas |
-| Diferenciación | 16–17 | Subastas + scanner |
+| App | 11 | Mismos flujos en Expo (misma API) |
+| Retención | 12–14 | Colección, precios, wishlist |
+| Diferenciación | 15 | Scanner (antes de tiendas/subastas) |
+| B2B | 16 | Tiendas |
+| Live | 17 | Subastas |
+| Segunda etapa | 18–20 | Intercambios, deck builder, carrito óptimo |
 
 ## Fase 0 — salida
 
@@ -138,13 +151,65 @@ Checkout, reservas y cobro Mercado Pago deben ser consistentes bajo concurrencia
 
 **Estado: P0-4 y P0-5 listos.** Siguiente: Fase 9.5C (CI con tests, E2E crítico). No Admin.
 
-## Fase 9.5C
+## Fase 9.5C — Release gate
 
-- 9.5C Release gate: CI con tests, integración Postgres, E2E crítico.
+Ningún cambio se integra si rompe seguridad, stock, checkout, pagos o build.
 
-## Fases 10–11+
+- [x] CI con PostgreSQL 16, `prisma migrate deploy`, lint, typecheck, tests, build
+- [x] Integración Postgres (concurrencia, refunds, smoke qty=1)
+- [x] `MercadoPagoPaymentProvider` fail-closed (sin `approved` ficticio)
+- [x] Replay window de webhook (`ts` ≤ 300s) documentada
 
-Según [01-REQUIREMENTS](01-REQUIREMENTS.md) MVP 2–3.
+**Estado: listo.** Siguiente: Fase 9.6 (arquitectura Mercado Pago Marketplace / Split). No Admin.
+
+## Fase 9.6 — Mercado Pago Marketplace (decisión, no código todavía)
+
+Antes de dinero real. Definir, no implementar Split hasta que este doc y [07-PAYMENTS](07-PAYMENTS.md) coincidan:
+
+- OAuth por vendedor (token MP del seller, no solo `MP_ACCESS_TOKEN` de plataforma).
+- `marketplace_fee`.
+- Carrito multivendedor: una preferencia por vendedor vs otro flujo.
+- Refunds en split payments.
+- Qué significan realmente `HELD` / `RELEASED` (escrow MP vs estados internos de fulfillment).
+
+Hoy el código es **Opción A** (cuenta plataforma). Ver [07-PAYMENTS](07-PAYMENTS.md).
+
+## Fase 10 — Admin (operación)
+
+Panel contra la misma API. Enfoque operativo, no CMS de marketing:
+
+- usuarios, vendedores, listings, órdenes, pagos, refunds, disputas, reportes, auditoría, alertas operativas.
+
+No se implementa hasta nombrar esta fase.
+
+## Fase 10.5 — Moderación y soporte
+
+Antes de Mobile:
+
+- `Report`, `Dispute`, motivos de cancelación, bloqueo/suspensión de vendedores, revisión de listings, evidencia/fotos en disputas.
+
+No se inventan tablas hasta esta fase (actualizar Prisma + `03-DATABASE` juntos).
+
+## Fase 11 — Mobile
+
+React Native / Expo contra **la misma API**. Sin duplicar lógica de negocio.
+
+Primera versión: login (Google + Apple), catálogo, búsqueda, ficha, carrito, compras, ventas, favoritos, notificaciones básicas.
+
+## Fases 12–17
+
+| Fase | Qué |
+|------|-----|
+| 12 Colecciones | qty, condición, costo, valor, P/L, % set, Completar set, vender desde colección |
+| 13 Historial de precios | ventas reales + listings; mediana; confianza; TCG Market Price |
+| 14 Wishlist + alertas | carta + condición + idioma + precio máx; alerta al aparecer listing |
+| 15 Scanner | identificar / colección / vender / precio / lote inventario |
+| 16 Tiendas | Store, StoreMember, inventario, CSV, panel, pedidos, retiro en tienda |
+| 17 Subastas | WebSocket, bids, anti-sniping, cierre seguro, idempotencia |
+
+## Fases 18–20 (segunda etapa)
+
+Intercambios / “Tengo–Quiero”, deck builder, optimizador de carrito. Torneos/eventos y detección asistida de falsificaciones se modelan después.
 
 ## Fases 11+
 
@@ -152,4 +217,6 @@ No se implementan pantallas “de mentira” que llamen APIs inexistentes. Si la
 
 ## Criterio para cambiar el roadmap
 
-Un cambio de orden (p. ej. mobile antes de pagos) se documenta aquí **antes** de ejecutarlo. Default: API y web de marketplace antes de store listings de iOS/Android.
+Un cambio de orden se documenta aquí **antes** de ejecutarlo. Default: dejar segura la parte transaccional (9.6 → 10 → 10.5) antes de Mobile y del loop scanner/colección.
+
+Backlog de producto (confianza, compra, colección, comunidad, ops): [23-PRODUCT-BACKLOG](23-PRODUCT-BACKLOG.md). No adelantar esas features porque “destacan”. El optimizador de carrito es prioridad de producto alta y Fase 20 de código; subirlo se decide aquí primero.

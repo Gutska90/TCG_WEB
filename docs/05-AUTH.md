@@ -2,33 +2,38 @@
 
 ## Identidad
 
-MVP:
+**Web (decisión):** Sign in with Google es el onboarding por defecto. El primer login crea `User` + `AuthIdentity(GOOGLE)` + `UserRole(USER)`. Google entrega `sub`, email y `email_verified`; si el email está verificado en Google, se setea `emailVerifiedAt` y **no** se envía correo de verificación nuestro.
 
-- Email + password (min 10 caracteres, check de breach k-anonymity opcional después).
-- Google (ID token).
-- Apple (mobile obligatorio si hay Sign in with Apple en iOS; web también).
+Google **no** reemplaza: fila `User`, `Session`, JWT de la plataforma, RBAC, onboarding de vendedor, términos, dirección, ni Mercado Pago. Solo identidad y prueba de email.
+
+- Google (ID token / GIS). Obligatorio `GOOGLE_CLIENT_ID`.
+- Apple: obligatorio en iOS si hay login de terceros (regla App Store). Web opcional.
+- Email + password: queda en API para cuentas ya creadas y como fallback interno. La web no promociona `/registro` ni verificación de email para usuarios nuevos.
 
 Después: Facebook no es prioridad. MFA TOTP opcional post-MVP 3.
 
 ## Flujos
 
-### Registro email
+### Registro email (legacy / fallback)
 
 1. `POST /v1/auth/register` crea `User` + `AuthIdentity(EMAIL)` + `UserRole(USER)`.
 2. Envía email de verificación (token de un solo uso, 24 h).
 3. Login permitido con email no verificado, pero **vender y checkout** requieren `emailVerifiedAt`.
 
-### Login
+Los usuarios nuevos de Google no pasan por este flujo.
+
+### Login email (legacy)
 
 1. Verifica password (argon2id).
 2. Emite access JWT (15 min) + refresh opaco (30 días) en `Session`.
 3. Refresh rota el token (reuse detection: si un refresh ya revocado se presenta, se revocan todas las sesiones del usuario).
 
-### OAuth
+### OAuth (Google / Apple)
 
 - Si `providerSubject` existe → login.
 - Si email existe con otro provider → vincular solo si el email está verificado en ambos lados; si no, 409 `ACCOUNT_CONFLICT`.
-- Si no existe → crear usuario `USER`.
+- Si no existe → crear usuario `USER`. Con Google, exigir `email_verified`; si no, rechazar (no crear cuenta a medias).
+- `emailVerifiedAt` se copia de `email_verified` de Google/Apple. Checkout y vender usan el mismo gate.
 
 ### Password reset
 
@@ -118,6 +123,6 @@ El panel admin usa los mismos endpoints `/v1/admin` con cookie de dominio admin.
 
 ## Correos transaccionales (auth)
 
-- Verificar email
-- Password reset
+- Verificar email (solo cuentas `EMAIL`, no Google con `email_verified`)
+- Password reset (solo cuentas con password)
 - Nuevo login desde dispositivo desconocido (post-MVP, recomendado en MVP 3)

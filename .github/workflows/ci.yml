@@ -8,6 +8,23 @@ on:
 jobs:
   check:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: tcg
+          POSTGRES_PASSWORD: tcg
+          POSTGRES_DB: tcg_platform
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tcg -d tcg_platform"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://tcg:tcg@localhost:5432/tcg_platform
+      JWT_ACCESS_SECRET: ci-gate-jwt-access-secret-min-32-chars-ok
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -16,11 +33,17 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-        env:
-          DATABASE_URL: postgresql://tcg:tcg@localhost:5432/tcg_platform
+      - run: pnpm db:generate
+      - run: pnpm exec prisma migrate deploy
       - run: pnpm lint
-        env:
-          DATABASE_URL: postgresql://tcg:tcg@localhost:5432/tcg_platform
       - run: pnpm typecheck
+      - name: Unit and integration tests
         env:
-          DATABASE_URL: postgresql://tcg:tcg@localhost:5432/tcg_platform
+          NODE_ENV: test
+        run: pnpm test
+      - name: Integration tests (explicit)
+        env:
+          NODE_ENV: test
+        run: pnpm test:integration
+      - name: Build
+        run: pnpm build

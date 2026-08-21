@@ -4,11 +4,15 @@ import { ERROR_CODES } from "@tcg/config";
 import { AppError } from "../common/errors/app-error";
 import { isPlaceholderSecret } from "../auth/jwt-secret";
 
+/** Platform replay window. `ts` is part of the MP HMAC; we also reject stale timestamps. */
+export const WEBHOOK_MAX_AGE_SEC = 5 * 60;
+
 export function assertMercadoPagoWebhookSignature(input: {
   mpConfigured: boolean;
   webhookSecret: string | undefined;
   headers: Record<string, string | string[] | undefined>;
   body: unknown;
+  nowSec?: number;
 }): void {
   if (!input.mpConfigured) {
     throw new AppError(
@@ -32,6 +36,11 @@ export function assertMercadoPagoWebhookSignature(input: {
   if (!ts || !v1 || !dataId) {
     throw new AppError(HttpStatus.UNAUTHORIZED, ERROR_CODES.UNAUTHORIZED, "Firma inválida");
   }
+  const tsSec = Number(ts);
+  const nowSec = input.nowSec ?? Math.floor(Date.now() / 1000);
+  if (!Number.isFinite(tsSec) || Math.abs(nowSec - tsSec) > WEBHOOK_MAX_AGE_SEC) {
+    throw new AppError(HttpStatus.UNAUTHORIZED, ERROR_CODES.UNAUTHORIZED, "Firma expirada");
+  }
   const manifest = `id:${dataId};request-id:${requestId};ts:${ts};`;
   const expected = createHmac("sha256", secret).update(manifest).digest("hex");
   const a = Buffer.from(v1);
@@ -41,8 +50,11 @@ export function assertMercadoPagoWebhookSignature(input: {
   }
 }
 
-export function mercadoPagoWebhookHeaders(secret: string, dataId: string): Record<string, string> {
-  const ts = "1710000000";
+export function mercadoPagoWebhookHeaders(
+  secret: string,
+  dataId: string,
+  ts = String(Math.floor(Date.now() / 1000)),
+): Record<string, string> {
   const requestId = "it-request-id";
   const manifest = `id:${dataId};request-id:${requestId};ts:${ts};`;
   const v1 = createHmac("sha256", secret).update(manifest).digest("hex");

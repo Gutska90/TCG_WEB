@@ -4,7 +4,8 @@ import { CheckoutController } from "../orders/checkout.controller";
 import { PaymentsController } from "./payments.controller";
 import { PaymentsService } from "./payments.service";
 import { MercadoPagoPaymentProvider } from "./mercadopago.provider";
-import { PAYMENT_PROVIDER } from "./payment-provider";
+import { LocalPaymentProvider } from "./local-payment.provider";
+import { PAYMENT_PROVIDER, type PaymentProvider } from "./payment-provider";
 import { RefundsService } from "./refunds.service";
 
 @Module({
@@ -12,7 +13,15 @@ import { RefundsService } from "./refunds.service";
   controllers: [PaymentsController, CheckoutController],
   providers: [
     MercadoPagoPaymentProvider,
-    { provide: PAYMENT_PROVIDER, useExisting: MercadoPagoPaymentProvider },
+    {
+      provide: PAYMENT_PROVIDER,
+      inject: [MercadoPagoPaymentProvider],
+      useFactory: (mp: MercadoPagoPaymentProvider): PaymentProvider => {
+        if (mp.isConfigured()) return mp;
+        if (process.env.NODE_ENV === "production") return mp;
+        return new LocalPaymentProvider();
+      },
+    },
     RefundsService,
     PaymentsService,
   ],

@@ -10,7 +10,7 @@ Esto es un flujo de **retención / escrow operativo**, no necesariamente split d
 
 **Opción B (después):** Mercado Pago Marketplace / split / money out al vendedor con retención.
 
-v1.0 implementa **Opción A** en código de estados. Los payouts pueden ser semi-manuales en admin al inicio, con tabla:
+v1.0 implementa **Opción A** en código de estados. `Payment.status` `HELD`/`RELEASED` describe el escrow **operativo interno**, no un split de Mercado Pago. Split 1:1 (OAuth del vendedor + `marketplace_fee`) es decisión de Fase 9.6, antes de producción con dinero real. Los payouts pueden ser semi-manuales en admin al inicio, con tabla:
 
 ```text
 Payout
@@ -52,7 +52,8 @@ Default provisional: **8% del subtotal de productos** (no del envío), mínimo $
 
 - Endpoint público `/v1/webhooks/mercadopago`.
 - Verificar firma/secret (**fail-closed** si Mercado Pago está habilitado: hay `MP_ACCESS_TOKEN`. No depende de `NODE_ENV === production`).
-- Sin token MP (mock local): el webhook se rechaza; el cobro simulado es `POST /v1/payments/simulate`.
+- `ts` del header entra en el HMAC. La plataforma también rechaza firmas con `|now - ts| > 300s` (replay). MP no documenta esa ventana como requisito; es defensa nuestra, más `WebhookEvent` unique.
+- Sin token MP (mock local): el webhook se rechaza; el cobro simulado es `POST /v1/payments/simulate`. `MercadoPagoPaymentProvider` no inventa pagos `approved`.
 - Idempotente por `WebhookEvent` (`UNIQUE(provider, provider_event_id)` + `INSERT … ON CONFLICT DO NOTHING` + `SELECT … FOR UPDATE`). No usar find-then-create.
 - Nunca confiar en el return URL del browser: el estado de pago **solo** cambia por webhook (o consulta API MP server-side).
 - Guardar evento crudo en tabla `WebhookEvent` (Fase 7).
