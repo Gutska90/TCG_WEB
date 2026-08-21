@@ -1,0 +1,14 @@
+---
+description: NestJS API — RBAC, no business logic in controllers
+globs: apps/api/**/*.ts
+alwaysApply: false
+---
+
+# API
+
+- Validate every inbound DTO. Shared schemas live in `packages/validation`.
+- Controllers: HTTP + guards only. Use-cases in services. Prisma stays in services/repos.
+- Private routes need auth **and** authorization (role or ownership). Never `if (user.isAdmin)`.
+- Order, Payment, Payout, Refund, and stock mutations must write `AuditLog`.
+- Do not release seller funds on Mercado Pago `approved`; that is `HELD`.
+- No stub 200s for unbuilt phases. No `any`.

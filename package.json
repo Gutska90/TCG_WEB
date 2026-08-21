@@ -1,0 +1,43 @@
+{
+  "name": "tcg-platform",
+  "private": true,
+  "packageManager": "pnpm@10.15.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "turbo dev --filter=@tcg/api --filter=@tcg/web",
+    "dev:admin": "turbo dev --filter=@tcg/admin",
+    "dev:mobile": "pnpm --filter @tcg/mobile start",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "db:up": "docker compose -f docker/compose.yml up -d",
+    "db:down": "docker compose -f docker/compose.yml down",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "catalog:seed": "pnpm --filter @tcg/api catalog:seed",
+    "catalog:import-scryfall": "pnpm --filter @tcg/api run catalog:import-scryfall --",
+    "postinstall": "prisma generate"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  },
+  "devDependencies": {
+    "prisma": "^6.15.0",
+    "turbo": "^2.5.6",
+    "typescript": "^5.9.2"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@nestjs/core",
+      "@prisma/client",
+      "@prisma/engines",
+      "esbuild",
+      "prisma",
+      "sharp"
+    ]
+  }
+}

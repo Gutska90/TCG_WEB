@@ -1,0 +1,14 @@
+---
+description: Web and mobile clients consume /v1 only
+globs: apps/{web,mobile,admin}/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Clients
+
+- Call the Nest API only. No Prisma in Next.js or Expo.
+- Share types via `packages/types`. Do not duplicate DTO shapes.
+- Server state: TanStack Query. Zustand only for client UI state.
+- Do not compute commissions or payment release in the client; display API totals.
+- Web SEO slugs per `docs/09-WEB.md`. Mobile tab bar per `docs/10-MOBILE.md`.
+- Card scanner: no fake recognition before Fase 17.

@@ -1,0 +1,13 @@
+---
+description: Prisma is the only schema source
+globs: prisma/**/*
+alwaysApply: false
+---
+
+# Database
+
+- Never add tables/columns/enums outside `prisma/schema.prisma`.
+- Follow models and phase table list in `docs/03-DATABASE.md`.
+- Catalog is game-agnostic: `TcgGame → Set → Card → CardVariant`. Game-specific data goes in `Card.attributes` JSON.
+- CLP is `Int`. Use `uuid`. Explicit `onDelete`.
+- Production/staging: Prisma Migrate only, never `db push`.

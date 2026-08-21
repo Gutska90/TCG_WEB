@@ -1,0 +1,25 @@
+# Dependencies and secrets
+node_modules/
+.pnpm-store/
+dist/
+.next/
+.expo/
+coverage/
+*.log
+.turbo
+*.tsbuildinfo
+.DS_Store
+
+.env
+.env.*
+!.env.example
+
+# OS / IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Prisma
+prisma/*.db
+apps/mobile/ios/
+apps/mobile/android/

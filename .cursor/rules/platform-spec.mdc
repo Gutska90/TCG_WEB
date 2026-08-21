@@ -1,0 +1,16 @@
+---
+description: Spec-first TCG platform — always follow /docs
+alwaysApply: true
+---
+
+# TCG Platform
+
+This repo is a **full TCG platform** (not a TCGMatch clone). Spec lives in `/docs`.
+
+- Read `docs/README.md`, `docs/CURSOR.md`, and `docs/15-ROADMAP.md` before coding.
+- Implementation order: requirements → Prisma model → API → auth → marketplace → web → mobile.
+- Do not implement a later roadmap phase unless the user names that phase.
+- Do not invent architecture, tables, or endpoints missing from `/docs`. Update the matching doc in the same change, or stop and ask.
+- One NestJS API + one PostgreSQL database for web, admin, and mobile.
+- Never scrape or copy TCGMatch (UI, catalog, copy).
+- UI strings: es-CL. Code identifiers: English. Money: integer CLP.

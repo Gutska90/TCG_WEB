@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "TCG Platform",
+    "slug": "tcg-platform",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "tcgplatform",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "cl.tcgplatform.app"
+    },
+    "android": {
+      "package": "cl.tcgplatform.app"
+    },
+    "plugins": []
+  }
+}
