@@ -1,0 +1,22 @@
+appId: cl.tcgplatform.app
+---
+- launchApp
+- tapOn: "Perfil"
+- tapOn: "Ingresar"
+- tapOn:
+    id: "email"
+- inputText: "buyer.beta@example.test"
+- tapOn:
+    id: "password"
+- inputText: "BetaPassw0rd!"
+- tapOn: "Ingresar"
+- tapOn: "Buscar"
+- tapOn:
+    id: "search"
+- inputText: "Test Mon"
+- tapOn: "Test Mon #1"
+- tapOn: "Añadir a wishlist"
+- tapOn: "Precio máximo CLP"
+- inputText: "999999"
+- tapOn: "Guardar"
+- assertVisible: "Guardada en wishlist."

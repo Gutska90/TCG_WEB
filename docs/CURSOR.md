@@ -23,7 +23,12 @@ Este archivo manda sobre la ocurrencia del modelo. Si un prompt de usuario contr
 - Inventar endpoints 200 stub para features futuras.
 - Scraping de TCGMatch u otros marketplaces. No copiar su UI, copy ni catálogo.
 - Liberar pagos al vendedor en el webhook `approved`.
-- Secretos en git.
+- Tratar `Payment.HELD`/`RELEASED` como money_release de Mercado Pago.
+- Ledger `LedgerEntry` append-only: nunca UPDATE/DELETE desde la app; correcciones con asiento compensatorio.
+- Conciliación 10D: no muta Payment/Refund/Ledger/Payout; solo `ReconciliationIssue`.
+- Dispute 10.5 no muta Payment/Refund/Ledger. 10.6 congela elegibilidad de payout (no borra asientos).
+- Suspender seller auto-pausa listings ACTIVE; restore no los reactiva.
+- Copy de usuario: no afirmar “Mercado Pago retiene”, “escrow Mercado Pago” ni “dinero protegido por Mercado Pago”. Compra Protegida ≠ seguro/escrow/garantía. Ver [LEGAL-BETA.md](LEGAL-BETA.md).
 
 ## Obligaciones
 

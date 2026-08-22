@@ -1,23 +1,55 @@
 # 07 — Pagos
 
-## Principio
+## MVP Chile — modelo de cobro
 
-El comprador paga a la **plataforma** (Mercado Pago). El vendedor **no** recibe el dinero en el momento del cobro. Se libera tras confirmación de recepción o timeout.
-
-Esto es un flujo de **retención / escrow operativo**, no necesariamente split de MP Marketplace. Decisión v1.0:
-
-**Opción A (MVP):** la cuenta MP de la plataforma recibe el 100%. Internamente `Payment.status = HELD`. Un proceso (manual en el primer mes, luego payout batch) paga al vendedor (transferencia o MP payout) menos comisión. Requiere disciplina operativa y `AuditLog`.
-
-**Opción B (después):** Mercado Pago Marketplace / split / money out al vendedor con retención.
-
-v1.0 implementa **Opción A** en código de estados. `Payment.status` `HELD`/`RELEASED` describe el escrow **operativo interno**, no un split de Mercado Pago. Split 1:1 (OAuth del vendedor + `marketplace_fee`) es decisión de Fase 9.6, antes de producción con dinero real. Los payouts pueden ser semi-manuales en admin al inicio, con tabla:
+Decisión cerrada: [ADR 0008](adr/0008-marketplace-payment-model.md). Análisis largo: [proposals/MP-MARKETPLACE-ARCHITECTURE.md](proposals/MP-MARKETPLACE-ARCHITECTURE.md).
 
 ```text
-Payout
-  sellerId, amountClp, status, providerRef, period
+Comprador
+   ↓
+1 pago Mercado Pago (Checkout Pro)
+   ↓
+Cuenta Mercado Pago de la PLATAFORMA
+   ↓
+Checkout  →  Order A (seller 1)
+             Order B (seller 2)
+             Order C (seller 3)
+   ↓
+Ledger interno + Payout posterior
 ```
 
-Agregar `Payout` al schema en Fase 7.
+Mercado Pago **no** es escrow. Split 1:1 **no** se usa en el MVP. No hay OAuth por vendedor ni `marketplace_fee`.
+
+### Qué significan los estados
+
+```text
+Payment.HELD
+  ≠ dinero retenido por Mercado Pago.
+  = cobro approved; los fondos están en la cuenta MP de la plataforma;
+    la obligación con el seller todavía no es liquidable.
+
+Payment.RELEASED
+  ≠ liberación / money_release de Mercado Pago.
+  = la orden es elegible para liquidación al seller (confirmación o timeout).
+    Todavía no hay transferencia. confirm() solo escribe Postgres.
+
+Payout
+  = salida real de fondos desde la plataforma hacia el vendedor.
+    Única fila que representa plata saliendo. Requiere providerRef externo
+    para marcar PAID. MVP: aprobación y transferencia manual (Admin).
+```
+
+El webhook `approved` deja `Payment` en **HELD**. Nunca `RELEASED`. Nunca payout.
+
+### Production gate
+
+**No habilitar pagos reales (`MP_ACCESS_TOKEN` de producción, Checkout Pro live) hasta validación contractual/legal/comercial por escrito.** Confirmar al menos: si MP permite cobrar fondos de sellers terceros y liquidarlos después; plazo de retención; refunds/chargebacks; KYC vendedor; IVA/comisiones; responsabilidad ante el comprador; qué pasa si bloquean la cuenta MP de la plataforma.
+
+En runtime: `NODE_ENV=production` + `ENABLE_REAL_PAYMENTS=true` falla el arranque si `REAL_PAYMENTS_LEGAL_APPROVED` no es true. Esa marca no se commitea. Detalle: [LEGAL-BETA.md](LEGAL-BETA.md).
+
+Sandbox y `POST /v1/payments/simulate` (sin token) no están cubiertos por este gate.
+
+La tabla `Payout` existe desde Fase 7. El servicio, `PayoutItem` y el ledger están en Fase **10C** ([FINANCIAL-LEDGER](FINANCIAL-LEDGER.md)). Conciliación MP vs DB es 10D. No habilitar pagos live por 10C.
 
 ## Flujo feliz
 
@@ -109,23 +141,43 @@ Flujo:
 4. Si timeout / HTTP / pago inexistente: `Refund FAILED`, audit `refund.failed`. Order **no** queda `REFUNDED`. El caller puede reintentar.
 5. Un webhook `refunded` posterior es idempotente: no duplica refund ni stock.
 
-Sin `MP_ACCESS_TOKEN` el provider mockea el refund (dev / tests). Con token, siempre va a `/v1/payments/{id}/refunds`.
+Sin `MP_ACCESS_TOKEN` en no-producción se usa `LocalPaymentProvider`. Tests: `FakePaymentProvider`. `MercadoPagoPaymentProvider` no inventa `approved` ni refunds. Con token, refund siempre va a `/v1/payments/{id}/refunds`.
 
 Reembolsos parciales: modelar `Refund` (amountClp, reason) en Fase 7.
 
+## Ledger y payouts (10C)
+
+Detalle con ejemplos: [FINANCIAL-LEDGER](FINANCIAL-LEDGER.md).
+
+`confirm()` (Order `COMPLETED` + Payment `RELEASED`) asienta en la misma transacción `SELLER_PAYABLE` y `PLATFORM_FEE`. El webhook `approved` asienta `PAYMENT_CAPTURED` (neto seller, pending). Refund `COMPLETED` asienta `REFUND` (idempotente).
+
+Payouts MVP: `ManualPayoutProvider`. Admin crea lote → aprueba → `PROCESSING` → registra `providerRef` → `PAID`. No hay transferencia MP/banco. `PAID` es terminal. Un seller con `availableClp < 0` (refund post-payout) no recibe payouts nuevos.
+
+`GET /v1/me/balance` y `GET /v1/admin/sellers/:id/balance` derivan el saldo del ledger. El body de payout no acepta `amountClp` ni `commissionClp`.
+
+## Conciliación (10D)
+
+Detalle: [RECONCILIATION.md](RECONCILIATION.md). `PaymentProvider.searchPayments` / `listRefunds` alimentan `ReconciliationService`. El servicio no contiene lógica Mercado Pago. Un run `FAILED` no se presenta como completo. No hay corrección automática de dinero.
+
+Job: `pnpm recon:day` (no BullMQ). Production no corre contra live salvo `RECON_ALLOW_LIVE=true`.
+
 ## Disputas
 
-`POST /v1/orders/:id/dispute` abre `DISPUTED` + `Report` o entidad `Dispute`. Admin resuelve. El dinero permanece HELD hasta resolución.
+`POST /v1/orders/:id/disputes` abre entidad `Dispute` y pasa la orden a `DISPUTED`. `POST /v1/orders/:id/dispute` (legado) solo cambia el estado. Mientras `DISPUTED`, `Payment` sigue `HELD`. Admin resuelve el caso en 10.5 **sin** transferir dinero; refund/payout siguen las consolas 10B/10C.
 
 ## Legal y riesgo
 
-- Contratos: la plataforma es intermediaria; textos legales los define el negocio (no Cursor).
-- IVA/comisiones: consultar contador. El software guarda montos netos/brutos como se defina.
-- Chargebacks MP: marcar Payment y Order, notificar admin.
+Ver Production gate arriba y [ADR 0008](adr/0008-marketplace-payment-model.md). El software no autoriza el modelo comercial.
+
+- Contratos y copy de “pago protegido”: humanos. Copy de usuario: pago recibido por la plataforma (aún no liquidable); orden elegible para liquidación; liquidación registrada/pagada. No usar “Mercado Pago retiene” / escrow del procesador. Ver [LEGAL-BETA.md](LEGAL-BETA.md).
+- IVA/comisiones: consultar contador. El ledger operacional **no** es contabilidad SII.
+- Chargebacks MP: caen sobre la **cuenta plataforma**. Cola admin (Fase 10B / 10.5).
 
 ## Lo que no se hace
 
 - Liberar pago al vendedor en el webhook `approved`.
+- Tratar `HELD`/`RELEASED` como estados de Mercado Pago.
 - Confiar en `success_url` para marcar PAID.
-- Pagar a vendedores sin `AuditLog`.
-- Implementar Bitcoin u otras pasarelas en MVP.
+- Pagar a vendedores sin `Payout` + `AuditLog` + `providerRef`.
+- Implementar Split, OAuth seller, Bitcoin u otras pasarelas en MVP.
+- Poner `MP_ACCESS_TOKEN` de producción sin el production gate.

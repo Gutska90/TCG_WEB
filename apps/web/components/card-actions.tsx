@@ -6,6 +6,9 @@ import { CARD_CONDITION_LABELS, formatClp, formatReputation } from "@tcg/config"
 import type { ListingView, Paginated, VariantView } from "@tcg/types";
 import { ApiError, api } from "../lib/api";
 import { AddToCartButton } from "./add-to-cart-button";
+import { AddToCollectionButton } from "./add-to-collection";
+import { AddToWishlistButton } from "./add-to-wishlist";
+import { PriceHistory } from "./price-history";
 
 export function CardActions({
   variantId,
@@ -57,6 +60,8 @@ export function CardActions({
         </label>
       ) : null}
       <div className="flex flex-wrap gap-3">
+      <AddToCollectionButton variantId={current} />
+        <AddToWishlistButton variantId={current} />
         <button type="button" onClick={() => void toggleFavorite()} className="w-fit rounded border px-4 py-2 text-sm">
           Guardar en favoritos
         </button>
@@ -65,6 +70,7 @@ export function CardActions({
         </Link>
       </div>
       {message ? <p className="text-sm text-neutral-600">{message}</p> : null}
+      <PriceHistory variantId={current} />
       <h2 className="mt-6 text-lg font-medium">Vendedores</h2>
       {listings.length === 0 ? (
         <p className="text-sm text-neutral-500">Nadie publica esta variante aún.</p>

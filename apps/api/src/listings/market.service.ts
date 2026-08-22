@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { suggestListingPrice } from "@tcg/config";
 import type { CardDetailView, PriceSuggestionView } from "@tcg/types";
 import { PrismaService } from "../prisma/prisma.service";
+import { utcDateOnly } from "../prices/price-index";
 
 export type MarketSummary = CardDetailView["market"];
 
@@ -28,6 +29,10 @@ export class MarketService {
 
   async suggestionForVariant(variantId: string): Promise<PriceSuggestionView> {
     const market = await this.summarizeForVariant(variantId);
+    return this.suggestionFromMarket(market);
+  }
+
+  suggestionFromMarket(market: MarketSummary): PriceSuggestionView {
     return {
       currency: "CLP",
       market: market.marketPrice,
@@ -42,17 +47,46 @@ export class MarketService {
     };
   }
 
-  async snapshotVariant(tx: Prisma.TransactionClient, variantId: string): Promise<void> {
+  async snapshotVariant(
+    tx: Prisma.TransactionClient | PrismaService,
+    variantId: string,
+    capturedOn = utcDateOnly(),
+  ): Promise<void> {
     const market = await this.summarize({ variantId }, tx);
-    if (market.minListing == null || market.avgListing == null) {
+    if (market.minListing == null && market.avgListing == null) {
       return;
     }
-    await tx.cardPrice.createMany({
-      data: [
-        { variantId, source: "LISTING_MIN", priceClp: market.minListing },
-        { variantId, source: "LISTING_AVG", priceClp: market.avgListing },
-      ],
-    });
+    const now = new Date();
+    if (market.minListing != null) {
+      await tx.cardPrice.upsert({
+        where: {
+          variantId_source_capturedOn: { variantId, source: "LISTING_MIN", capturedOn },
+        },
+        update: { priceClp: market.minListing, capturedAt: now },
+        create: {
+          variantId,
+          source: "LISTING_MIN",
+          priceClp: market.minListing,
+          capturedOn,
+          capturedAt: now,
+        },
+      });
+    }
+    if (market.avgListing != null) {
+      await tx.cardPrice.upsert({
+        where: {
+          variantId_source_capturedOn: { variantId, source: "LISTING_AVG", capturedOn },
+        },
+        update: { priceClp: market.avgListing, capturedAt: now },
+        create: {
+          variantId,
+          source: "LISTING_AVG",
+          priceClp: market.avgListing,
+          capturedOn,
+          capturedAt: now,
+        },
+      });
+    }
   }
 
   private async summarize(

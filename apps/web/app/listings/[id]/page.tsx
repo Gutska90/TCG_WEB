@@ -4,13 +4,14 @@ import { CARD_CONDITION_LABELS, formatClp, formatReputation } from "@tcg/config"
 import { CatalogRequestError } from "../../../lib/catalog";
 import { getListing } from "../../../lib/listings";
 import { AddToCartButton } from "../../../components/add-to-cart-button";
+import { ReportListingButton } from "../../../components/report-listing-button";
 
 export default async function ListingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   try {
     const listing = await getListing(id);
     return (
-      <main className="mx-auto max-w-2xl px-6 py-12">
+      <main id="contenido" className="mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-12">
         <p className="text-sm text-neutral-500">
           <Link href={`/${listing.variant.card.gameSlug}/${listing.variant.card.setSlug}/${listing.variant.card.slug}`} className="underline">
             {listing.variant.card.name}
@@ -22,7 +23,8 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
         </p>
         <p className="mt-4 text-2xl">{formatClp(listing.priceClp)}</p>
         <p className="mt-2 text-sm text-neutral-600">
-          {listing.available} disponible(s) · {listing.allowsMeetup ? "encuentro" : ""} {listing.allowsShipping ? "envío" : ""}
+          {listing.available} disponible(s) · stock {listing.quantity} ·{" "}
+          {listing.allowsMeetup ? "encuentro" : "sin encuentro"} · {listing.allowsShipping ? "envío" : "sin envío"}
         </p>
         <p className="mt-4">
           Vendedor:{" "}
@@ -35,6 +37,12 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
         <div className="mt-8">
           <AddToCartButton listingId={listing.id} available={listing.available} />
         </div>
+        <ReportListingButton listingId={listing.id} />
+        <p className="mt-6 text-sm">
+          <Link href="/ayuda" className="underline">
+            Ayuda
+          </Link>
+        </p>
       </main>
     );
   } catch (error) {

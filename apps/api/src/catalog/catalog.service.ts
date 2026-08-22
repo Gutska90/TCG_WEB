@@ -13,6 +13,7 @@ import { AppError } from "../common/errors/app-error";
 import { PrismaService } from "../prisma/prisma.service";
 import { ListingsService } from "../listings/listings.service";
 import { MarketService } from "../listings/market.service";
+import { PricesService } from "../prices/prices.service";
 
 @Injectable()
 export class CatalogService {
@@ -20,6 +21,7 @@ export class CatalogService {
     private readonly prisma: PrismaService,
     private readonly market: MarketService,
     private readonly listings: ListingsService,
+    private readonly prices: PricesService,
   ) {}
 
   async listGames(): Promise<GameView[]> {
@@ -162,7 +164,18 @@ export class CatalogService {
     if (!row || !row.card.set.game.isActive) {
       throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Variante no encontrada");
     }
-    return this.market.suggestionForVariant(variantId);
+    return this.prices.suggestionForVariant(variantId);
+  }
+
+  async variantPrices(variantId: string, range: "1m" | "3m" | "6m" | "1a") {
+    const row = await this.prisma.cardVariant.findUnique({
+      where: { id: variantId },
+      include: { card: { include: { set: { include: { game: true } } } } },
+    });
+    if (!row || !row.card.set.game.isActive) {
+      throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Variante no encontrada");
+    }
+    return this.prices.history(variantId, range);
   }
 
   private async requireGame(slug: string) {

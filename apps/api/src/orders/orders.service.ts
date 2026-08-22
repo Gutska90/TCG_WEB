@@ -26,6 +26,10 @@ import { lockCheckoutGraph, lockListings, MONEY_TX } from "./checkout.lock";
 import { checkoutInclude, orderInclude, toCheckoutView, toOrderView } from "./order.mapper";
 import { consumeReservedStock, releaseStock, reserveStock } from "./stock";
 import { RefundsService } from "../payments/refunds.service";
+import { LedgerService } from "../ledger/ledger.service";
+import { FeatureFlagsService } from "../flags/feature-flags.service";
+import { MetricsService } from "../observability/metrics.service";
+import { CollectionsService } from "../collections/collections.service";
 
 const LATE_PAYMENT_NOTE =
   "[late_payment] Cobro Mercado Pago tras checkout terminal. Sin fulfillment. Reembolso pendiente.";
@@ -47,6 +51,10 @@ export class OrdersService {
     private readonly shipping: ShippingService,
     @Inject(forwardRef(() => RefundsService))
     private readonly refunds: RefundsService,
+    private readonly ledger: LedgerService,
+    private readonly flags: FeatureFlagsService,
+    private readonly metrics: MetricsService,
+    private readonly collections: CollectionsService,
   ) {}
 
   async createCheckout(
@@ -58,8 +66,11 @@ export class OrdersService {
     if (!actor.emailVerified) {
       throw new AppError(HttpStatus.FORBIDDEN, ERROR_CODES.EMAIL_NOT_VERIFIED, "Verifica tu email para comprar");
     }
+    this.flags.assertCheckoutAllowed();
+    const started = Date.now();
     const key = idempotencyKey?.trim() || null;
-    if (key) {
+    try {
+      if (key) {
       const existing = await this.prisma.checkout.findFirst({
         where: { buyerId: actor.id, idempotencyKey: key },
         include: checkoutInclude,
@@ -201,7 +212,16 @@ export class OrdersService {
       entityType: "Checkout",
       entityId: checkoutId,
     });
+    this.metrics.inc("checkout_created_total");
+    this.metrics.observe("checkout_duration", Date.now() - started);
     return this.getCheckout(actor, checkoutId, mp);
+    } catch (error) {
+      this.metrics.inc("checkout_failed_total");
+      if (error instanceof AppError && error.code === ERROR_CODES.LISTING_INSUFFICIENT_STOCK) {
+        this.metrics.inc("stock_conflict_total");
+      }
+      throw error;
+    }
   }
 
   async getCheckout(
@@ -355,20 +375,37 @@ export class OrdersService {
     this.assertStatus(order.status, ["DELIVERED"]);
     const payment = await this.prisma.payment.findUnique({ where: { orderId: id } });
     if (!payment || payment.status !== "HELD") {
-      throw new AppError(HttpStatus.CONFLICT, ERROR_CODES.PAYMENT_NOT_HELD, "El pago no está retenido");
+      throw new AppError(HttpStatus.CONFLICT, ERROR_CODES.PAYMENT_NOT_HELD, "El pago aún no está listo para confirmar la recepción");
     }
     const now = new Date();
     const updated = await this.prisma.$transaction(async (tx) => {
+      const graph = await lockCheckoutGraph(tx, order.checkoutId);
+      const locked = graph?.orders.find((row) => row.id === id);
+      if (!locked) {
+        throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Orden no encontrada");
+      }
+      this.assertStatus(locked.status, ["DELIVERED"]);
+      if (!locked.payment || locked.payment.status !== "HELD") {
+        throw new AppError(HttpStatus.CONFLICT, ERROR_CODES.PAYMENT_NOT_HELD, "El pago aún no está listo para confirmar la recepción");
+      }
       await tx.payment.update({
-        where: { id: payment.id },
+        where: { id: locked.payment.id },
         data: { status: "RELEASED", releasedAt: now },
       });
-      return tx.order.update({
+      const completed = await tx.order.update({
         where: { id },
         data: { status: "COMPLETED", confirmedAt: now, completedAt: now },
         include: orderInclude,
       });
-    });
+      await this.ledger.recordRelease(tx, {
+        sellerId: locked.seller.id,
+        orderId: id,
+        paymentId: locked.payment.id,
+        totalClp: locked.totalClp,
+        commissionClp: locked.commissionClp,
+      });
+      return completed;
+    }, MONEY_TX);
     await this.audit.log({
       actorId: actor.id,
       action: "order.confirmed",
@@ -382,6 +419,11 @@ export class OrdersService {
       entityType: "Payment",
       entityId: payment.id,
     });
+    await this.collections.applySaleDeduction(
+      id,
+      updated.sellerId,
+      updated.items.map((item) => ({ listingId: item.listingId, quantity: item.quantity })),
+    );
     return toOrderView(updated);
   }
 
@@ -583,6 +625,14 @@ export class OrdersService {
           },
         });
       }
+      const payment = await tx.payment.findUniqueOrThrow({ where: { orderId: order.id } });
+      await this.ledger.recordCapture(tx, {
+        sellerId: order.sellerId,
+        orderId: order.id,
+        paymentId: payment.id,
+        totalClp: order.totalClp,
+        commissionClp: order.commissionClp,
+      });
       await tx.order.update({
         where: { id: order.id },
         data: { status: "PAID", paidAt: now },

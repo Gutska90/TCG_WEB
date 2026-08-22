@@ -6,8 +6,8 @@
 |------|-------|-----|
 | Unit | `apps/api` services | stock, comisión, transiciones de orden, price suggestion |
 | Integration | `apps/api/test/integration` + Postgres real (`DATABASE_URL`) | checkout concurrency, webhook idempotencia, reservas |
-| E2E web | Playwright | registro, buscar carta, (más tarde) comprar sandbox |
-| E2E mobile | Maestro o Detox **después** de Fase 11; no bloquear MVP API |
+| E2E web | `e2e/` Playwright | 11.0 happy paths + 11.5 auth + 12 `collection-happy-path` + 13 `price-history` + 14 `wishlist-happy-path` |
+| E2E mobile | Maestro `apps/mobile/.maestro/` (simulador + API + seed). No corre en CI |
 | Contract | `packages/validation` | schemas usados por web y api |
 
 Los tests de dinero **P0-1/P0-2/P0-3** no se cubren solo con Prisma mockeado: las carreras necesitan locks reales; el refund necesita Postgres + `FakePaymentProvider` (nunca `MercadoPagoPaymentProvider` fingiendo `approved`).
@@ -35,6 +35,53 @@ Casos de integración obligatorios (Fase 9.5):
 21. smoke 9.5C: qty 1 → checkout reservado → PAID → refund → stock restaurado; webhook duplicado no duplica Payment/Refund/stock/AuditLog
 22. `MercadoPagoPaymentProvider` sin token no inventa `approved`
 
+Casos de integración obligatorios (Fase 10A):
+
+- USER / SELLER / MODERATOR no acceden a `/v1/admin/*` (RolesGuard `ADMIN_OPS_ROLES`)
+- ADMIN y SUPER_ADMIN sí
+- dashboard: GMV/`amountHeldClp` por aggregate/groupBy (Postgres real)
+- listados: paginación, filtro de estado, sin `passwordHash` / `rawPayload` / tokens
+
+Casos de integración obligatorios (Fase 10B):
+
+- retry `FAILED` → una llamada al provider; `COMPLETED` no duplica
+- cancel `PENDING_PAYMENT` libera reserva; cancel `PAID` crea/ejecuta refund
+- cancel con refund `FAILED` no marca `REFUNDED`
+- `SHIPPED` → `ORDER_ILLEGAL_TRANSITION`
+- `reason` obligatorio en cancel admin; `amountClp` rechazado en retry
+- `AuditLog` de mutación; sin `rawPayload` / `passwordHash`
+
+Casos de integración obligatorios (Fase 10C):
+
+- `SELLER_PAYABLE` / `PLATFORM_FEE` atómicos con confirm; retry no duplica
+- `REFUND` idempotente; casos A/B/C (antes de payable, antes de payout, post-PAID con deuda visible)
+- dos admins el mismo `orderId` → un solo payout
+- `PAID` exige `providerRef`; segundo `mark-paid` ilegal
+- ledger UPDATE bloqueado; `ADJUSTMENT` solo SUPER_ADMIN
+- backfill idempotente; balance exacto desde ledger
+- payout no supera `availableClp`; saldo negativo bloquea payout nuevo
+
+Casos de integración obligatorios (Fase 10D):
+
+- run consistente → 0 issues
+- payment/refund missing local o provider; status/amount mismatch
+- ledger: falta `PAYMENT_CAPTURED`, `SELLER_PAYABLE`, `REFUND`, `PAYOUT_PAID`
+- error de proveedor → run `FAILED`
+- segundo run concurrente → `RECONCILIATION_IN_PROGRESS`
+- acknowledge/resolve RBAC; run repetido reutiliza OPEN (fingerprint)
+
+Casos de integración obligatorios (Fase 10.5):
+
+- buyer/seller abren disputa propia; tercero 404
+- segunda disputa activa bloqueada
+- mensaje de parte; nota interna oculta
+- evidence: ownership y MIME/size
+- report listing; duplicado; rate limit
+- admin assign/resolve + ModerationAction/AuditLog
+- seller suspendido no publica; restore; pause/restore listing
+- ListingRevision UPDATE bloqueado
+- USER no modera; MODERATOR no suspende seller; ADMIN sí
+
 Correr:
 
 ```text
@@ -50,12 +97,21 @@ Postgres debe estar arriba (`DATABASE_URL`). CI corre migrate + ambos.
 - Transiciones de `OrderStatus` inválidas deben fallar con test.
 - Webhooks MP: fixtures de payloads, prueba de idempotencia.
 - No exigir 100% coverage. Exigir tests en dinero, stock y auth.
+- 10.6: requestId, redaction, kill switches, job lock, refund retry idempotente, dispute vs payout, suspensión auto-pausa, evidence IDOR, health/ready.
+- 10.7: consentimiento al signup, versiones legales, copy de pagos, gate de pagos live, feedback rate limit, baja sin borrar finanzas.
+- 11.0: E2E web Playwright + seed beta (`pnpm beta:seed` / `pnpm test:e2e`).
+- 11: unit mobile (`pnpm --filter @tcg/mobile test`); Maestro opcional; checklist [release/MOBILE-BETA-QA.md](release/MOBILE-BETA-QA.md).
+- 11.5: unit OAuth/linking/ban/refresh; integración Postgres `auth-identity.integration.spec.ts` (stub, sin Google/Apple live); E2E stub.
+- 12: unit `collection-value` + `CollectionsService`; integración Postgres `collections.integration.spec.ts`; E2E `collection-happy-path.spec.ts`; Maestro `07-collection.yaml`.
+- 13: unit `price-index`; integración Postgres `prices.integration.spec.ts`; E2E `price-history.spec.ts`.
+- 14: unit `wishlist-rules`; integración Postgres `wishlist.integration.spec.ts` + descuento de lote en collections; E2E `wishlist-happy-path.spec.ts`; Maestro `08-wishlist.yaml`.
 
 ## Datos de test
 
-- Seed mínimo: 1 game, 1 set, 3 cards, 2 users (buyer/seller).
+- Seed catálogo: `pnpm catalog:seed` (juegos, cartas Test Mon, tarifas).
+- Seed beta QA: `pnpm beta:seed` — buyer/seller/admin sintéticos + listing. Ver [release/WEB-BETA-QA.md](release/WEB-BETA-QA.md).
 - Nunca apuntar tests a producción.
 
 ## CI
 
-GitHub Actions (`.github/workflows/ci.yml`): Postgres 16 → `prisma migrate deploy` → lint → typecheck → `pnpm test` → `pnpm test:integration` → `pnpm build`. El PR falla si algún gate falla. El smoke de dinero vive en integración API.
+GitHub Actions (`.github/workflows/ci.yml`): Postgres 16 → `prisma migrate deploy` → lint → typecheck → `pnpm test` → `pnpm test:integration` → `pnpm build` → `pnpm test:e2e`. El PR falla si algún gate falla. El smoke de dinero vive en integración API. Playwright no usa Mercado Pago live.

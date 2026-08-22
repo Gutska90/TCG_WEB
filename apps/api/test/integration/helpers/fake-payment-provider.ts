@@ -1,7 +1,9 @@
 import type {
   PaymentProvider,
+  PaymentSearchRange,
   ProviderPayment,
   ProviderPreference,
+  ProviderRefund,
   ProviderRefundResult,
 } from "../../../src/payments/payment-provider";
 import { PaymentProviderError } from "../../../src/payments/payment-provider";
@@ -42,6 +44,10 @@ export class FakePaymentProvider implements PaymentProvider {
   refundCalls = 0;
   lastAmountClp: number | undefined;
   lastIdempotencyKey: string | undefined;
+  catalogPayments: ProviderPayment[] = [];
+  catalogRefunds: ProviderRefund[] = [];
+  failSearch = false;
+  strictCatalog = false;
 
   isConfigured(): boolean {
     return this.configured;
@@ -56,6 +62,11 @@ export class FakePaymentProvider implements PaymentProvider {
   }
 
   async getPayment(providerPaymentId: string): Promise<ProviderPayment> {
+    const found = this.catalogPayments.find((row) => row.id === providerPaymentId);
+    if (found) return found;
+    if (this.strictCatalog) {
+      throw new PaymentProviderError("not_found", "Pago no encontrado en Mercado Pago", 404);
+    }
     return {
       id: providerPaymentId,
       status: this.paymentStatus,
@@ -110,5 +121,19 @@ export class FakePaymentProvider implements PaymentProvider {
       status: "approved",
       amountClp: input.amountClp,
     };
+  }
+
+  async searchPayments(_range: PaymentSearchRange): Promise<ProviderPayment[]> {
+    if (this.failSearch) {
+      throw new PaymentProviderError("timeout", "Timeout al hablar con Mercado Pago");
+    }
+    return [...this.catalogPayments];
+  }
+
+  async listRefunds(providerPaymentId: string): Promise<ProviderRefund[]> {
+    if (this.failSearch) {
+      throw new PaymentProviderError("timeout", "Timeout al hablar con Mercado Pago");
+    }
+    return this.catalogRefunds.filter((row) => row.providerPaymentId === providerPaymentId);
   }
 }

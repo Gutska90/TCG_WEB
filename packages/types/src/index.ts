@@ -2,15 +2,62 @@ import type {
   CardCondition,
   CardFinish,
   CardLanguage,
+  DisputeEvidenceType,
+  DisputeReason,
+  DisputeStatus,
+  FeedbackCategory,
+  JobRunStatus,
+  LedgerEntryType,
+  ListingStatus,
+  ModerationActionType,
   OrderStatus,
   PaymentStatus,
+  PayoutMethod,
+  PayoutStatus,
+  ReconciliationIssueStatus,
+  ReconciliationIssueType,
+  ReconciliationRunStatus,
+  ReconciliationSeverity,
+  RefundStatus,
+  ReportReason,
+  ReportStatus,
+  ReportTargetType,
   Role,
   ShipmentStatus,
   ShippingMethod,
   ShippingZone,
 } from "@tcg/config";
 
-export type { Role, CardCondition, CardLanguage, CardFinish, ErrorCode, ShippingMethod, OrderStatus, PaymentStatus, ShipmentStatus, ShippingZone } from "@tcg/config";
+export type {
+  Role,
+  CardCondition,
+  CardLanguage,
+  CardFinish,
+  ErrorCode,
+  LedgerEntryType,
+  ListingStatus,
+  ShippingMethod,
+  OrderStatus,
+  PaymentStatus,
+  PayoutMethod,
+  PayoutStatus,
+  ReconciliationIssueStatus,
+  ReconciliationIssueType,
+  ReconciliationRunStatus,
+  ReconciliationSeverity,
+  RefundStatus,
+  DisputeReason,
+  DisputeStatus,
+  DisputeEvidenceType,
+  JobRunStatus,
+  FeedbackCategory,
+  ReportTargetType,
+  ReportReason,
+  ReportStatus,
+  ModerationActionType,
+  ShipmentStatus,
+  ShippingZone,
+} from "@tcg/config";
 
 export type HealthResponse = {
   status: "ok";
@@ -34,6 +81,24 @@ export type PublicPlatformConfig = {
   locale: "es-CL";
   conditions: string[];
   finishes: string[];
+  legal: {
+    termsVersion: string;
+    privacyVersion: string;
+    beta: true;
+  };
+  features: {
+    enableCollections: boolean;
+    enablePrices: boolean;
+    enableWishlist: boolean;
+    enableScanner: boolean;
+    enableStores: boolean;
+    enableAuctions: boolean;
+    enablePayouts: boolean;
+    paymentsSandbox: boolean;
+    enableGoogleAuth: boolean;
+    enableAppleAuth: boolean;
+    authStub: boolean;
+  };
 };
 
 export type AuthTokens = {
@@ -50,6 +115,16 @@ export type SessionView = {
   createdAt: string;
   expiresAt: string;
   current: boolean;
+};
+
+export type AuthIdentityView = {
+  provider: "EMAIL" | "GOOGLE" | "APPLE";
+  createdAt: string;
+};
+
+export type AuthMethodsView = {
+  hasPassword: boolean;
+  identities: AuthIdentityView[];
 };
 
 export type ProfileView = {
@@ -69,6 +144,16 @@ export type MeView = {
   roles: Role[];
   profile: ProfileView;
   createdAt: string;
+  legal: {
+    termsVersion: string | null;
+    privacyVersion: string | null;
+    acceptedAt: string | null;
+    marketingOptIn: boolean;
+    currentTermsVersion: string;
+    currentPrivacyVersion: string;
+    stale: boolean;
+    deletionRequestedAt: string | null;
+  };
 };
 
 export type PublicUserView = {
@@ -103,8 +188,6 @@ export type FileUploadView = {
   uploadUrl: string | null;
   storage: "deferred" | "object";
 };
-
-export type ListingStatus = "DRAFT" | "ACTIVE" | "PAUSED" | "SOLD" | "CANCELLED";
 
 export type ListingSellerView = {
   id: string;
@@ -143,6 +226,30 @@ export type PriceSuggestionView = {
   avgListing: number | null;
   activeListings: number;
   suggested: number | null;
+};
+
+export type PriceHistoryPointView = {
+  t: string;
+  min: number | null;
+  avg: number | null;
+  sale: number | null;
+};
+
+export type PriceHistoryView = {
+  currency: "CLP";
+  range: "1m" | "3m" | "6m" | "1a";
+  current: number | null;
+  min: number | null;
+  avg: number | null;
+  max: number | null;
+  volumeSold: number;
+  lastSaleClp: number | null;
+  avg30dClp: number | null;
+  median30dClp: number | null;
+  minListingClp: number | null;
+  confidence: "HIGH" | "MEDIUM" | "LOW" | null;
+  points: PriceHistoryPointView[];
+  disclaimer: string;
 };
 
 export type Paginated<T> = {
@@ -222,6 +329,39 @@ export type FavoriteView = {
   id: string;
   variant: VariantView;
   card: CardSummaryView;
+};
+
+export type WishlistItemView = {
+  id: string;
+  variantId: string;
+  targetPriceClp: number;
+  notifyBelow: boolean;
+  currentMinClp: number | null;
+  hit: boolean;
+  createdAt: string;
+  variant: VariantView;
+  card: CardSummaryView;
+};
+
+export type NotificationView = {
+  id: string;
+  type: "WISHLIST_HIT" | "PRICE_DROP";
+  title: string;
+  body: string;
+  data: Record<string, unknown>;
+  readAt: string | null;
+  createdAt: string;
+};
+
+export type NotificationListView = Paginated<NotificationView> & {
+  unreadCount: number;
+};
+
+export type NotificationPreferenceView = {
+  type: "WISHLIST_HIT" | "PRICE_DROP";
+  inApp: boolean;
+  email: boolean;
+  push: boolean;
 };
 
 export type SearchCardView = CardSummaryView & {
@@ -350,4 +490,534 @@ export type CheckoutView = {
     sandboxInitPoint: string | null;
     mock: boolean;
   };
+};
+
+export type AdminPartyView = {
+  id: string;
+  displayName: string;
+  slug: string;
+  email: string;
+};
+
+export type AdminAlertView = {
+  code: string;
+  label: string;
+  count: number;
+  href: string;
+};
+
+export type AdminDashboardView = {
+  generatedAt: string;
+  timezone: "America/Santiago";
+  operation: {
+    usersTotal: number;
+    sellersTotal: number;
+    listingsActive: number;
+    ordersCreatedToday: number;
+    ordersPendingShipment: number;
+    ordersDisputed: number;
+    refundsPending: number;
+    refundsFailed: number;
+  };
+  money: {
+    currency: "CLP";
+    gmvTodayClp: number;
+    gmvLast30dClp: number;
+    paymentsHeld: number;
+    paymentsReleased: number;
+    amountHeldClp: number;
+    amountReleasedClp: number;
+    collectedMpClp: number;
+    pendingSellerHeldClp: number;
+    platformCommissionOpenClp: number;
+    refundsPending: number;
+    refundsPendingClp: number;
+    payoutsPending: number;
+    payoutsPendingClp: number;
+  };
+  alerts: AdminAlertView[];
+};
+
+export type AdminOrderListItem = {
+  id: string;
+  orderNumber: string;
+  checkoutId: string;
+  status: OrderStatus;
+  subtotalClp: number;
+  shippingClp: number;
+  commissionClp: number;
+  totalClp: number;
+  createdAt: string;
+  paidAt: string | null;
+  buyer: AdminPartyView;
+  seller: AdminPartyView;
+  payment: {
+    id: string;
+    status: PaymentStatus;
+    amountClp: number;
+    providerPaymentId: string | null;
+  } | null;
+};
+
+export type AdminPaymentListItem = {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  status: PaymentStatus;
+  amountClp: number;
+  provider: string;
+  providerPaymentId: string | null;
+  heldAt: string | null;
+  releasedAt: string | null;
+  refundedAt: string | null;
+  createdAt: string;
+};
+
+export type AdminRefundListItem = {
+  id: string;
+  paymentId: string;
+  orderId: string;
+  orderNumber: string;
+  amountClp: number;
+  reason: string;
+  status: RefundStatus;
+  providerRefundId: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AdminAuditEventView = {
+  id: string;
+  action: string;
+  entityType: string;
+  entityId: string | null;
+  actorId: string | null;
+  createdAt: string;
+  metadata: Record<string, unknown> | null;
+};
+
+export type AdminCheckoutSummaryView = {
+  id: string;
+  status: "PENDING_PAYMENT" | "PAID" | "EXPIRED" | "CANCELLED";
+  totalClp: number;
+  expiresAt: string;
+  createdAt: string;
+};
+
+export type AdminOrderDetailView = {
+  id: string;
+  orderNumber: string;
+  checkoutId: string;
+  status: OrderStatus;
+  subtotalClp: number;
+  shippingClp: number;
+  commissionClp: number;
+  totalClp: number;
+  shippingMethod: ShippingMethod;
+  notes: string;
+  paidAt: string | null;
+  shippedAt: string | null;
+  deliveredAt: string | null;
+  confirmedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  buyer: AdminPartyView;
+  seller: AdminPartyView;
+  items: OrderItemView[];
+  shipment: ShipmentView | null;
+  checkout: AdminCheckoutSummaryView;
+  payment: AdminPaymentListItem | null;
+  refunds: AdminRefundListItem[];
+  timeline: AdminAuditEventView[];
+};
+
+export type AdminPaymentDetailView = AdminPaymentListItem & {
+  order: { id: string; orderNumber: string; status: OrderStatus };
+  refunds: AdminRefundListItem[];
+};
+
+export type AdminRefundDetailView = AdminRefundListItem & {
+  lastError: string | null;
+  payment: {
+    id: string;
+    status: PaymentStatus;
+    amountClp: number;
+    providerPaymentId: string | null;
+  };
+  order: { id: string; orderNumber: string; status: OrderStatus };
+};
+
+export type AdminRefundRetryView = {
+  refund: AdminRefundDetailView;
+  outcome: "completed" | "pending" | "failed";
+  providerCalled: boolean;
+};
+
+export type AdminUserListItem = {
+  id: string;
+  email: string;
+  displayName: string;
+  slug: string;
+  roles: Role[];
+  emailVerified: boolean;
+  isBanned: boolean;
+  createdAt: string;
+};
+
+export type SellerBalanceView = {
+  sellerId: string;
+  pendingClp: number;
+  availableClp: number;
+  reservedClp: number;
+  paidClp: number;
+  disputedClp: number;
+  netClp: number;
+};
+
+export type LedgerEntryView = {
+  id: string;
+  sellerId: string | null;
+  entryType: LedgerEntryType;
+  amountClp: number;
+  orderId: string | null;
+  paymentId: string | null;
+  refundId: string | null;
+  payoutId: string | null;
+  idempotencyKey: string;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+};
+
+export type AdminPayoutListItem = {
+  id: string;
+  seller: AdminPartyView;
+  amountClp: number;
+  status: PayoutStatus;
+  method: PayoutMethod;
+  providerRef: string | null;
+  orderCount: number;
+  createdAt: string;
+  paidAt: string | null;
+};
+
+export type AdminPayoutItemView = {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  grossClp: number;
+  commissionClp: number;
+  netClp: number;
+};
+
+export type AdminPayoutDetailView = {
+  id: string;
+  seller: AdminPartyView;
+  amountClp: number;
+  status: PayoutStatus;
+  method: PayoutMethod;
+  providerRef: string | null;
+  lastError: string | null;
+  periodStart: string;
+  periodEnd: string;
+  approvedById: string | null;
+  approvedAt: string | null;
+  paidAt: string | null;
+  createdAt: string;
+  items: AdminPayoutItemView[];
+  ledger: LedgerEntryView[];
+  timeline: AdminAuditEventView[];
+};
+
+export type AdminListingListItem = {
+  id: string;
+  title: string;
+  status: ListingStatus;
+  priceClp: number;
+  quantity: number;
+  quantityReserved: number;
+  seller: AdminPartyView;
+  createdAt: string;
+};
+
+export type ReconciliationRunView = {
+  id: string;
+  provider: string;
+  startedAt: string;
+  finishedAt: string | null;
+  status: ReconciliationRunStatus;
+  checkedPayments: number;
+  checkedRefunds: number;
+  issuesFound: number;
+  criticalIssues: number;
+  createdById: string | null;
+  windowStart: string | null;
+  windowEnd: string | null;
+  providerSkipped: boolean;
+};
+
+export type ReconciliationRunDetailView = ReconciliationRunView & {
+  issues: ReconciliationIssueView[];
+};
+
+export type ReconciliationIssueView = {
+  id: string;
+  runId: string;
+  issueType: ReconciliationIssueType;
+  severity: ReconciliationSeverity;
+  entityType: string;
+  entityId: string | null;
+  providerPaymentId: string | null;
+  providerRefundId: string | null;
+  expectedStatus: string | null;
+  actualStatus: string | null;
+  expectedAmountClp: number | null;
+  actualAmountClp: number | null;
+  status: ReconciliationIssueStatus;
+  details: Record<string, unknown>;
+  createdAt: string;
+  resolvedAt: string | null;
+  resolvedById: string | null;
+  resolutionNote: string | null;
+};
+
+export type ReconciliationDashboardView = {
+  lastRun: ReconciliationRunView | null;
+  openIssues: number;
+  openCritical: number;
+};
+
+export type PublicPartyView = {
+  id: string;
+  displayName: string;
+  slug: string;
+};
+
+export type DisputeListItem = {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  reason: DisputeReason;
+  status: DisputeStatus;
+  openedAt: string;
+  resolvedAt: string | null;
+};
+
+export type DisputeMessageView = {
+  id: string;
+  author: PublicPartyView;
+  body: string;
+  isInternalAdminNote: boolean;
+  createdAt: string;
+};
+
+export type DisputeEvidenceView = {
+  id: string;
+  uploadedById: string;
+  fileId: string;
+  mime: string;
+  size: number;
+  evidenceType: DisputeEvidenceType;
+  description: string;
+  createdAt: string;
+};
+
+export type ListingRevisionView = {
+  id: string;
+  listingId: string;
+  actorId: string;
+  source: string;
+  reason: string;
+  before: Record<string, unknown>;
+  after: Record<string, unknown>;
+  createdAt: string;
+};
+
+export type DisputeDetailView = {
+  id: string;
+  orderId: string;
+  orderNumber: string;
+  reason: DisputeReason;
+  status: DisputeStatus;
+  resolution: string | null;
+  openedAt: string;
+  resolvedAt: string | null;
+  buyer: PublicPartyView;
+  seller: PublicPartyView;
+  assignedAdminId: string | null;
+  messages: DisputeMessageView[];
+  evidence: DisputeEvidenceView[];
+};
+
+export type AdminDisputeDetailView = DisputeDetailView & {
+  buyerEmail: string;
+  sellerEmail: string;
+  payment: {
+    id: string;
+    status: PaymentStatus;
+    amountClp: number;
+  } | null;
+  refunds: Array<{ id: string; status: RefundStatus; amountClp: number }>;
+  shipment: { id: string; status: ShipmentStatus } | null;
+  listingRevisions: ListingRevisionView[];
+  timeline: AdminAuditEventView[];
+};
+
+export type ReportListItem = {
+  id: string;
+  targetType: ReportTargetType;
+  targetId: string;
+  reason: ReportReason;
+  status: ReportStatus;
+  createdAt: string;
+};
+
+export type ReportDetailView = ReportListItem & {
+  reporter: PublicPartyView;
+  description: string;
+  assignedAdminId: string | null;
+  resolvedAt: string | null;
+};
+
+export type AdminReportDetailView = ReportDetailView & {
+  reporterEmail: string;
+  targetSummary: string;
+  priorActions: ModerationActionView[];
+};
+
+export type ModerationActionView = {
+  id: string;
+  actorAdminId: string;
+  targetType: string;
+  targetId: string;
+  actionType: ModerationActionType;
+  reason: string;
+  metadata: Record<string, unknown>;
+  createdAt: string;
+};
+
+export type SellerSuspensionView = {
+  id: string;
+  sellerId: string;
+  reason: string;
+  createdAt: string;
+  liftedAt: string | null;
+};
+
+export type JobRunView = {
+  id: string;
+  jobName: string;
+  status: JobRunStatus;
+  startedAt: string;
+  finishedAt: string | null;
+  durationMs: number | null;
+  errorCode: string | null;
+  errorMessage: string | null;
+  correlationId: string | null;
+};
+
+export type AdminSystemView = {
+  api: "ok";
+  database: "ready" | "not_ready";
+  flags: {
+    enableRealPayments: boolean;
+    enablePayouts: boolean;
+    disableCheckout: boolean;
+    disableNewListings: boolean;
+    disablePayouts: boolean;
+    disableRefundsAutomation: boolean;
+    jobsEnabled: boolean;
+    refundRetryJobEnabled: boolean;
+  };
+  lastReconciliation: { id: string; status: string; finishedAt: string | null } | null;
+  lastJobs: JobRunView[];
+  alerts: AdminAlertView[];
+};
+
+export type FeedbackView = {
+  id: string;
+  userId: string | null;
+  category: FeedbackCategory;
+  message: string;
+  screen: string | null;
+  appVersion: string | null;
+  requestId: string | null;
+  createdAt: string;
+};
+
+export type AccountDeletionView = {
+  status: "requested";
+  deletionRequestedAt: string;
+};
+
+export type CollectionView = {
+  id: string;
+  name: string;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CollectionItemView = {
+  id: string;
+  collectionId: string;
+  variantId: string;
+  condition: CardCondition;
+  quantity: number;
+  purchasePriceClp: number | null;
+  purchasedAt: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+  estimatedUnitClp: number | null;
+  estimatedValueClp: number | null;
+  registeredCostClp: number | null;
+  estimatedPlClp: number | null;
+  variant: VariantView & { card: CardSummaryView };
+};
+
+export type CollectionSummaryView = {
+  collectionId: string;
+  totalCards: number;
+  uniqueCards: number;
+  estimatedValueClp: number | null;
+  itemsWithoutEstimate: number;
+  registeredCostClp: number | null;
+  itemsWithoutCost: number;
+  estimatedPlClp: number | null;
+  itemsInPl: number;
+  duplicateCards: number;
+  extraCopies: number;
+  change30dClp: number | null;
+  disclaimer: string;
+};
+
+export type CollectionSetProgressView = {
+  setId: string;
+  setName: string;
+  setSlug: string;
+  gameSlug: string;
+  gameName: string;
+  ownedUnique: number;
+  total: number;
+  percentage: number;
+  missing: number;
+  extraCopies: number;
+  missingWithActiveListings: number;
+};
+
+export type CollectionMissingCardView = {
+  cardId: string;
+  name: string;
+  number: string;
+  slug: string;
+  imageUrl: string | null;
+  gameSlug: string;
+  setSlug: string;
+  hasActiveListing: boolean;
+};
+
+export type CollectionSetDetailView = {
+  progress: CollectionSetProgressView;
+  missing: Paginated<CollectionMissingCardView>;
+  disclaimer: string;
 };

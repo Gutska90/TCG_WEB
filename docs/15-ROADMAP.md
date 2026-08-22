@@ -4,7 +4,7 @@ Cada fase es un incremento mergeable. No se adelanta la siguiente sin criterios 
 
 ```text
 FASE 0    Arquitectura y diseño          ✓ scaffold listo
-FASE 1    Usuarios + autenticación       ✓ (Google-first en docs; UI pendiente)
+FASE 1    Usuarios + autenticación       ✓
 FASE 2    Catálogo TCG                   ✓
 FASE 3    Buscador                       ✓
 FASE 4    Marketplace (listings)         ✓
@@ -16,13 +16,20 @@ FASE 9    Reputación                     ✓
 FASE 9.5A MONEY SAFETY                   ✓
 FASE 9.5B SECURITY                       ✓
 FASE 9.5C RELEASE GATE                   ✓
-FASE 9.6  MP MARKETPLACE (decisión)      ← siguiente
-FASE 10   Admin (operación)
-FASE 10.5 Disputas + reports + moderación
-FASE 11   Mobile
-FASE 12   Colecciones
-FASE 13   Historial de precios
-FASE 14   Wishlist + alertas
+FASE 9.6  MP MARKETPLACE (decisión)      ✓ ADR 0008 Opción A (provisional + production gate)
+FASE 10A  Admin operations dashboard     ✓
+FASE 10B  Orders / payments / refunds    ✓
+FASE 10C  Ledger + Payouts (manual)      ✓
+FASE 10D  Reconciliation                 ✓
+FASE 10.5 Disputas + reports + moderación  ✓
+FASE 10.6 Observability + jobs + flags     ✓
+FASE 10.7 Legal / privacy / beta copy      ✓
+FASE 11.0 Web UX E2E Completion Pass       ✓
+FASE 11   Mobile                           ✓
+FASE 11.5 Auth consistency Web + Mobile  ✓
+FASE 12   Colecciones                    ✓
+FASE 13   Historial de precios           ✓
+FASE 14   Wishlist + alertas             ✓
 FASE 15   Scanner
 FASE 16   Tiendas
 FASE 17   Subastas
@@ -162,45 +169,121 @@ Ningún cambio se integra si rompe seguridad, stock, checkout, pagos o build.
 
 **Estado: listo.** Siguiente: Fase 9.6 (arquitectura Mercado Pago Marketplace / Split). No Admin.
 
-## Fase 9.6 — Mercado Pago Marketplace (decisión, no código todavía)
+## Fase 9.6 — Mercado Pago Marketplace (decisión)
 
-Antes de dinero real. Definir, no implementar Split hasta que este doc y [07-PAYMENTS](07-PAYMENTS.md) coincidan:
+- Análisis: [proposals/MP-MARKETPLACE-ARCHITECTURE.md](proposals/MP-MARKETPLACE-ARCHITECTURE.md)
+- Canónico corto: [adr/0008-marketplace-payment-model.md](adr/0008-marketplace-payment-model.md)
+- Semántica: [07-PAYMENTS](07-PAYMENTS.md)
 
-- OAuth por vendedor (token MP del seller, no solo `MP_ACCESS_TOKEN` de plataforma).
-- `marketplace_fee`.
-- Carrito multivendedor: una preferencia por vendedor vs otro flujo.
-- Refunds en split payments.
-- Qué significan realmente `HELD` / `RELEASED` (escrow MP vs estados internos de fulfillment).
+**Aceptada (provisional):** Opción A — cuenta MP plataforma, un pago por checkout multivendedor, ledger interno, payout posterior. No Split 1:1, no OAuth seller.
 
-Hoy el código es **Opción A** (cuenta plataforma). Ver [07-PAYMENTS](07-PAYMENTS.md).
+`HELD`/`RELEASED` son internos. MP no es escrow. **Production gate:** no plata real hasta validación contractual/legal/comercial.
 
-## Fase 10 — Admin (operación)
+**Estado: decisión documentada.** 10A–10.6 implementados. No adelantar Mobile.
 
-Panel contra la misma API. Enfoque operativo, no CMS de marketing:
+## Fase 10 — Admin de dinero (cuatro incrementos)
 
-- usuarios, vendedores, listings, órdenes, pagos, refunds, disputas, reportes, auditoría, alertas operativas.
+Diseño: [proposals/FASE-10-ADMIN-MONEY.md](proposals/FASE-10-ADMIN-MONEY.md). Misma API. Sin pantallas que muten la DB a mano.
 
-No se implementa hasta nombrar esta fase.
+| Inc | Qué | Prisma | Estado |
+|-----|-----|--------|--------|
+| **10A** | Dashboard: GMV, órdenes, dinero aproximado, alertas; listados lectura | no | **listo** |
+| **10B** | Consola órdenes/pagos/refunds; retry refund | no (estados Refund existentes) | **listo** |
+| **10C** | `PayoutItem`, ledger append-only, `PayoutProvider` manual, saldo seller | sí | **listo** |
+| **10D** | Conciliación MP vs DB; `ReconciliationRun`/`Issue`; job `pnpm recon:day` | sí | **listo** |
+
+Payouts del MVP: **manuales**. No automatizar transferencias el día uno.
+
+**10D listo.** Semántica: [RECONCILIATION.md](RECONCILIATION.md).
 
 ## Fase 10.5 — Moderación y soporte
 
-Antes de Mobile:
+**Estado: implementado** (sin `SupportCase` / chat). Contrato: [TRUST-AND-MODERATION.md](TRUST-AND-MODERATION.md).
 
-- `Report`, `Dispute`, motivos de cancelación, bloqueo/suspensión de vendedores, revisión de listings, evidencia/fotos en disputas.
+- `Dispute`, `DisputeMessage`, `DisputeEvidence`, `Report`, `ListingRevision`, `ModerationAction`, `SellerSuspension`.
+- Una disputa activa por orden. No mueve dinero. Report no suspende solo.
+- UI: `/me/disputas`, reportar listing, admin `/admin/disputes|reports|moderation`.
+- MODERATOR: disputas/reportes/pause listing. No ledger/payouts. Suspender seller: ADMIN+.
 
-No se inventan tablas hasta esta fase (actualizar Prisma + `03-DATABASE` juntos).
+## Fase 10.6 — Observability + jobs + flags
+
+**Estado: implementado.** Contrato: [OBSERVABILITY-AND-OPERATIONS.md](OBSERVABILITY-AND-OPERATIONS.md). Runbook: [runbooks/BETA-OPERATIONS.md](runbooks/BETA-OPERATIONS.md).
+
+- Logging JSON, `X-Request-Id`, métricas in-process, error tracking deshabilitado por defecto.
+- Feature flags + kill switches (env). Scheduler in-process + `JobRun` (un RUNNING por jobName).
+- Dispute activa excluye obligación de `availableClp` y cancela payout PENDING/APPROVED.
+- Suspender seller auto-pausa listings ACTIVE; restore no reactiva.
+- Evidencia privada `GET /v1/disputes/:id/evidence/:evidenceId/file`.
+
+## Fase 10.7 — Legal / privacy / beta copy / release compliance
+
+**Estado: implementado.** Contrato: [LEGAL-BETA.md](LEGAL-BETA.md). Stores: [release/STORE-READINESS.md](release/STORE-READINESS.md).
+
+- Páginas `/terminos` `/privacidad` `/marketplace` `/refunds` `/ayuda`.
+- Signup exige aceptación (checkbox no preseleccionado). Versiones `LEGAL.termsVersion` / `privacyVersion` en `User`.
+- Marketing opt-in separado. Reconsentimiento automático: no en esta fase (`legal.stale` detectable).
+- Copy de pagos sin escrow/retención de Mercado Pago. Compra Protegida = reglas internas.
+- Baja = desactivación; no se borran Order/Payment/Refund/Ledger/AuditLog.
+- `POST /v1/feedback` con rate limit. Gate `REAL_PAYMENTS_LEGAL_APPROVED` en producción.
+- `ENABLE_REAL_PAYMENTS` sigue en `false`. No pagos live.
+
+## Fase 11.0 — Web UX E2E Completion Pass
+
+**Estado: implementado.** QA manual: [release/WEB-BETA-QA.md](release/WEB-BETA-QA.md).
+
+Pass de usabilidad sobre la web ya existente (buyer, seller, trust). No es Mobile. No Scanner/Stores/Auctions/Collection/Prices/Wishlist. No pagos live.
+
+- Flujos buyer/seller completables por un tester externo (loading, vacío, error, disabled, éxito, sin callejones).
+- Checkout sandbox explícito (“Pago de prueba / sandbox”). Retorno con polling al backend.
+- Timeline de orden derivada de timestamps/estado (sin inventar eventos).
+- Auth email/password completa en web; `legal.stale` no bloquea; sin botones OAuth rotos.
+- Playwright: `buyer-happy-path`, `seller-happy-path`, `dispute-path`. Seed `pnpm beta:seed`.
+- Gate: `pnpm test:e2e` además de lint/typecheck/test/integration/build.
+
+Siguiente (hecho): Fase 11 Mobile.
 
 ## Fase 11 — Mobile
 
-React Native / Expo contra **la misma API**. Sin duplicar lógica de negocio.
+**Estado: listo (MVP beta).** Siguiente: Fase 11.5 Auth (hecho). Push/stores submit siguen diferidos. No adelantar Colección (12).
 
-Primera versión: login (Google + Apple), catálogo, búsqueda, ficha, carrito, compras, ventas, favoritos, notificaciones básicas.
+React Native / Expo Router contra **la misma API**. Tabs (Fase 12): Inicio, Buscar, Colección, Favoritos, Carrito, Perfil. Sin scanner/stores. Auth email + SecureStore para refresh. Checkout sandbox + deep link `tcgplatform://checkout-return` con polling (no se confía el query). Compras, ventas, listings seller, disputas, reportes, feedback. Notificaciones in-app/push: placeholder honesto (API aún no existe). EAS perfiles development/preview/production. QA: [release/MOBILE-BETA-QA.md](release/MOBILE-BETA-QA.md).
 
-## Fases 12–17
+## Fase 11.5 — Auth consistency (listo)
+
+Google (web + mobile) y Apple (iOS) sobre la misma API e `AuthIdentity`. Linking explícito, unlink seguro, password para usuarios OAuth, rotación de refresh, settings `/me/seguridad` y `/security`. Consentimiento legal en alta OAuth. Stub de CI (`AUTH_STUB_OAUTH`). Ver [AUTH-IDENTITY-AND-SESSIONS.md](AUTH-IDENTITY-AND-SESSIONS.md).
+
+**No incluido (diferido, no es Fase 12):** push tokens, universal links de host público, submit a stores.
+
+**Estado: listo.** Colecciones entregadas en Fase 12.
+
+## FASE 12 — Colecciones ✓
+
+Colección personal Web + Mobile. Lotes de compra, resumen, valor estimado live de listings ACTIVE, P/L solo con costo+estimado, progreso de set (cartas, no variantes), faltantes, vender-desde-colección (prefill, sin auto-crear listing). Al COMPLETED, descuento de lote si hay `sourceCollectionItemId`. Ver [COLLECTIONS.md](COLLECTIONS.md).
+
+**No incluido (Fase 15+):** scanner, CSV import, share, folders, PDF.
+
+**Estado: listo.** Historial de precios entregado en Fase 13. Wishlist en Fase 14.
+
+## FASE 13 — Historial de precios ✓
+
+Serie diaria `CardPrice` (`LISTING_MIN`, `LISTING_AVG`, `SALE`) por variante con actividad. Ficha web/móvil: rangos 1m/3m/6m/1a, última venta, mediana 30d, menor listing, confianza, índice **TCG Market Chile** (ventas COMPLETED, no terceros). `CollectionValueSnapshot` y variación 30 días en resumen de colección. Flag `ENABLE_PRICES`. Ver [17-COLLECTION-PRICES-WISHLIST](17-COLLECTION-PRICES-WISHLIST.md).
+
+**No incluido (Fase 15+):** scanner, CSV import, share, folders, PDF, import de TCGPlayer/Cardmarket como precio Chile.
+
+**Estado: listo.** Wishlist entregada en Fase 14.
+
+## FASE 14 — Wishlist + alertas ✓
+
+Wishlist privada (no favoritos ni colección). Precio objetivo CLP, alerta `WISHLIST_HIT` al aparecer listing ACTIVE ≤ objetivo, sin spam del mismo listing; si baja más, avisa de nuevo. `PRICE_DROP` opt-in. Web `/me/wishlist` y `/me/notificaciones`; mobile `/wishlist`. Flag `ENABLE_WISHLIST`. Al `Order.COMPLETED`, descuento de lote con `sourceCollectionItemId` (idempotente) y CTA “Añadir a colección” en la compra. Ver [17-COLLECTION-PRICES-WISHLIST](17-COLLECTION-PRICES-WISHLIST.md).
+
+**No incluido (Fase 15+):** scanner, push tokens, tiendas, subastas.
+
+**Estado: listo.** Siguiente: Fase 15 Scanner — no empezar hasta pedirlo.
+
+## Fases 13–17
 
 | Fase | Qué |
 |------|-----|
-| 12 Colecciones | qty, condición, costo, valor, P/L, % set, Completar set, vender desde colección |
 | 13 Historial de precios | ventas reales + listings; mediana; confianza; TCG Market Price |
 | 14 Wishlist + alertas | carta + condición + idioma + precio máx; alerta al aparecer listing |
 | 15 Scanner | identificar / colección / vender / precio / lote inventario |
@@ -213,10 +296,10 @@ Intercambios / “Tengo–Quiero”, deck builder, optimizador de carrito. Torne
 
 ## Fases 11+
 
-No se implementan pantallas “de mentira” que llamen APIs inexistentes. Si la tab Escanear existe en Fase 11, es placeholder honesto.
+No se implementan pantallas “de mentira” que llamen APIs inexistentes. Fase 11 no muestra tab Escanear. El centro de notificaciones in-app existe (Fase 14); push tokens siguen diferidos.
 
 ## Criterio para cambiar el roadmap
 
-Un cambio de orden se documenta aquí **antes** de ejecutarlo. Default: dejar segura la parte transaccional (9.6 → 10 → 10.5) antes de Mobile y del loop scanner/colección.
+Un cambio de orden se documenta aquí **antes** de ejecutarlo. Default: 10A→10B→10C→10D→10.5→10.6 antes de Mobile.
 
 Backlog de producto (confianza, compra, colección, comunidad, ops): [23-PRODUCT-BACKLOG](23-PRODUCT-BACKLOG.md). No adelantar esas features porque “destacan”. El optimizador de carrito es prioridad de producto alta y Fase 20 de código; subirlo se decide aquí primero.

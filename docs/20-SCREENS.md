@@ -11,8 +11,9 @@ Cada pantalla lista: fase, ruta, datos (API), acciones, vacío, error. Si la API
 | Fase | Ruta | API | Acciones |
 |------|------|-----|----------|
 | 1 | `/` | games; search suggest opcional | ir a juego, buscar |
-| 1 | `/ingresar` | login, OAuth | |
-| 1 | `/registro` | register | |
+| 1 | `/ingresar` | login, OAuth Google | consentimiento OAuth si es alta nueva |
+| 1 | `/registro` | register | checkbox términos no preseleccionado; marketing opt-in separado |
+| 10.7 | `/terminos` `/privacidad` `/marketplace` `/refunds` `/ayuda` | config legal + feedback | páginas públicas de beta |
 | 1 | `/verificar-email` | verify | |
 | 1 | `/recuperar-password` | forgot/reset | |
 | 2 | `/{game}` | game + sets | |
@@ -27,19 +28,24 @@ Cada pantalla lista: fase, ruta, datos (API), acciones, vacío, error. Si la API
 | 5 | `/carrito` | cart | qty, quitar |
 | 6 | `/checkout` | checkout | address, shipping, pagar |
 | 6 | `/me/compras` | orders as=buyer | |
-| 6 | `/me/compras/{id}` | order | confirmar, disputa |
+| 6 | `/me/compras/{id}` | order | confirmar, abrir disputa |
+| 10.5 | `/me/disputas` `/me/disputas/{id}` | disputes | mensajes |
 | 6 | `/me/ventas` | orders as=seller | |
 | 6 | `/me/ventas/{id}` | order | preparar, despachar |
 | 4 | `/me/publicaciones` | listings mine | pausar, editar |
-| 1 | `/me` | me | |
+| 1 | `/me` | me | datos de cuenta, privacidad, solicitud de baja |
+| 11.5 | `/me/seguridad` | identities + sessions | métodos, password, revoke |
+| 1 | `/me/sesiones` | redirect | alias a `/me/seguridad` |
 | 2 | `/me/favoritos` | favorites | |
-| 1 | `/me/sesiones` | sessions | |
 | 4 | `/me/direcciones` | addresses | |
 | 4 | `/me/vendedor` | seller onboarding | |
-| 7 | `/checkout/retorno` | no confiar en query MP | “estamos confirmando el pago” + poll order |
-| 12 | `/me/coleccion` | collections | |
-| 13 | ficha + gráfico | prices range | |
-| 14 | `/me/wishlist` | wishlist | |
+| 7 | `/checkout/retorno` | poll `GET /v1/checkouts/:id` | processing / approved / rejected / timeout / expired; CTA “Ver mis compras”; no confiar en query MP |
+| 11.0 | `/me/balance` | `GET /v1/me/balance` | pendiente / disponible (copy de liquidación) |
+| 11.0 | `/me/publicaciones/{id}` | PATCH listing | editar condición, stock, precio, envío |
+| 12 | `/me/coleccion` `/me/coleccion/:itemId` `/me/coleccion/sets/:setId` | collection items/summary/sets | agregar, editar, vender prefill, faltantes |
+| 13 | ficha + gráfico | `GET /v1/variants/:id/prices` | rangos 1m/3m/6m/1a |
+| 14 | `/me/wishlist` | wishlist | precio objetivo, quitar |
+| 14 | `/me/notificaciones` | notifications + prefs | marcar leídas, PRICE_DROP opt-in |
 | 15 | `/tiendas/{slug}` | store | |
 | 16 | `/subastas` `/subastas/{id}` | auctions | |
 
@@ -63,30 +69,44 @@ Vacío paso 1: “No encontramos esa carta. Puedes reportarla.”
 3. Mercado: market, min, avg, #listings (0 en MVP 1)
 4. Acciones: Favorito, (Fase 4) Vender esta, (12) Colección, (14) Wishlist
 5. Vendedores (Fase 4): tabla condición, vendedor, ★, precio, [Agregar]
-6. Gráfico (Fase 13)
+6. Gráfico e índice TCG Market Chile (Fase 13)
 
 ### Estados vacíos / error
 
-- Búsqueda 0 resultados: CTA reportar carta.
+- Búsqueda 0 resultados: CTA a `/ayuda`.
 - Carrito vacío: ir a buscar.
+- Checkout con `paymentsSandbox`: badge “Pago de prueba / sandbox” y CTA “Confirmar pago de prueba”.
 - Order 404: no filtrar si es IDOR (403 vs 404 consistente: **404** para recursos ajenos).
-- MP rechazo: mensaje en checkout, stock ya liberado si webhook cancelled.
+- MP rechazo / checkout expirado / timeout de polling: mensajes en `/checkout/retorno`; stock ya liberado si webhook cancelled.
+- 401 sesión: redirect a `/ingresar?next=`. 500: `app/error.tsx` sin stack.
 
 ---
 
 ## Mobile (Fase 11, mismos flujos)
 
-| Tab | Pantallas |
-|-----|-----------|
-| Inicio | juegos, tendencias, búsqueda compacta |
-| Buscar | search + ficha |
-| Escanear | placeholder hasta 17; o cámara para foto de listing |
-| Lista | favoritos; luego wishlist/colección en segmentos |
-| Perfil | cuenta, ventas, compras, publicaciones, salir |
+| Tab / stack | Ruta Expo | API |
+|-------------|-----------|-----|
+| Inicio | `/(tabs)` | games, listings recientes |
+| Buscar | `/(tabs)/search` | `GET /v1/search/cards` |
+| Colección | `/(tabs)/collection` `/collection/[id]` `/collection/sets/[setId]` | `GET/POST/PATCH/DELETE /v1/me/collection/*` |
+| Favoritos | `/(tabs)/favorites` | `GET/PUT/DELETE /v1/me/favorites` |
+| Carrito | `/(tabs)/cart` | `GET/PUT/DELETE /v1/cart` (sesión) |
+| Perfil | `/(tabs)/profile` | `GET /v1/me` |
+| Auth | `/login` `/register` `/verify-email` `/forgot-password` `/oauth` | email + Google/Apple |
+| Seguridad | `/security` | identities, sessions, password |
+| Carta | `/card/[id]` | `GET /v1/cards/:id` + listings |
+| Listing | `/listing/[id]` | listing, cart, `POST /v1/reports` |
+| Checkout | `/checkout` `/checkout-return` | checkout + poll + simulate |
+| Compras | `/purchases` `/purchases/[id]` | orders as=buyer |
+| Ventas | `/sales` `/sales/[id]` | orders as=seller; prepare/ship |
+| Reclamos | `/disputes` `/disputes/[id]` | disputes |
+| Publicaciones | `/sell` `/sell/new` `/sell/[id]` | listings seller |
+| Saldo / direcciones | `/balance` `/addresses` | me/balance, addresses |
+| Wishlist | `/wishlist` | `GET/PUT/DELETE /v1/me/wishlist` |
+| Notificaciones | `/notifications` | `GET /v1/me/notifications` + preferencias (PRICE_DROP opt-in) |
+| Legal / feedback | `/legal/[slug]` `/feedback` | documentos + `POST /v1/feedback` |
 
-Stack extra: login modal, wizard vender, cart, WebView MP, notificaciones in-app.
-
-Rutas Expo Router alineadas en intención, no hace falta clonar slugs SEO.
+No hay tab Escanear ni Tiendas. Rutas alineadas en intención, no clonan slugs SEO. QA: [release/MOBILE-BETA-QA.md](release/MOBILE-BETA-QA.md).
 
 ---
 
@@ -94,12 +114,17 @@ Rutas Expo Router alineadas en intención, no hace falta clonar slugs SEO.
 
 | Ruta admin | |
 |-----------|--|
-| `/` | dashboard KPIs |
-| `/users` `/users/:id` | |
-| `/listings` | |
-| `/orders` `/orders/:id` | |
-| `/payments` `/payouts` | |
-| `/reports` `/disputes` | |
+| `/admin` | dashboard KPIs (10A) |
+| `/admin/users` | listado lectura (10A); detalle/ban en 10B |
+| `/admin/listings` | listado lectura (10A); pausar en 10B |
+| `/admin/orders` `/admin/orders/:id` | listado 10A; detalle, cancel, retry 10B |
+| `/admin/payments` `/admin/payments/:id` | 10A listado; 10B detalle |
+| `/admin/refunds` `/admin/refunds/:id` | 10A listado; 10B detalle + retry |
+| `/admin/payouts` `/admin/payouts/:id` | 10C manual |
+| `/admin/sellers/:id/balance` `/admin/ledger` | 10C |
+| `/admin/reconciliation` `/admin/reconciliation/runs/:id` `/admin/reconciliation/issues/:id` | 10D |
+| `/admin/disputes` `/admin/disputes/:id` `/admin/reports` `/admin/reports/:id` `/admin/moderation` | 10.5 |
+| `/admin/feedback` | 10.7 lista simple |
 | `/catalog/games|sets|cards` | |
 | `/catalog/imports` | disparar job |
 | `/config` | comisión, timeouts, shipping rates |

@@ -115,6 +115,12 @@ enum ShipmentStatus {
   CANCELLED
 }
 
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  PUSH
+}
+
 enum RefundStatus {
   PENDING
   COMPLETED
@@ -123,8 +129,62 @@ enum RefundStatus {
 
 enum PayoutStatus {
   PENDING
+  APPROVED
+  PROCESSING
   PAID
   FAILED
+  CANCELLED
+}
+
+enum PayoutMethod {
+  MANUAL
+}
+
+enum LedgerEntryType {
+  PAYMENT_CAPTURED
+  SELLER_PAYABLE
+  PLATFORM_FEE
+  REFUND
+  PAYOUT_RESERVED
+  PAYOUT_PAID
+  PAYOUT_REVERSED
+  ADJUSTMENT
+}
+
+enum ReconciliationRunStatus {
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum ReconciliationIssueStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+  IGNORED
+}
+
+enum ReconciliationSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+enum ReconciliationIssueType {
+  PAYMENT_MISSING_LOCAL
+  PAYMENT_MISSING_PROVIDER
+  PAYMENT_STATUS_MISMATCH
+  PAYMENT_AMOUNT_MISMATCH
+  REFUND_MISSING_LOCAL
+  REFUND_MISSING_PROVIDER
+  REFUND_STATUS_MISMATCH
+  REFUND_AMOUNT_MISMATCH
+  UNKNOWN_PROVIDER_PAYMENT
+  DUPLICATE_PROVIDER_PAYMENT
+  LEDGER_MISSING_PAYMENT_CAPTURED
+  LEDGER_MISSING_SELLER_PAYABLE
+  LEDGER_MISSING_REFUND
+  PAYOUT_LEDGER_MISMATCH
 }
 
 /// Bootstrap de Fase 0. Se mantiene como marca de migraciones tempranas.
@@ -148,6 +208,11 @@ model User {
   isBanned        Boolean   @default(false) @map("is_banned")
   bannedAt        DateTime? @map("banned_at") @db.Timestamptz(6)
   bannedReason    String?   @map("banned_reason")
+  termsVersion    String?   @map("terms_version")
+  privacyVersion  String?   @map("privacy_version")
+  acceptedAt      DateTime? @map("accepted_at") @db.Timestamptz(6)
+  marketingOptIn  Boolean   @default(false) @map("marketing_opt_in")
+  deletionRequestedAt DateTime? @map("deletion_requested_at") @db.Timestamptz(6)
   createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt       DateTime? @map("deleted_at") @db.Timestamptz(6)
@@ -162,6 +227,10 @@ model User {
   passwordResetTokens  PasswordResetToken[]
   auditLogs            AuditLog[]
   favorites            Favorite[]
+  wishlistItems        WishlistItem[]
+  notifications        Notification[]
+  notificationPreferences NotificationPreference[]
+  collections          Collection[]
   addresses            Address[]
   listings             Listing[]
   cart                 Cart?
@@ -169,8 +238,27 @@ model User {
   ordersBought         Order[]  @relation("OrderBuyer")
   ordersSold           Order[]  @relation("OrderSeller")
   payouts              Payout[]
+  payoutsApproved      Payout[]                 @relation("PayoutApprover")
+  payoutItems          PayoutItem[]
+  ledgerEntries        LedgerEntry[]
+  reconRunsCreated     ReconciliationRun[]      @relation("ReconRunCreator")
+  reconIssuesResolved  ReconciliationIssue[]    @relation("ReconIssueResolver")
   ratingsGiven         SellerRating[] @relation("RatingFrom")
   ratingsReceived      SellerRating[] @relation("RatingTo")
+  disputesOpened       Dispute[]            @relation("DisputeOpenedBy")
+  disputesAsBuyer      Dispute[]            @relation("DisputeBuyer")
+  disputesAsSeller     Dispute[]            @relation("DisputeSeller")
+  disputesAssigned     Dispute[]            @relation("DisputeAssignee")
+  disputeMessages      DisputeMessage[]
+  disputeEvidence      DisputeEvidence[]    @relation("DisputeEvidenceUploader")
+  reportsFiled         Report[]             @relation("ReportReporter")
+  reportsAssigned      Report[]             @relation("ReportAssignee")
+  listingRevisions     ListingRevision[]
+  moderationActions    ModerationAction[]
+  suspensionsReceived  SellerSuspension[]   @relation("SellerSuspended")
+  suspensionsCreated   SellerSuspension[]   @relation("SuspensionCreator")
+  suspensionsLifted    SellerSuspension[]   @relation("SuspensionLifter")
+  feedback             Feedback[]
 
   @@map("users")
 }
@@ -278,6 +366,7 @@ model File {
   avatarFor  User?          @relation("UserAvatar")
   setImages  TcgSet[]       @relation("SetImage")
   listingImages ListingImage[]
+  disputeEvidence DisputeEvidence[]
 
   @@unique([bucket, key])
   @@map("files")
@@ -374,11 +463,13 @@ model CardVariant {
   createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  card      Card        @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  favorites Favorite[]
-  listings  Listing[]
-  prices    CardPrice[]
-  orderItems OrderItem[]
+  card            Card            @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  favorites       Favorite[]
+  wishlistItems   WishlistItem[]
+  listings        Listing[]
+  prices          CardPrice[]
+  orderItems      OrderItem[]
+  collectionItems CollectionItem[]
 
   @@unique([cardId, language, finish, finishDetail])
   @@index([cardId])
@@ -397,6 +488,116 @@ model Favorite {
   @@unique([userId, variantId])
   @@index([userId])
   @@map("favorites")
+}
+
+model WishlistItem {
+  id                    String   @id @default(uuid()) @db.Uuid
+  userId                String   @map("user_id") @db.Uuid
+  variantId             String   @map("variant_id") @db.Uuid
+  targetPriceClp        Int      @map("target_price_clp")
+  notifyBelow           Boolean  @default(true) @map("notify_below")
+  lastNotifiedListingId String?  @map("last_notified_listing_id") @db.Uuid
+  lastNotifiedPriceClp  Int?     @map("last_notified_price_clp")
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  variant CardVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, variantId])
+  @@index([userId])
+  @@index([variantId])
+  @@map("wishlist_items")
+}
+
+model Notification {
+  id        String               @id @default(uuid()) @db.Uuid
+  userId    String               @map("user_id") @db.Uuid
+  type      String
+  title     String
+  body      String
+  data      Json                 @default("{}")
+  channel   NotificationChannel  @default(IN_APP)
+  dedupeKey String?              @map("dedupe_key")
+  readAt    DateTime?            @map("read_at") @db.Timestamptz(6)
+  createdAt DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dedupeKey])
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id     String  @id @default(uuid()) @db.Uuid
+  userId String  @map("user_id") @db.Uuid
+  type   String
+  inApp  Boolean @default(true) @map("in_app")
+  email  Boolean @default(true)
+  push   Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+  @@index([userId])
+  @@map("notification_preferences")
+}
+
+/// Colección personal (Fase 12). MVP: una fila Default por usuario (`userId` unique).
+/// No es inventario de Listing: una carta puede estar aquí y también publicada.
+model Collection {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @unique @map("user_id") @db.Uuid
+  name      String   @default("Default")
+  isDefault Boolean  @default(true) @map("is_default")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user  User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CollectionItem[]
+  valueSnapshots CollectionValueSnapshot[]
+
+  @@map("collections")
+}
+
+/// Lote de compra. No hay unique (collection, variant, condition): el mismo printing
+/// con distinto purchasePriceClp debe coexistir. Duplicados se calculan en lectura.
+model CollectionItem {
+  id               String        @id @default(uuid()) @db.Uuid
+  collectionId     String        @map("collection_id") @db.Uuid
+  variantId        String        @map("variant_id") @db.Uuid
+  condition        CardCondition
+  quantity         Int
+  purchasePriceClp Int?          @map("purchase_price_clp")
+  purchasedAt      DateTime?     @map("purchased_at") @db.Date
+  notes            String?
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  variant    CardVariant @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  listings   Listing[]
+
+  @@index([collectionId, createdAt])
+  @@index([collectionId, variantId, condition])
+  @@index([variantId])
+  @@map("collection_items")
+}
+
+model CollectionValueSnapshot {
+  id           String   @id @default(uuid()) @db.Uuid
+  collectionId String   @map("collection_id") @db.Uuid
+  capturedOn   DateTime @map("captured_on") @db.Date
+  valueClp     Int      @map("value_clp")
+  breakdown    Json     @default("{}")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, capturedOn])
+  @@index([capturedOn])
+  @@map("collection_value_snapshots")
 }
 
 model Address {
@@ -440,19 +641,23 @@ model Listing {
   graded            Boolean       @default(false)
   grader            String?
   grade             String?
-  publishedAt       DateTime?     @map("published_at") @db.Timestamptz(6)
-  createdAt         DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt         DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+  sourceCollectionItemId String?       @map("source_collection_item_id") @db.Uuid
+  publishedAt            DateTime?     @map("published_at") @db.Timestamptz(6)
+  createdAt              DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt              DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  seller    User          @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  variant   CardVariant?  @relation(fields: [variantId], references: [id], onDelete: Restrict)
-  images    ListingImage[]
-  cartItems CartItem[]
-  orderItems OrderItem[]
+  seller               User            @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  variant              CardVariant?    @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  sourceCollectionItem CollectionItem? @relation(fields: [sourceCollectionItemId], references: [id], onDelete: SetNull)
+  images               ListingImage[]
+  cartItems            CartItem[]
+  orderItems           OrderItem[]
+  revisions            ListingRevision[]
 
   @@index([sellerId])
   @@index([variantId, status])
   @@index([status, priceClp])
+  @@index([sourceCollectionItemId])
   @@map("listings")
 }
 
@@ -504,10 +709,12 @@ model CardPrice {
   variantId  String   @map("variant_id") @db.Uuid
   source     String
   priceClp   Int      @map("price_clp")
+  capturedOn DateTime @map("captured_on") @db.Date
   capturedAt DateTime @default(now()) @map("captured_at") @db.Timestamptz(6)
 
   variant CardVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
 
+  @@unique([variantId, source, capturedOn])
   @@index([variantId, capturedAt])
   @@map("card_prices")
 }
@@ -561,6 +768,9 @@ model Order {
   payment         Payment?
   shipment        Shipment?
   rating          SellerRating?
+  payoutItems     PayoutItem[]
+  ledgerEntries   LedgerEntry[]
+  disputes        Dispute[]
 
   @@index([buyerId, createdAt])
   @@index([sellerId, createdAt])
@@ -585,6 +795,7 @@ model OrderItem {
 
   @@index([orderId])
   @@index([listingId])
+  @@index([variantId])
   @@map("order_items")
 }
 
@@ -602,8 +813,9 @@ model Payment {
   createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt          DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  order   Order    @relation(fields: [orderId], references: [id], onDelete: Restrict)
-  refunds Refund[]
+  order         Order         @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  refunds       Refund[]
+  ledgerEntries LedgerEntry[]
 
   @@index([providerPaymentId])
   @@map("payments")
@@ -631,7 +843,8 @@ model Refund {
   createdAt        DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt        DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  payment Payment @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  payment       Payment       @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  ledgerEntries LedgerEntry[]
 
   @@index([paymentId])
   @@map("refunds")
@@ -642,16 +855,75 @@ model Payout {
   sellerId     String       @map("seller_id") @db.Uuid
   amountClp    Int          @map("amount_clp")
   status       PayoutStatus @default(PENDING)
+  method       PayoutMethod @default(MANUAL)
   providerRef  String?      @map("provider_ref")
   periodStart  DateTime     @map("period_start") @db.Timestamptz(6)
   periodEnd    DateTime     @map("period_end") @db.Timestamptz(6)
+  approvedById String?      @map("approved_by_id") @db.Uuid
+  approvedAt   DateTime?    @map("approved_at") @db.Timestamptz(6)
+  paidAt       DateTime?    @map("paid_at") @db.Timestamptz(6)
+  lastError    String?      @map("last_error")
   createdAt    DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  seller User @relation(fields: [sellerId], references: [id], onDelete: Restrict)
+  seller        User          @relation(fields: [sellerId], references: [id], onDelete: Restrict)
+  approvedBy    User?         @relation("PayoutApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  items         PayoutItem[]
+  ledgerEntries LedgerEntry[]
 
   @@index([sellerId, status])
   @@map("payouts")
+}
+
+/// Snapshot de órdenes incluidas en un lote de payout. `locksOrder` + índice
+/// único parcial impide que la misma obligación viva en dos payouts activos.
+model PayoutItem {
+  id            String   @id @default(uuid()) @db.Uuid
+  payoutId      String   @map("payout_id") @db.Uuid
+  orderId       String   @map("order_id") @db.Uuid
+  sellerId      String   @map("seller_id") @db.Uuid
+  grossClp      Int      @map("gross_clp")
+  commissionClp Int      @map("commission_clp")
+  netClp        Int      @map("net_clp")
+  locksOrder    Boolean  @default(true) @map("locks_order")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  payout Payout @relation(fields: [payoutId], references: [id], onDelete: Restrict)
+  order  Order  @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  seller User   @relation(fields: [sellerId], references: [id], onDelete: Restrict)
+
+  @@index([payoutId])
+  @@index([sellerId])
+  @@map("payout_items")
+}
+
+/// Libro operacional append-only. Nunca UPDATE/DELETE; correcciones = INSERT.
+model LedgerEntry {
+  id              String          @id @default(uuid()) @db.Uuid
+  sellerId        String?         @map("seller_id") @db.Uuid
+  entryType       LedgerEntryType @map("entry_type")
+  amountClp       Int             @map("amount_clp")
+  orderId         String?         @map("order_id") @db.Uuid
+  paymentId       String?         @map("payment_id") @db.Uuid
+  refundId        String?         @map("refund_id") @db.Uuid
+  payoutId        String?         @map("payout_id") @db.Uuid
+  idempotencyKey  String          @unique @map("idempotency_key")
+  metadata        Json            @default("{}")
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  seller  User?    @relation(fields: [sellerId], references: [id], onDelete: Restrict)
+  order   Order?   @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  payment Payment? @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  refund  Refund?  @relation(fields: [refundId], references: [id], onDelete: Restrict)
+  payout  Payout?  @relation(fields: [payoutId], references: [id], onDelete: Restrict)
+
+  @@index([sellerId, createdAt])
+  @@index([entryType, createdAt])
+  @@index([orderId])
+  @@index([paymentId])
+  @@index([refundId])
+  @@index([payoutId])
+  @@map("ledger_entries")
 }
 
 model Shipment {
@@ -702,4 +974,309 @@ model SellerRating {
 
   @@index([toUserId, createdAt])
   @@map("seller_ratings")
+}
+
+model ReconciliationRun {
+  id               String                   @id @default(uuid()) @db.Uuid
+  provider         String
+  startedAt        DateTime                 @default(now()) @map("started_at") @db.Timestamptz(6)
+  finishedAt       DateTime?                @map("finished_at") @db.Timestamptz(6)
+  status           ReconciliationRunStatus  @default(RUNNING)
+  checkedPayments  Int                      @default(0) @map("checked_payments")
+  checkedRefunds   Int                      @default(0) @map("checked_refunds")
+  issuesFound      Int                      @default(0) @map("issues_found")
+  criticalIssues   Int                      @default(0) @map("critical_issues")
+  createdById      String?                  @map("created_by_id") @db.Uuid
+  metadata         Json                     @default("{}")
+
+  createdBy User?                 @relation("ReconRunCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  issues    ReconciliationIssue[]
+
+  @@index([provider, startedAt])
+  @@map("reconciliation_runs")
+}
+
+model ReconciliationIssue {
+  id                 String                     @id @default(uuid()) @db.Uuid
+  runId              String                     @map("run_id") @db.Uuid
+  issueType          ReconciliationIssueType    @map("issue_type")
+  severity           ReconciliationSeverity
+  entityType         String                     @map("entity_type")
+  entityId           String?                    @map("entity_id") @db.Uuid
+  providerPaymentId  String?                    @map("provider_payment_id")
+  providerRefundId   String?                    @map("provider_refund_id")
+  expectedStatus     String?                    @map("expected_status")
+  actualStatus       String?                    @map("actual_status")
+  expectedAmountClp  Int?                       @map("expected_amount_clp")
+  actualAmountClp    Int?                       @map("actual_amount_clp")
+  fingerprint        String
+  details            Json                       @default("{}")
+  status             ReconciliationIssueStatus  @default(OPEN)
+  resolvedAt         DateTime?                  @map("resolved_at") @db.Timestamptz(6)
+  resolvedById       String?                    @map("resolved_by_id") @db.Uuid
+  resolutionNote     String?                    @map("resolution_note")
+  createdAt          DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  run        ReconciliationRun @relation(fields: [runId], references: [id], onDelete: Restrict)
+  resolvedBy User?             @relation("ReconIssueResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+
+  @@index([runId])
+  @@index([status, severity, createdAt])
+  @@index([issueType, createdAt])
+  @@index([fingerprint])
+  @@map("reconciliation_issues")
+}
+
+enum DisputeReason {
+  ITEM_NOT_RECEIVED
+  WRONG_ITEM
+  WRONG_CONDITION
+  DAMAGED
+  COUNTERFEIT_SUSPECTED
+  SELLER_UNRESPONSIVE
+  OTHER
+}
+
+enum DisputeStatus {
+  OPEN
+  WAITING_BUYER
+  WAITING_SELLER
+  UNDER_REVIEW
+  RESOLVED_BUYER
+  RESOLVED_SELLER
+  CANCELLED
+}
+
+enum DisputeEvidenceType {
+  PHOTO
+  VIDEO
+  DOCUMENT
+  OTHER
+}
+
+enum ReportTargetType {
+  USER
+  LISTING
+  IMAGE
+}
+
+enum ReportReason {
+  COUNTERFEIT
+  STOLEN_IMAGE
+  SPAM
+  MISLEADING_DESCRIPTION
+  SCAM_SUSPECTED
+  ABUSIVE_CONTENT
+  OTHER
+}
+
+enum ReportStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+enum ListingRevisionSource {
+  SELLER
+  ADMIN
+  SYSTEM
+}
+
+enum ModerationActionType {
+  LISTING_PAUSED
+  LISTING_RESTORED
+  USER_WARNED
+  SELLER_SUSPENDED
+  SELLER_RESTORED
+  REPORT_RESOLVED
+  DISPUTE_ASSIGNED
+  DISPUTE_RESOLVED
+}
+
+model Dispute {
+  id               String        @id @default(uuid()) @db.Uuid
+  orderId          String        @map("order_id") @db.Uuid
+  openedById       String        @map("opened_by_id") @db.Uuid
+  buyerId          String        @map("buyer_id") @db.Uuid
+  sellerId         String        @map("seller_id") @db.Uuid
+  assignedAdminId  String?       @map("assigned_admin_id") @db.Uuid
+  reason           DisputeReason
+  status           DisputeStatus @default(OPEN)
+  resolution       String?
+  openedAt         DateTime      @default(now()) @map("opened_at") @db.Timestamptz(6)
+  resolvedAt       DateTime?     @map("resolved_at") @db.Timestamptz(6)
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  order          Order              @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  openedBy       User               @relation("DisputeOpenedBy", fields: [openedById], references: [id], onDelete: Restrict)
+  buyer          User               @relation("DisputeBuyer", fields: [buyerId], references: [id], onDelete: Restrict)
+  seller         User               @relation("DisputeSeller", fields: [sellerId], references: [id], onDelete: Restrict)
+  assignedAdmin  User?              @relation("DisputeAssignee", fields: [assignedAdminId], references: [id], onDelete: SetNull)
+  messages       DisputeMessage[]
+  evidence       DisputeEvidence[]
+
+  @@index([orderId])
+  @@index([status, openedAt])
+  @@index([assignedAdminId])
+  @@map("disputes")
+}
+
+model DisputeMessage {
+  id                   String   @id @default(uuid()) @db.Uuid
+  disputeId            String   @map("dispute_id") @db.Uuid
+  authorId             String   @map("author_id") @db.Uuid
+  body                 String
+  isInternalAdminNote  Boolean  @default(false) @map("is_internal_admin_note")
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  dispute Dispute @relation(fields: [disputeId], references: [id], onDelete: Restrict)
+  author  User    @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([disputeId, createdAt])
+  @@map("dispute_messages")
+}
+
+model DisputeEvidence {
+  id            String               @id @default(uuid()) @db.Uuid
+  disputeId     String               @map("dispute_id") @db.Uuid
+  uploadedById  String               @map("uploaded_by_id") @db.Uuid
+  fileId        String               @map("file_id") @db.Uuid
+  evidenceType  DisputeEvidenceType  @map("evidence_type")
+  description   String               @default("")
+  createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  dispute    Dispute @relation(fields: [disputeId], references: [id], onDelete: Restrict)
+  uploadedBy User    @relation("DisputeEvidenceUploader", fields: [uploadedById], references: [id], onDelete: Restrict)
+  file       File    @relation(fields: [fileId], references: [id], onDelete: Restrict)
+
+  @@index([disputeId])
+  @@map("dispute_evidence")
+}
+
+model Report {
+  id               String           @id @default(uuid()) @db.Uuid
+  reporterId       String           @map("reporter_id") @db.Uuid
+  targetType       ReportTargetType @map("target_type")
+  targetId         String           @map("target_id") @db.Uuid
+  reason           ReportReason
+  description      String           @default("")
+  status           ReportStatus     @default(OPEN)
+  assignedAdminId  String?          @map("assigned_admin_id") @db.Uuid
+  resolvedAt       DateTime?        @map("resolved_at") @db.Timestamptz(6)
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  reporter      User  @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Restrict)
+  assignedAdmin User? @relation("ReportAssignee", fields: [assignedAdminId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([targetType, targetId])
+  @@index([reporterId, createdAt])
+  @@map("reports")
+}
+
+model ListingRevision {
+  id         String                 @id @default(uuid()) @db.Uuid
+  listingId  String                 @map("listing_id") @db.Uuid
+  actorId    String                 @map("actor_id") @db.Uuid
+  source     ListingRevisionSource
+  reason     String                 @default("")
+  before     Json
+  after      Json
+  createdAt  DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Restrict)
+  actor   User    @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([listingId, createdAt])
+  @@map("listing_revisions")
+}
+
+model ModerationAction {
+  id            String               @id @default(uuid()) @db.Uuid
+  actorAdminId  String               @map("actor_admin_id") @db.Uuid
+  targetType    String               @map("target_type")
+  targetId      String               @map("target_id") @db.Uuid
+  actionType    ModerationActionType @map("action_type")
+  reason        String
+  metadata      Json                 @default("{}")
+  createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  actor User @relation(fields: [actorAdminId], references: [id], onDelete: Restrict)
+
+  @@index([targetType, targetId, createdAt])
+  @@index([actorAdminId, createdAt])
+  @@map("moderation_actions")
+}
+
+model SellerSuspension {
+  id          String    @id @default(uuid()) @db.Uuid
+  sellerId    String    @map("seller_id") @db.Uuid
+  reason      String
+  createdById String    @map("created_by_id") @db.Uuid
+  liftedAt    DateTime? @map("lifted_at") @db.Timestamptz(6)
+  liftedById  String?   @map("lifted_by_id") @db.Uuid
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  seller    User  @relation("SellerSuspended", fields: [sellerId], references: [id], onDelete: Restrict)
+  createdBy User  @relation("SuspensionCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  liftedBy  User? @relation("SuspensionLifter", fields: [liftedById], references: [id], onDelete: SetNull)
+
+  @@index([sellerId, createdAt])
+  @@map("seller_suspensions")
+}
+
+enum JobRunStatus {
+  RUNNING
+  COMPLETED
+  FAILED
+  SKIPPED
+}
+
+model JobRun {
+  id              String        @id @default(uuid()) @db.Uuid
+  jobName         String        @map("job_name")
+  status          JobRunStatus
+  startedAt       DateTime      @map("started_at") @db.Timestamptz(6)
+  finishedAt      DateTime?     @map("finished_at") @db.Timestamptz(6)
+  durationMs      Int?          @map("duration_ms")
+  errorCode       String?       @map("error_code")
+  errorMessage    String?       @map("error_message")
+  correlationId   String?       @map("correlation_id")
+  metadata        Json          @default("{}")
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([jobName, startedAt])
+  @@index([status, startedAt])
+  @@map("job_runs")
+}
+
+enum FeedbackCategory {
+  ACCOUNT
+  BUY
+  SELL
+  DISPUTE
+  REFUND
+  ABUSE
+  OTHER
+}
+
+model Feedback {
+  id          String           @id @default(uuid()) @db.Uuid
+  userId      String?          @map("user_id") @db.Uuid
+  ip          String?
+  category    FeedbackCategory
+  message     String
+  screen      String?
+  appVersion  String?          @map("app_version")
+  requestId   String?          @map("request_id")
+  createdAt   DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([userId, createdAt])
+  @@map("feedback")
 }

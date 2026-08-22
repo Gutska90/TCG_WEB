@@ -90,6 +90,8 @@ export async function register(input: {
   email: string;
   password: string;
   displayName: string;
+  acceptTerms: boolean;
+  marketingOptIn?: boolean;
 }): Promise<AuthTokens> {
   const tokens = await api<AuthTokens>("/v1/auth/register", {
     method: "POST",
@@ -118,4 +120,33 @@ export async function logout(): Promise<void> {
 
 export function fetchMe(): Promise<MeView> {
   return api<MeView>("/v1/me");
+}
+
+export function requestAccountDeletion(): Promise<{ status: "requested"; deletionRequestedAt: string }> {
+  return api("/v1/me/deletion-request", { method: "POST" });
+}
+
+export async function loginWithGoogle(idToken: string, acceptTerms: boolean, marketingOptIn = false): Promise<AuthTokens> {
+  const tokens = await api<AuthTokens>("/v1/auth/oauth/google", {
+    method: "POST",
+    body: JSON.stringify({ idToken, acceptTerms, marketingOptIn }),
+  });
+  setAccessToken(tokens.accessToken);
+  await mergeGuestCart();
+  return tokens;
+}
+
+export async function loginWithTestOauth(input: {
+  provider: "GOOGLE" | "APPLE";
+  subject: string;
+  email?: string;
+  acceptTerms: boolean;
+}): Promise<AuthTokens> {
+  const tokens = await api<AuthTokens>("/v1/auth/oauth/test", {
+    method: "POST",
+    body: JSON.stringify({ ...input, emailVerified: true }),
+  });
+  setAccessToken(tokens.accessToken);
+  await mergeGuestCart();
+  return tokens;
 }

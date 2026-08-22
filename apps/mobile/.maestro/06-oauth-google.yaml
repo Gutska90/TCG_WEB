@@ -1,0 +1,8 @@
+appId: cl.tcgplatform.app
+---
+# Requiere AUTH_STUB_OAUTH=true y ENABLE_GOOGLE_AUTH=true en la API. No usa stores.
+- launchApp
+- tapOn: "Perfil"
+- tapOn: "Ingresar"
+- tapOn: "Continuar con Google (prueba)"
+- assertVisible: "Seguridad"

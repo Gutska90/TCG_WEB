@@ -14,7 +14,7 @@ export default async function CardPage({
     const detail = await getCardBySlug(game, set, card);
     const defaultVariant = detail.variants.find((row) => row.isDefault) ?? detail.variants[0];
     return (
-      <main className="mx-auto max-w-3xl px-6 py-12">
+      <main id="contenido" className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-12">
         <p className="text-sm text-neutral-500">
           <Link href={`/${game}`} className="underline">
             {detail.game.name}
@@ -29,7 +29,7 @@ export default async function CardPage({
             {detail.imageUrl ? (
               // Origin URL from the catalog source; we do not host publisher art.
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={detail.imageUrl} alt="" className="h-full w-full rounded-lg object-cover" />
+              <img src={detail.imageUrl} alt={detail.name} className="h-full w-full rounded-lg object-cover" />
             ) : (
               "Sin imagen"
             )}

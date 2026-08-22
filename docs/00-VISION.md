@@ -72,7 +72,7 @@ Cualquier usuario verificado puede vender. `SELLER` no es una casta aparte: es u
 1. **Catálogo primero.** Sin carta canónica no hay listing de calidad.
 2. **Agnóstico al juego.** Agregar Yu-Gi-Oh! o Mitos y Leyendas no cambia el modelo.
 3. **Publicar en menos de 60 segundos** si la carta ya está en el catálogo.
-4. **Pago protegido.** El dinero no se libera al vendedor hasta confirmación o timeout de recepción.
+4. **Pago protegido.** El dinero no se transfiere al vendedor hasta confirmación o timeout. Lo retiene la **plataforma** (cuenta MP propia), no un escrow de Mercado Pago. Ver [ADR 0008](adr/0008-marketplace-payment-model.md).
 5. **Identidad propia.** Inspiración de TCGPlayer, Cardmarket, PriceCharting, StockX y TCGMatch; ninguna interfaz copiada.
 6. **Chile real.** CLP, comunas, Chilexpress/Blue Express, encuentro presencial, Mercado Pago.
 7. **API-first.** Las pantallas consumen contratos; no al revés.
@@ -106,7 +106,7 @@ Loop a proteger: `SCANNER → COLECCIÓN → PRECIOS → WISHLIST → VENDER / C
 Hasta definir marca:
 
 - Visual: limpio, denso en datos (precios, condiciones), no “gaming caótico”.
-- Confianza: condición normalizada, fotos reales, reputación visible.
+- Confianza: condición normalizada, fotos reales, reputación visible. “Pago protegido” / Compra Protegida, si se menciona, son reglas internas de la plataforma (soporte y disputas), no un seguro ni un escrow de Mercado Pago. Ver [LEGAL-BETA.md](LEGAL-BETA.md).
 - Color y logo: pendientes. No usar paletas ni naming de TCGMatch.
 
 Navegación web objetivo:

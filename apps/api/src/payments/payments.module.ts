@@ -1,5 +1,7 @@
 import { Module, forwardRef } from "@nestjs/common";
+import { LedgerModule } from "../ledger/ledger.module";
 import { OrdersModule } from "../orders/orders.module";
+import { PayoutsModule } from "../payouts/payouts.module";
 import { CheckoutController } from "../orders/checkout.controller";
 import { PaymentsController } from "./payments.controller";
 import { PaymentsService } from "./payments.service";
@@ -9,7 +11,7 @@ import { PAYMENT_PROVIDER, type PaymentProvider } from "./payment-provider";
 import { RefundsService } from "./refunds.service";
 
 @Module({
-  imports: [forwardRef(() => OrdersModule)],
+  imports: [forwardRef(() => OrdersModule), LedgerModule, PayoutsModule],
   controllers: [PaymentsController, CheckoutController],
   providers: [
     MercadoPagoPaymentProvider,
@@ -25,6 +27,6 @@ import { RefundsService } from "./refunds.service";
     RefundsService,
     PaymentsService,
   ],
-  exports: [PaymentsService, RefundsService],
+  exports: [PaymentsService, RefundsService, PAYMENT_PROVIDER],
 })
 export class PaymentsModule {}

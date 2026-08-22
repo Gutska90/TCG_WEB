@@ -19,7 +19,9 @@ coverage/
 .vscode/*
 !.vscode/extensions.json
 
-# Prisma
-prisma/*.db
+playwright-report/
+test-results/
+blob-report/
+
 apps/mobile/ios/
 apps/mobile/android/

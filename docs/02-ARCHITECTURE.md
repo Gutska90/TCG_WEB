@@ -63,7 +63,7 @@ tcg-platform/
 - Prisma
 - Passport / estrategias JWT
 - Throttling
-- Queue (BullMQ + Redis) para emails, webhooks, importaciones — desde MVP 3; en MVP 1–2 sincrónico está permitido si queda detrás de un puerto `NotificationsService`
+- Queue (BullMQ + Redis) para emails, webhooks, importaciones — **no en 10.6**. Beta usa `JobRunner` in-process + `JobRun` (advisory uniqueness por `RUNNING`). Ver [OBSERVABILITY-AND-OPERATIONS.md](OBSERVABILITY-AND-OPERATIONS.md).
 
 Módulos NestJS (carpeta = bounded context):
 

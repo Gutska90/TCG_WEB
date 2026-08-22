@@ -47,3 +47,20 @@ jobs:
         run: pnpm test:integration
       - name: Build
         run: pnpm build
+      - name: E2E web (Playwright)
+        env:
+          JWT_ACCESS_SECRET: ci-gate-jwt-access-secret-min-32-chars-ok
+          ENABLE_REAL_PAYMENTS: "false"
+          JOBS_ENABLED: "false"
+          CORS_ORIGINS: http://localhost:3000,http://localhost:3002
+          APP_WEB_URL: http://localhost:3000
+          APP_ADMIN_URL: http://localhost:3002
+          ENABLE_GOOGLE_AUTH: "true"
+          ENABLE_APPLE_AUTH: "true"
+          AUTH_STUB_OAUTH: "true"
+          ENABLE_COLLECTIONS: "true"
+          ENABLE_PRICES: "true"
+          ENABLE_WISHLIST: "true"
+        run: |
+          pnpm exec playwright install --with-deps chromium
+          pnpm test:e2e

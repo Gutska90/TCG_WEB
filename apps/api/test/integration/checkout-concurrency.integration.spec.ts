@@ -3,12 +3,9 @@ import { config as loadEnv } from "dotenv";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ConfigService } from "@nestjs/config";
 import { AppError } from "../../src/common/errors/app-error";
-import { AuditService } from "../../src/audit/audit.service";
-import { LATE_PAYMENT_REFUND_REASON, OrdersService } from "../../src/orders/orders.service";
+import { LATE_PAYMENT_REFUND_REASON } from "../../src/orders/orders.service";
 import { PaymentsService } from "../../src/payments/payments.service";
-import { RefundsService } from "../../src/payments/refunds.service";
 import { PrismaService } from "../../src/prisma/prisma.service";
-import { ShippingService } from "../../src/shipping/shipping.service";
 import type { RequestUser } from "../../src/auth/request-user";
 import {
   cleanupSale,
@@ -20,6 +17,7 @@ import {
 } from "./helpers/market-fixture";
 import { FakePaymentProvider } from "./helpers/fake-payment-provider";
 import { mercadoPagoWebhookHeaders } from "../../src/payments/webhook-signature";
+import { createMoneyServices } from "./helpers/money-stack";
 
 const WEBHOOK_SECRET = "it-webhook-secret-not-a-placeholder-32";
 
@@ -39,13 +37,10 @@ function actor(id: string): RequestUser {
 
 describe("checkout money safety (postgres)", () => {
   const prisma = new PrismaService();
-  const audit = new AuditService(prisma);
-  const shipping = new ShippingService(prisma);
   const config = new ConfigService();
   const provider = new FakePaymentProvider();
-  const refunds = new RefundsService(prisma, audit, provider);
-  const orders = new OrdersService(prisma, audit, shipping, refunds);
-  const payments = new PaymentsService(prisma, config, orders, audit, provider, refunds);
+  const { orders, refunds, audit, metrics } = createMoneyServices(prisma, provider);
+  const payments = new PaymentsService(prisma, config, orders, audit, provider, refunds, metrics);
 
   beforeAll(async () => {
     if (!process.env.DATABASE_URL) {

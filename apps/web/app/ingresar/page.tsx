@@ -1,13 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { type FormEvent, Suspense, useState } from "react";
 import { ApiError, login } from "../../lib/api";
+import { userFacingError } from "../../lib/errors";
+import { FormError, PageMain, buttonClass } from "../../components/ui-feedback";
+import { OauthButtons } from "../../components/oauth-buttons";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
+  const search = useSearchParams();
+  const nextRaw = search.get("next");
+  const next = nextRaw && nextRaw.startsWith("/") && !nextRaw.startsWith("//") ? nextRaw : "/me";
+  const expired = search.get("reason") === "expired";
+  const [error, setError] = useState<string | null>(expired ? "Tu sesión expiró. Vuelve a ingresar." : null);
   const [pending, setPending] = useState(false);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -17,52 +24,62 @@ export default function LoginPage() {
     const form = new FormData(event.currentTarget);
     try {
       await login(String(form.get("email")), String(form.get("password")));
-      router.push("/me");
+      router.push(next);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "No se pudo ingresar");
+      setError(err instanceof ApiError && err.status === 401 ? "Email o contraseña incorrectos." : userFacingError(err));
     } finally {
       setPending(false);
     }
   }
 
   return (
-    <main className="mx-auto max-w-md px-6 py-16">
+    <PageMain width="md">
       <h1 className="text-2xl font-semibold">Ingresar</h1>
       <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4">
         <label className="flex flex-col gap-1 text-sm">
           Email
-          <input
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-            className="rounded border border-neutral-300 px-3 py-2"
-          />
+          <input name="email" type="email" required autoComplete="email" className="rounded border border-neutral-300 px-3 py-2" />
         </label>
         <label className="flex flex-col gap-1 text-sm">
           Contraseña
-          <input
-            name="password"
-            type="password"
-            required
-            autoComplete="current-password"
-            className="rounded border border-neutral-300 px-3 py-2"
-          />
+          <input name="password" type="password" required autoComplete="current-password" className="rounded border border-neutral-300 px-3 py-2" />
         </label>
-        {error ? <p className="text-sm text-red-700">{error}</p> : null}
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded bg-black px-4 py-2 text-white disabled:opacity-50"
-        >
+        <FormError message={error} />
+        <button type="submit" disabled={pending} className={buttonClass}>
           {pending ? "Ingresando…" : "Ingresar"}
         </button>
       </form>
+      <OauthButtons onSuccess={() => router.push(next)} />
       <p className="mt-6 text-sm text-neutral-600">
         <Link href="/recuperar-password" className="underline">
           ¿Olvidaste tu contraseña?
         </Link>
       </p>
-    </main>
+      <p className="mt-3 text-sm text-neutral-600">
+        ¿No tienes cuenta?{" "}
+        <Link href="/registro" className="underline">
+          Crear cuenta
+        </Link>
+      </p>
+      <p className="mt-3 text-sm text-neutral-600">
+        Al ingresar aplican los{" "}
+        <Link href="/terminos" className="underline">
+          Términos
+        </Link>{" "}
+        y la{" "}
+        <Link href="/privacidad" className="underline">
+          Política de Privacidad
+        </Link>
+        .
+      </p>
+    </PageMain>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<PageMain>Cargando…</PageMain>}>
+      <LoginForm />
+    </Suspense>
   );
 }

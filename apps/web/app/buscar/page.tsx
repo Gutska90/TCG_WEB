@@ -63,7 +63,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12">
+    <main id="contenido" className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-12">
       <h1 className="text-2xl font-semibold">Buscar cartas</h1>
       <p className="mt-2 text-sm text-neutral-600">
         Nombre, número, set o juego. Los precios de marketplace llegan en una etapa posterior.
@@ -94,7 +94,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             ))}
           </ul>
           {results.items.length === 0 ? (
-            <p className="mt-6 text-neutral-500">No hay cartas que coincidan.</p>
+            <p className="mt-6 text-neutral-600">
+              No hay cartas que coincidan.{" "}
+              <Link href="/ayuda" className="underline">
+                Reportar o pedir ayuda
+              </Link>
+            </p>
           ) : null}
           <CatalogPager
             page={results.page}

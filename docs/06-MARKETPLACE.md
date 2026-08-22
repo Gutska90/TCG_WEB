@@ -111,9 +111,7 @@ Tab Ventas es privado del dueño, no público.
 
 ## Reportes
 
-Cualquier USER puede reportar listing o usuario. Moderación en admin. No auto-ocultar salvo umbral futuro.
-
-Disputas con evidencia, Compra Protegida y `ListingRevision`: [23-PRODUCT-BACKLOG](23-PRODUCT-BACKLOG.md), Fase 10.5. No implementar aquí.
+Cualquier USER puede reportar listing o usuario (`POST /v1/reports`). Moderación en admin. Un reporte **no** auto-oculta ni suspende. Disputas con evidencia y `ListingRevision`: [TRUST-AND-MODERATION](TRUST-AND-MODERATION.md).
 
 ## Accesorios y sellados
 

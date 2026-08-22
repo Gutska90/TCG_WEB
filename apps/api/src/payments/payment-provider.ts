@@ -11,6 +11,7 @@ export type ProviderPayment = {
   status?: string;
   externalReference?: string;
   preferenceId?: string;
+  amountClp?: number;
   raw: Record<string, unknown>;
 };
 
@@ -18,6 +19,18 @@ export type ProviderRefundResult = {
   id: string;
   status: "approved" | "pending" | "rejected";
   amountClp: number;
+};
+
+export type ProviderRefund = {
+  id: string;
+  providerPaymentId: string;
+  status: string;
+  amountClp: number;
+};
+
+export type PaymentSearchRange = {
+  from: Date;
+  to: Date;
 };
 
 export type PaymentProviderErrorCode = "timeout" | "http" | "not_found" | "already_refunded" | "invalid";
@@ -49,4 +62,6 @@ export interface PaymentProvider {
     amountClp: number;
     idempotencyKey: string;
   }): Promise<ProviderRefundResult>;
+  searchPayments(range: PaymentSearchRange): Promise<ProviderPayment[]>;
+  listRefunds(providerPaymentId: string): Promise<ProviderRefund[]>;
 }

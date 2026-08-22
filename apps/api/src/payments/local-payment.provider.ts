@@ -1,7 +1,9 @@
 import type {
   PaymentProvider,
+  PaymentSearchRange,
   ProviderPayment,
   ProviderPreference,
+  ProviderRefund,
   ProviderRefundResult,
 } from "./payment-provider";
 import { PaymentProviderError } from "./payment-provider";
@@ -37,5 +39,13 @@ export class LocalPaymentProvider implements PaymentProvider {
       status: "approved",
       amountClp: input.amountClp,
     };
+  }
+
+  async searchPayments(_range: PaymentSearchRange): Promise<ProviderPayment[]> {
+    return [];
+  }
+
+  async listRefunds(_providerPaymentId: string): Promise<ProviderRefund[]> {
+    return [];
   }
 }

@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { HttpStatus, Injectable } from "@nestjs/common";
-import { ERROR_CODES } from "@tcg/config";
+import { DISPUTE_EVIDENCE_MIMES, ERROR_CODES, PLATFORM } from "@tcg/config";
 import type { FileUploadView } from "@tcg/types";
 import type { CreateFileUploadInput } from "@tcg/validation";
 import { AppError } from "../common/errors/app-error";
@@ -11,6 +11,14 @@ export class FilesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createUpload(userId: string, input: CreateFileUploadInput): Promise<FileUploadView> {
+    if (input.purpose === "DISPUTE_EVIDENCE") {
+      if (!(DISPUTE_EVIDENCE_MIMES as readonly string[]).includes(input.mime)) {
+        throw new AppError(HttpStatus.BAD_REQUEST, ERROR_CODES.FILE_NOT_ALLOWED, "Tipo de archivo no permitido");
+      }
+      if (input.size > PLATFORM.disputeEvidenceMaxBytes) {
+        throw new AppError(HttpStatus.BAD_REQUEST, ERROR_CODES.FILE_NOT_ALLOWED, "Archivo demasiado grande");
+      }
+    }
     const id = randomUUID();
     await this.prisma.file.create({
       data: {

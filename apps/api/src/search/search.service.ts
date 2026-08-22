@@ -4,16 +4,22 @@ import { PLATFORM } from "@tcg/config";
 import type { Paginated, SearchCardView } from "@tcg/types";
 import type { SearchCardsQuery } from "@tcg/validation";
 import { PrismaService } from "../prisma/prisma.service";
+import { MetricsService } from "../observability/metrics.service";
 import { escapeLike, hasSearchCriteria } from "./search.util";
 
 @Injectable()
 export class SearchService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly metrics: MetricsService,
+  ) {}
 
   async searchCards(query: SearchCardsQuery): Promise<Paginated<SearchCardView>> {
+    const started = Date.now();
     const page = query.page;
     const pageSize = query.pageSize ?? PLATFORM.searchPageSizeDefault;
     if (!hasSearchCriteria(query)) {
+      this.metrics.observe("search_duration", Date.now() - started);
       return { items: [], page, pageSize, total: 0 };
     }
 
@@ -38,6 +44,7 @@ export class SearchService {
     );
     const ids = idRows.map((row) => row.id);
     if (ids.length === 0) {
+      this.metrics.observe("search_duration", Date.now() - started);
       return { items: [], page, pageSize, total };
     }
 
@@ -64,6 +71,7 @@ export class SearchService {
         setCode: row.set.code,
       });
     }
+    this.metrics.observe("search_duration", Date.now() - started);
     return { items, page, pageSize, total };
   }
 }

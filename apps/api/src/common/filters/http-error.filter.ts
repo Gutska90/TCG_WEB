@@ -4,23 +4,29 @@ import {
   type ExceptionFilter,
   HttpException,
   HttpStatus,
-  Logger,
 } from "@nestjs/common";
 import type { Response } from "express";
 import { ERROR_CODES } from "@tcg/config";
+import { ErrorTrackingService } from "../../observability/error-tracking.service";
+import { currentRequestId } from "../../observability/request-context";
 
 @Catch()
 export class HttpErrorFilter implements ExceptionFilter {
-  private readonly logger = new Logger(HttpErrorFilter.name);
+  constructor(private readonly errors: ErrorTrackingService) {}
 
   catch(exception: unknown, host: ArgumentsHost): void {
     const res = host.switchToHttp().getResponse<Response>();
+    const requestId = currentRequestId() ?? null;
 
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
       const body = exception.getResponse();
+      if (status >= 500) this.errors.capture(exception, { statusCode: status });
       if (typeof body === "object" && body !== null && "error" in body) {
-        res.status(status).json(body);
+        const payload = body as { error: Record<string, unknown> };
+        res.status(status).json({
+          error: { ...payload.error, requestId },
+        });
         return;
       }
 
@@ -42,13 +48,13 @@ export class HttpErrorFilter implements ExceptionFilter {
                 ? ERROR_CODES.NOT_FOUND
                 : ERROR_CODES.INTERNAL;
 
-      res.status(status).json({ error: { code, message } });
+      res.status(status).json({ error: { code, message, requestId } });
       return;
     }
 
-    this.logger.error(exception);
+    this.errors.capture(exception, { statusCode: 500 });
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-      error: { code: ERROR_CODES.INTERNAL, message: "Error interno" },
+      error: { code: ERROR_CODES.INTERNAL, message: "Error interno", requestId },
     });
   }
 }

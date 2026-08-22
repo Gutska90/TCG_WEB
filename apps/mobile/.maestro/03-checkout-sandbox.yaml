@@ -1,0 +1,14 @@
+appId: cl.tcgplatform.app
+---
+- launchApp
+- tapOn: "Inicio"
+- tapOn: "Test Mon"
+- tapOn: "Agregar al carrito"
+- tapOn: "Carrito"
+- assertVisible: "Ir a pagar"
+- tapOn: "Ir a pagar"
+- tapOn: "Confirmar pago de prueba"
+- tapOn: "Simular pago de prueba"
+- assertVisible: "Ver mi compra"
+- tapOn: "Ver mi compra"
+- assertVisible: "Mis compras"

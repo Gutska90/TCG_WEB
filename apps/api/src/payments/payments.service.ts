@@ -13,6 +13,7 @@ import { MONEY_TX } from "../orders/checkout.lock";
 import { PAYMENT_PROVIDER, type PaymentProvider, type ProviderPayment } from "./payment-provider";
 import { RefundsService } from "./refunds.service";
 import { assertMercadoPagoWebhookSignature } from "./webhook-signature";
+import { MetricsService } from "../observability/metrics.service";
 
 @Injectable()
 export class PaymentsService {
@@ -24,6 +25,7 @@ export class PaymentsService {
     private readonly audit: AuditService,
     @Inject(PAYMENT_PROVIDER) private readonly provider: PaymentProvider,
     private readonly refunds: RefundsService,
+    private readonly metrics: MetricsService,
   ) {}
 
   mockEnabled(): boolean {
@@ -130,6 +132,13 @@ export class PaymentsService {
   }
 
   async handleWebhook(headers: Record<string, string | string[] | undefined>, body: unknown): Promise<void> {
+    try {
+      this.verifySignature(headers, body);
+    } catch (error) {
+      this.metrics.inc("webhook_invalid_total");
+      await this.audit.log({ action: "webhook.invalid", entityType: "WebhookEvent", metadata: {} });
+      throw error;
+    }
     this.verifySignature(headers, body);
     const payload = asRecord(body);
     const dataId = stringValue(asRecord(payload.data).id) ?? stringValue(payload.id);
@@ -156,8 +165,10 @@ export class PaymentsService {
       if (mpPayment && checkoutId && isPayment) {
         const status = mpPayment.status ?? "";
         if (status === "approved") {
+          this.metrics.inc("payment_approved_total");
           await this.orders.applyApprovedInTx(tx, checkoutId, mpPayment.id, toJson(mpPayment));
         } else if (status === "rejected" || status === "cancelled") {
+          this.metrics.inc("payment_failed_total");
           await this.orders.applyRejectedInTx(tx, checkoutId, toJson(mpPayment));
         } else if (status === "refunded") {
           const checkout = await tx.checkout.findUnique({ where: { id: checkoutId }, select: { status: true } });

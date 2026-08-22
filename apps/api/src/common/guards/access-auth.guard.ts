@@ -11,6 +11,7 @@ import { AppError } from "../errors/app-error";
 import { IS_PUBLIC_KEY } from "../decorators/public.decorator";
 import { PrismaService } from "../../prisma/prisma.service";
 import type { RequestUser } from "../../auth/request-user";
+import { patchRequestContext } from "../../observability/request-context";
 
 type AccessPayload = {
   sub: string;
@@ -108,5 +109,6 @@ export class AccessAuthGuard implements CanActivate {
       emailVerified: Boolean(user.emailVerifiedAt),
       tokenVersion: user.tokenVersion,
     };
+    patchRequestContext({ userId: user.id });
   }
 }

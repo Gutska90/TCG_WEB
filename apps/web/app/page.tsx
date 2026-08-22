@@ -12,11 +12,14 @@ export default async function HomePage() {
   }
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12">
-      <p className="text-sm tracking-wide text-neutral-500 uppercase">Fase 9</p>
+    <main id="contenido" className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-12">
+      <p className="text-sm tracking-wide text-neutral-500 uppercase">Beta</p>
       <h1 className="mt-2 text-3xl font-semibold tracking-tight">TCG Platform</h1>
       <p className="mt-3 max-w-xl text-neutral-700">
         Catálogo y marketplace en Chile ({PLATFORM.currency}). Envíos cotizados y reputación de vendedores.
+      </p>
+      <p className="mt-2 max-w-xl text-sm text-neutral-600">
+        Esta versión está en prueba. Algunas funciones pueden cambiar.
       </p>
       <form action="/buscar" method="get" className="mt-8 flex max-w-xl gap-2">
         <label className="sr-only" htmlFor="home-q">

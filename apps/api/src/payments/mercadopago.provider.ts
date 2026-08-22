@@ -3,13 +3,18 @@ import { ConfigService } from "@nestjs/config";
 import {
   PaymentProviderError,
   type PaymentProvider,
+  type PaymentSearchRange,
   type ProviderPayment,
   type ProviderPreference,
+  type ProviderRefund,
   type ProviderRefundResult,
 } from "./payment-provider";
 
 const MP_API = "https://api.mercadopago.com";
 const REFUND_TIMEOUT_MS = 10_000;
+const SEARCH_TIMEOUT_MS = 15_000;
+const SEARCH_PAGE_SIZE = 50;
+const SEARCH_MAX_PAGES = 20;
 
 @Injectable()
 export class MercadoPagoPaymentProvider implements PaymentProvider {
@@ -61,8 +66,72 @@ export class MercadoPagoPaymentProvider implements PaymentProvider {
       status: stringValue(raw.status),
       externalReference: stringValue(raw.external_reference),
       preferenceId: stringValue(raw.preference_id),
+      amountClp: numberValue(raw.transaction_amount),
       raw,
     };
+  }
+
+  async searchPayments(range: PaymentSearchRange): Promise<ProviderPayment[]> {
+    const results: ProviderPayment[] = [];
+    for (let page = 0; page < SEARCH_MAX_PAGES; page += 1) {
+      const offset = page * SEARCH_PAGE_SIZE;
+      const qs = new URLSearchParams({
+        range: "date_created",
+        begin_date: range.from.toISOString(),
+        end_date: range.to.toISOString(),
+        limit: String(SEARCH_PAGE_SIZE),
+        offset: String(offset),
+        sort: "date_created",
+        criteria: "desc",
+      });
+      const payload = await this.request<Record<string, unknown>>(
+        "GET",
+        `/v1/payments/search?${qs.toString()}`,
+        undefined,
+        undefined,
+        SEARCH_TIMEOUT_MS,
+      );
+      const rows = Array.isArray(payload.results) ? payload.results : [];
+      for (const row of rows) {
+        const raw = asRecord(row);
+        const id = stringValue(raw.id);
+        if (!id) continue;
+        results.push({
+          id,
+          status: stringValue(raw.status),
+          externalReference: stringValue(raw.external_reference),
+          preferenceId: stringValue(raw.preference_id),
+          amountClp: numberValue(raw.transaction_amount),
+          raw,
+        });
+      }
+      if (rows.length < SEARCH_PAGE_SIZE) break;
+    }
+    return results;
+  }
+
+  async listRefunds(providerPaymentId: string): Promise<ProviderRefund[]> {
+    const listed = await this.request<unknown>(
+      "GET",
+      `/v1/payments/${providerPaymentId}/refunds`,
+      undefined,
+      undefined,
+      REFUND_TIMEOUT_MS,
+    );
+    const rows = Array.isArray(listed) ? listed : [];
+    return rows.flatMap((row) => {
+      const raw = asRecord(row);
+      const id = stringValue(raw.id);
+      if (!id) return [];
+      return [
+        {
+          id,
+          providerPaymentId: stringValue(raw.payment_id) ?? providerPaymentId,
+          status: stringValue(raw.status) ?? "pending",
+          amountClp: numberValue(raw.amount) ?? 0,
+        },
+      ];
+    });
   }
 
   async refundPayment(input: {
@@ -180,5 +249,14 @@ function asRecord(value: unknown): Record<string, unknown> {
 function stringValue(value: unknown): string | undefined {
   if (typeof value === "string" && value.length > 0) return value;
   if (typeof value === "number") return String(value);
+  return undefined;
+}
+
+function numberValue(value: unknown): number | undefined {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
   return undefined;
 }

@@ -3,9 +3,12 @@ import { Prisma } from "@prisma/client";
 import { ERROR_CODES } from "@tcg/config";
 import { AppError } from "../common/errors/app-error";
 import { AuditService } from "../audit/audit.service";
+import { LedgerService } from "../ledger/ledger.service";
 import { lockCheckoutGraph, MONEY_TX } from "../orders/checkout.lock";
 import { restoreSoldStock } from "../orders/stock";
+import { PayoutsService } from "../payouts/payouts.service";
 import { PrismaService } from "../prisma/prisma.service";
+import { MetricsService } from "../observability/metrics.service";
 import {
   PAYMENT_PROVIDER,
   PaymentProviderError,
@@ -22,6 +25,9 @@ export class RefundsService {
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
     @Inject(PAYMENT_PROVIDER) private readonly provider: PaymentProvider,
+    private readonly ledger: LedgerService,
+    private readonly payouts: PayoutsService,
+    private readonly metrics: MetricsService,
   ) {}
 
   async executeOpenForCheckout(checkoutId: string): Promise<void> {
@@ -179,6 +185,17 @@ export class RefundsService {
       await tx.order.update({ where: { id: input.orderId }, data: { status: "REFUNDED" } });
       await tx.shipment.updateMany({ where: { orderId: input.orderId }, data: { status: "CANCELLED" } });
     }
+    if (order) {
+      await this.ledger.recordRefund(tx, {
+        sellerId: order.sellerId,
+        orderId: order.id,
+        paymentId: input.paymentId,
+        refundId: input.refundId,
+        totalClp: order.totalClp,
+        commissionClp: order.commissionClp,
+      });
+      await this.payouts.releaseOpenForOrder(tx, order.id);
+    }
     await this.audit.log(
       {
         action: "refund.completed",
@@ -208,6 +225,7 @@ export class RefundsService {
       entityId: refundId,
       metadata: { event: "REFUND_FAILED", code },
     });
+    this.metrics.inc("refund_failed_total");
   }
 
   async hasBlockingRefund(orderId: string): Promise<boolean> {

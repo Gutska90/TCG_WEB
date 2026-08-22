@@ -10,6 +10,10 @@ import type { RequestUser } from "../auth/request-user";
 import { listingInclude, toListingView } from "./listing.mapper";
 import { MarketService } from "./market.service";
 import { RatingsService } from "../ratings/ratings.service";
+import { ListingRevisionService } from "../trust/listing-revision.service";
+import { assertSellerNotSuspended } from "../trust/seller-suspension";
+import { FeatureFlagsService } from "../flags/feature-flags.service";
+import { WishlistService } from "../wishlist/wishlist.service";
 
 @Injectable()
 export class ListingsService {
@@ -18,6 +22,9 @@ export class ListingsService {
     private readonly market: MarketService,
     private readonly audit: AuditService,
     private readonly ratings: RatingsService,
+    private readonly revisions: ListingRevisionService,
+    private readonly flags: FeatureFlagsService,
+    private readonly wishlist: WishlistService,
   ) {}
 
   async listPublic(query: ListListingsQuery): Promise<Paginated<ListingView>> {
@@ -54,6 +61,8 @@ export class ListingsService {
 
   async create(actor: RequestUser, input: CreateListingInput): Promise<ListingView> {
     this.assertCanSell(actor);
+    this.flags.assertNewListingsAllowed();
+    await assertSellerNotSuspended(this.prisma, actor.id);
     const profile = await this.prisma.profile.findUnique({ where: { userId: actor.id } });
     if (!profile?.sellerOnboardedAt) {
       throw new AppError(
@@ -70,6 +79,16 @@ export class ListingsService {
       throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Variante no encontrada");
     }
     await this.assertOwnedReadyFiles(actor.id, input.imageFileIds);
+    let sourceCollectionItemId: string | undefined;
+    if (input.sourceCollectionItemId) {
+      const item = await this.prisma.collectionItem.findFirst({
+        where: { id: input.sourceCollectionItemId, collection: { userId: actor.id } },
+      });
+      if (!item) {
+        throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Ítem de colección no encontrado");
+      }
+      sourceCollectionItemId = item.id;
+    }
     const now = new Date();
     const row = await this.prisma.$transaction(async (tx) => {
       const listing = await tx.listing.create({
@@ -83,6 +102,7 @@ export class ListingsService {
           priceClp: input.priceClp,
           status: "ACTIVE",
           description: input.description ?? "",
+          sourceCollectionItemId,
           allowsMeetup: input.allowsMeetup,
           allowsShipping: input.allowsShipping,
           graded: input.graded ?? false,
@@ -105,6 +125,7 @@ export class ListingsService {
       entityId: row.id,
       metadata: { priceClp: input.priceClp, variantId: variant.id },
     });
+    this.pingWishlist(variant.id);
     return this.attachReputation(toListingView(row));
   }
 
@@ -143,6 +164,14 @@ export class ListingsService {
         },
         include: listingInclude,
       });
+      await this.revisions.record(tx, {
+        listingId: id,
+        actorId: actor.id,
+        source: "SELLER",
+        reason: "seller.edit",
+        before: this.revisions.snapshot(listing),
+        after: this.revisions.snapshot(updated),
+      });
       if (updated.variantId) {
         await this.market.snapshotVariant(tx, updated.variantId);
       }
@@ -155,6 +184,7 @@ export class ListingsService {
       entityId: id,
       metadata: { priceClp: row.priceClp },
     });
+    if (row.variantId) this.pingWishlist(row.variantId);
     return this.attachReputation(toListingView(row));
   }
 
@@ -163,16 +193,25 @@ export class ListingsService {
     if (listing.status !== "ACTIVE") {
       throw new AppError(HttpStatus.CONFLICT, ERROR_CODES.LISTING_NOT_ACTIVE, "Solo puedes pausar publicaciones activas");
     }
-    const row = await this.prisma.listing.update({
-      where: { id },
-      data: { status: "PAUSED" },
-      include: listingInclude,
-    });
-    if (row.variantId) {
-      await this.prisma.$transaction(async (tx) => {
-        await this.market.snapshotVariant(tx, row.variantId as string);
+    const row = await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.listing.update({
+        where: { id },
+        data: { status: "PAUSED" },
+        include: listingInclude,
       });
-    }
+      await this.revisions.record(tx, {
+        listingId: id,
+        actorId: actor.id,
+        source: "SELLER",
+        reason: "seller.pause",
+        before: this.revisions.snapshot(listing),
+        after: this.revisions.snapshot(updated),
+      });
+      if (updated.variantId) {
+        await this.market.snapshotVariant(tx, updated.variantId);
+      }
+      return updated;
+    });
     await this.audit.log({ actorId: actor.id, action: "listing.paused", entityType: "Listing", entityId: id });
     return this.attachReputation(toListingView(row));
   }
@@ -182,17 +221,29 @@ export class ListingsService {
     if (listing.status !== "PAUSED") {
       throw new AppError(HttpStatus.CONFLICT, ERROR_CODES.CONFLICT, "Solo puedes activar publicaciones pausadas");
     }
-    const row = await this.prisma.listing.update({
-      where: { id },
-      data: { status: "ACTIVE", publishedAt: listing.publishedAt ?? new Date() },
-      include: listingInclude,
-    });
-    if (row.variantId) {
-      await this.prisma.$transaction(async (tx) => {
-        await this.market.snapshotVariant(tx, row.variantId as string);
+    this.flags.assertNewListingsAllowed();
+    await assertSellerNotSuspended(this.prisma, actor.id);
+    const row = await this.prisma.$transaction(async (tx) => {
+      const updated = await tx.listing.update({
+        where: { id },
+        data: { status: "ACTIVE", publishedAt: listing.publishedAt ?? new Date() },
+        include: listingInclude,
       });
-    }
+      await this.revisions.record(tx, {
+        listingId: id,
+        actorId: actor.id,
+        source: "SELLER",
+        reason: "seller.activate",
+        before: this.revisions.snapshot(listing),
+        after: this.revisions.snapshot(updated),
+      });
+      if (updated.variantId) {
+        await this.market.snapshotVariant(tx, updated.variantId);
+      }
+      return updated;
+    });
     await this.audit.log({ actorId: actor.id, action: "listing.activated", entityType: "Listing", entityId: id });
+    if (row.variantId) this.pingWishlist(row.variantId);
     return this.attachReputation(toListingView(row));
   }
 
@@ -205,6 +256,10 @@ export class ListingsService {
       });
     }
     await this.audit.log({ actorId: actor.id, action: "listing.cancelled", entityType: "Listing", entityId: id });
+  }
+
+  private pingWishlist(variantId: string): void {
+    void this.wishlist.checkVariant(variantId).catch(() => undefined);
   }
 
   private async page(

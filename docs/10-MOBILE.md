@@ -1,67 +1,100 @@
 # 10 — Mobile
 
-## Stack
+## Stack (Fase 11)
 
-Expo (dev build, no limitar a Expo Go cuando haya cámara nativa real). React Native + TypeScript + Expo Router + TanStack Query.
+Expo SDK 53, React Native, TypeScript, Expo Router, TanStack Query. Un codebase → Android e iOS.
 
-Un codebase → Android e iOS.
+Paquete: `apps/mobile` (`@tcg/mobile`). Misma API `/v1` que web. Tipos y validación desde `@tcg/types`, `@tcg/validation`, `@tcg/config`. No hay DTOs copiados ni lógica de órdenes/stock/comisiones en la app.
 
 ## Relación con la API
 
-Idénticos contratos que web. Misma versión `/v1`. Auth: SecureStore para refresh; access en memoria.
+Auth: **refresh token solo en SecureStore / Keychain** (`WHEN_UNLOCKED_THIS_DEVICE_ONLY`). Access token en memoria. Nunca AsyncStorage para tokens. Google (ID token) y Apple (iOS) contra la misma API. Detalle: [AUTH-IDENTITY-AND-SESSIONS.md](AUTH-IDENTITY-AND-SESSIONS.md).
 
-## Tab bar (firma de producto)
+`POST /v1/auth/refresh` envía `{ refreshToken }` en el body (no hay cookie httpOnly en native).
 
-```text
-Inicio | Buscar | Escanear | Lista | Perfil
-```
+Carrito guest por cookie no aplica en native: el carrito móvil exige sesión.
 
-`Escanear` es el botón central visualmente destacado. En fases anteriores a 17:
+## Configuración
 
-- Abre una pantalla “Próximamente” **o** un flujo manual: cámara para **adjuntar foto** a una publicación (sin reconocimiento).
-- No fingir que identificó “Charizard ex” con un mock aleatorio.
+Variables `EXPO_PUBLIC_*` (ver `apps/mobile/.env.example`):
 
-## Pantallas MVP 1
+| Variable | Uso |
+|----------|-----|
+| `EXPO_PUBLIC_API_BASE_URL` | Base de la API. Default dev: `http://localhost:4000` |
+| `EXPO_PUBLIC_APP_ENV` | `development` \| `staging` \| `production` |
+| `EXPO_PUBLIC_ENABLE_REAL_PAYMENTS` | Debe ser `false` en esta beta. Si es `false`, no se abre Checkout Pro live |
+| `EXPO_PUBLIC_ANALYTICS` | `false` por defecto. Abstracción local, sin proveedor |
+| `EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS` / `_ANDROID` / `_WEB` | Audiencias nativas; vacías = sin botón Google real |
 
-- Onboarding/login (Google, Apple, email).
-- Home: juegos + búsqueda.
-- Buscador.
-- Ficha de carta.
-- Favoritos.
-- Perfil.
+Flags de producto públicas: `GET /v1/config` (`features.enableGoogleAuth`, `enableAppleAuth`, `authStub`, scanner/stores apagados).
 
-## Pantallas MVP 2–3
+### Dispositivo físico → API local
 
-- Vender (wizard).
-- Mis publicaciones.
-- Carrito y checkout (WebView o SDK MP según recomendación oficial de Mercado Pago para RN).
-- Compras / ventas.
-- Push: registrar token Expo en `POST /v1/me/push-tokens` (agregar en Fase 11).
-
-## Checkout en mobile
-
-Preferir **Checkout Pro** (init_point) en browser/in-app browser oficial MP. No reimplementar el formulario de tarjeta.
-
-## Escáner (Fase 17 — diseño)
+Simulador iOS: `http://localhost:4000`.  
+Emulador Android: `http://10.0.2.2:4000`.  
+Teléfono real: `http://<IP-LAN-de-tu-Mac>:4000` (misma Wi‑Fi, API escuchando `0.0.0.0:4000`). Ejemplo:
 
 ```text
-Cámara → modelo on-device o API de visión
-  → TCG, set, número, idioma, variante
-  → Acciones: Agregar colección | Vender | Ver precios
+EXPO_PUBLIC_API_BASE_URL=http://192.168.1.20:4000 pnpm --filter @tcg/mobile start
 ```
 
-Requisitos futuros: dataset de entrenamiento, permisos de cámara, fallback búsqueda manual. Fuera de MVP.
+Staging/producción: HTTPS. No hardcodear IPs en el repo.
 
-## Offline
+## Navegación (MVP 11)
 
-No es requisito MVP. Lista de favoritos cacheada con TanStack persist opcional más adelante.
+Tabs: **Inicio | Buscar | Colección | Favoritos | Carrito | Perfil**.
 
-## Stores
+No hay tab Escanear ni Tiendas (Fases 15–16). No hay feed social.
 
-Cuentas Apple/Google, privacy nutrition labels, Sign in with Apple si hay otros OAuth sociales en iOS.
+Stacks: login/registro/verificar/recuperar, carta, listing, checkout, retorno de pago, compras, ventas, reclamos, publicaciones seller, saldo, direcciones, wishlist, notificaciones in-app + preferencias (push diferido), legal, feedback, colección (ítem + set).
+
+## Auth implementado
+
+Email/password, Google, Apple (iOS / stub de prueba). Logout, refresh, verificar email, forgot/reset, Seguridad (`/security`). 401 global: reintento de refresh; si falla, se borra SecureStore. Cuenta baneada: `ACCOUNT_BANNED`. Sesión revocada → login.
+
+## Checkout sandbox y deep link
+
+Scheme: `tcgplatform`. Retorno: `tcgplatform://checkout-return?checkoutId=<uuid>`.
+
+**No se confía** en query/deep-link `status` / `collection_status`. La pantalla hace polling a `GET /v1/checkouts/:id` (processing / approved / rejected / expired / timeout). CTA “Ver mi compra”. Sandbox: `POST /v1/payments/simulate`.
+
+Universal links / Associated Domains / App Links de staging: configurar `applinks:<host-api-o-web>` cuando exista dominio; no están firmados en esta fase.
+
+## Notificaciones
+
+`GET /v1/me/notifications` y `POST /v1/me/push-tokens` **no existen** en la API. La pantalla Notificaciones lo dice. No hay push inventado.
+
+## Analytics
+
+Eventos: `app_open`, `login_success`, `search`, `card_view`, `listing_view`, `add_to_cart`, `checkout_started`, `checkout_completed_sandbox`, `seller_listing_created`, `dispute_opened`. Deshabilitado por defecto. Sin PII (tokens, email, passwords).
+
+## Feedback
+
+`POST /v1/feedback` con `screen=mobile:<ruta>`, `appVersion` (versión + OS), `requestId` si hay. `platform=mobile` va en el mensaje (`[mobile]`) porque el schema no tiene campo `platform`. Sin tokens ni payloads financieros.
+
+## EAS
+
+`apps/mobile/eas.json`: perfiles `development`, `preview`, `production`. Android `cl.tcgplatform.app`, iOS `cl.tcgplatform.app`. No hay secretos de firma en el repo. No publicar stores todavía.
+
+```text
+cd apps/mobile
+pnpm exec eas build --profile preview --platform android
+```
+
+Requiere `eas login` y `EAS_PROJECT_ID` en el entorno (no commitear).
+
+## Tests
+
+Unit: `pnpm --filter @tcg/mobile test` (errores, analytics, timeline/checkout UI).  
+E2E: Maestro en `apps/mobile/.maestro/` (login, search/card, checkout sandbox, venta, disputa/logout). Requiere simulador + API + `pnpm beta:seed`. No corre en CI (sin emulador). QA manual: [release/MOBILE-BETA-QA.md](release/MOBILE-BETA-QA.md).
 
 ## Lo que no se duplica
 
-- Lógica de órdenes, comisiones, stock.
+- Lógica de órdenes, comisiones, stock, ledger.
 - Catálogo local paralelo.
-- Otro backend “para la app”.
+- Otro backend.
+- Scanner, stores, auctions, pagos live.
+
+## 11.5 Auth (listo)
+
+Google/Apple consistentes con web. Push tokens, centro in-app real, universal links de host público y submit a stores **siguen diferidos** (no son Colección / Fase 12).

@@ -1,6 +1,6 @@
 # 17 — Colección, precios y wishlist
 
-Estas tres piezas son la **retención**. No entran al MVP de marketplace (fases 12–14), pero el modelo ya las contempla. Implementarlas no debe exigir rediseñar `CardVariant`.
+Estas tres piezas son la **retención**. Colección (12), historial de precios (13) y wishlist (14) están implementadas. Scanner (15) no. Implementarlas no debe exigir rediseñar `CardVariant`. Ver [COLLECTIONS.md](COLLECTIONS.md).
 
 ## Distinción
 
@@ -41,33 +41,19 @@ Valor actual:   $21.000
                 +40%
 ```
 
-### Valoración
+### Valoración (MVP Fase 12)
 
-- `currentValueClp` de un ítem = `quantity × marketPrice(variantId)`.
-- `marketPrice` = último `CardPrice` con `source = LISTING_AVG` o fallback `LISTING_MIN`; si no hay, `null` (mostrar “Sin precio”).
-- Valor de la colección = suma de ítems con precio no nulo. Mostrar cuántos ítems quedan fuera.
-- Variación 30 días = comparar snapshot de valor hace 30 días vs hoy (tabla `CollectionValueSnapshot` diaria, job nocturno).
+Live: mediana de listings ACTIVE comparable (variante+condición, fallback variante). `null` → “Sin precio suficiente”. Variación 30 días usa `CollectionValueSnapshot` (Fase 13).
 
-Agregar en Fase 12:
+### API
 
-```text
-CollectionValueSnapshot
-  collectionId, capturedOn date, valueClp, breakdown Json
-  unique(collectionId, capturedOn)
-```
+Implementada (ítems en `/v1/me/collection/items`, no anidados al id). Ver [04-API](04-API.md) y [COLLECTIONS.md](COLLECTIONS.md).
 
-### API (reservada)
+Al completar una orden, CTA “Añadir a colección” (prefill `purchasePriceClp = unitPriceClp`). Si el listing tenía `sourceCollectionItemId`, se descuenta el lote al `COMPLETED` (idempotente).
 
-| Método | Path |
-|--------|------|
-| GET | `/v1/me/collections` |
-| GET | `/v1/me/collections/:id` |
-| POST | `/v1/me/collections/:id/items` |
-| PATCH | `/v1/me/collections/:id/items/:itemId` |
-| DELETE | `/v1/me/collections/:id/items/:itemId` |
-| GET | `/v1/me/collections/:id/summary` |
+### Completar set (MVP ligero)
 
-Al completar una orden, CTA “Añadir a colección” prellena `purchasePriceClp = unitPriceClp`.
+Cruce colección vs cartas del set vs listings ACTIVE. CTA **Ver disponibles**. Sin “Comprar faltantes” optimizado (Fase 20).
 
 ### Reglas
 
@@ -89,7 +75,7 @@ Valor estimado $487.900
 Comprar faltantes: $… · N vendedores · envío estimado
 ```
 
-El CTA **Comprar faltantes** arma carrito (o checkout) con la combinación. Si hay varias combinaciones, reutilizar el optimizador (Fase 20) o, en 12, una heurística simple (greedy por vendedor). No fingir un solver que no existe.
+El CTA **Comprar faltantes** (carrito optimizado) es Fase 20. En 12 solo se listan faltantes y publicaciones.
 
 Vender desde colección: CTA que abre el wizard de listing con `variantId` y condición prellenados.
 
@@ -139,18 +125,18 @@ Confianza           Alta | Media | Baja  (según N ventas)
 
 Índice interno **TCG Market Price** (Fase 13+): ventas recientes, condición, idioma, variante, outliers fuera, volumen. Nunca copiar series de TCGPlayer/Cardmarket/TCGMatch. Import externo, si existe: `source = IMPORT` + atribución, no como “precio Chile”.
 
-### API (reservada)
+### API (implementada)
 
 ```
 GET /v1/variants/:id/prices?range=3m
-→ { currency: "CLP", current, min, avg, max, volumeSold, points: [{ t, min, avg, sale }] }
+→ { currency: "CLP", current, min, avg, max, volumeSold, lastSaleClp, avg30dClp, median30dClp, minListingClp, confidence, points: [{ t, min, avg, sale }], disclaimer }
 ```
 
-La ficha de carta en MVP 2 puede mostrar min/avg **actual** (agregado live de listings) sin serie histórica. El gráfico espera Fase 13.
+Flag `ENABLE_PRICES`. Job `card-prices` (6 h) y `pnpm --filter @tcg/api prices:capture`. Un punto por `(variantId, source, capturedOn)`. `SALE` = mediana de `OrderItem.unitPriceClp` de órdenes `COMPLETED` ese día UTC.
 
-### Precio sugerido al vender (MVP 2, sin historial)
+### Precio sugerido al vender
 
-Si no hay serie: usar listings activos ahora. La fórmula está en [06-MARKETPLACE](06-MARKETPLACE.md). Fase 13 puede sustituir `market` por `LISTING_AVG` de 7 días.
+Si hay `LISTING_AVG` de 7 días, sustituye `market` en la fórmula de [06-MARKETPLACE](06-MARKETPLACE.md). Si no, listings activos ahora.
 
 ---
 
@@ -175,10 +161,12 @@ Notificación:
 - Deduplicar: no spamear el mismo listing. Si baja más, notificar de nuevo.
 - Preferencias: in-app siempre; email/push según [18-NOTIFICATIONS](18-NOTIFICATIONS.md).
 
-### API (reservada)
+### API (implementada)
 
 | Método | Path |
 |--------|------|
 | GET | `/v1/me/wishlist` |
-| PUT | `/v1/me/wishlist/:variantId` | `{ targetPriceClp }` |
+| PUT | `/v1/me/wishlist/:variantId` | `{ targetPriceClp, notifyBelow? }` |
 | DELETE | `/v1/me/wishlist/:variantId` |
+
+Flag `ENABLE_WISHLIST`. Job `wishlist-scan` y ping al crear/editar/activar listing. Preferencias: `GET/PATCH /v1/me/notification-preferences` (`PRICE_DROP` opt-in).

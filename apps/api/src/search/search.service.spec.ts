@@ -1,6 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { searchCardsQuerySchema } from "@tcg/validation";
 import { SearchService } from "./search.service";
+import { MetricsService } from "../observability/metrics.service";
 import { escapeLike, hasSearchCriteria } from "./search.util";
 
 describe("search utils", () => {
@@ -41,7 +42,7 @@ describe("SearchService", () => {
     $queryRaw: vi.fn(),
     card: { findMany: vi.fn() },
   };
-  const service = new SearchService(prisma as never);
+  const service = new SearchService(prisma as never, new MetricsService());
 
   beforeEach(() => {
     vi.clearAllMocks();

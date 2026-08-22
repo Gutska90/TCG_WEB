@@ -90,5 +90,31 @@ describe("MercadoPagoPaymentProvider.refundPayment", () => {
     await expect(
       bare.refundPayment({ providerPaymentId: "pay-1", amountClp: 80000, idempotencyKey: "refund-1" }),
     ).rejects.toMatchObject({ code: "invalid" });
+    await expect(
+      bare.searchPayments({ from: new Date(), to: new Date() }),
+    ).rejects.toMatchObject({ code: "invalid" });
+  });
+
+  it("maps search payments without exposing the access token in the URL", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          results: [{ id: 7001, status: "approved", transaction_amount: 80000, external_reference: "chk-1" }],
+        }),
+      }),
+    );
+    const rows = await provider.searchPayments({
+      from: new Date("2026-08-19T00:00:00.000Z"),
+      to: new Date("2026-08-21T00:00:00.000Z"),
+    });
+    expect(rows).toEqual([
+      expect.objectContaining({ id: "7001", status: "approved", amountClp: 80000, externalReference: "chk-1" }),
+    ]);
+    const url = String(vi.mocked(fetch).mock.calls[0]?.[0]);
+    expect(url).toContain("/v1/payments/search");
+    expect(url).not.toContain("test-token");
   });
 });

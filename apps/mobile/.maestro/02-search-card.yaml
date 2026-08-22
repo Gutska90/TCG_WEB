@@ -1,0 +1,10 @@
+appId: cl.tcgplatform.app
+---
+- launchApp
+- tapOn: "Buscar"
+- tapOn:
+    text: "Nombre o número"
+- inputText: "Test Mon"
+- tapOn: "Test Mon #1"
+- assertVisible: "Test Mon"
+- tapOn: "Ver publicaciones"

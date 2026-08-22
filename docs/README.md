@@ -2,8 +2,8 @@
 
 **Nombre de trabajo:** TCG Market Chile  
 **Nombre interno:** `tcg-platform`  
-**Fecha:** 20 agosto 2026  
-**Estado:** Fase 9.5C lista (release gate). Siguiente: Fase 9.6 (Mercado Pago Marketplace). Especificación v1.1.
+**Fecha:** 21 agosto 2026  
+**Estado:** Fase **14** lista (Wishlist + alertas). Siguiente: Fase **15** Scanner — no adelantar. Especificación v1.1.
 
 Este repositorio no es una copia de TCGMatch. TCGMatch es **referencia funcional** de un marketplace chileno de cartas. El producto objetivo es una **plataforma TCG integral** para coleccionistas, jugadores y tiendas, con web, PWA y apps móviles sobre **un solo backend y una sola base de datos**.
 
@@ -25,7 +25,7 @@ Este repositorio no es una copia de TCGMatch. TCGMatch es **referencia funcional
 | 04 | [API](04-API.md) | Contratos REST v1 |
 | 05 | [AUTH](05-AUTH.md) | Identidad, sesiones, RBAC |
 | 06 | [MARKETPLACE](06-MARKETPLACE.md) | Catálogo, listings, carrito, órdenes |
-| 07 | [PAYMENTS](07-PAYMENTS.md) | Mercado Pago, escrow, comisiones |
+| 07 | [PAYMENTS](07-PAYMENTS.md) | MP cuenta plataforma; HELD/RELEASED internos; production gate |
 | 08 | [SHIPPING](08-SHIPPING.md) | Envíos y entrega presencial |
 | 09 | [WEB](09-WEB.md) | IA web, SEO, pantallas |
 | 10 | [MOBILE](10-MOBILE.md) | App Expo, scanner (futuro) |
@@ -42,6 +42,14 @@ Este repositorio no es una copia de TCGMatch. TCGMatch es **referencia funcional
 | 21 | [ERRORS AND CONFIG](21-ERRORS-AND-CONFIG.md) | Códigos, env, comisión |
 | 22 | [GLOSSARY](22-GLOSSARY.md) | Vocabulario del proyecto |
 | 23 | [PRODUCT BACKLOG](23-PRODUCT-BACKLOG.md) | Confianza, compra, colección, comunidad, ops |
+| — | [FINANCIAL-LEDGER](FINANCIAL-LEDGER.md) | Asientos, saldo seller, payouts 10C |
+| — | [TRUST-AND-MODERATION](TRUST-AND-MODERATION.md) | Disputas, reportes, suspensión 10.5 |
+| — | [OBSERVABILITY-AND-OPERATIONS](OBSERVABILITY-AND-OPERATIONS.md) | Logs, jobs, flags, kill switches 10.6 |
+| — | [LEGAL-BETA](LEGAL-BETA.md) | Términos, privacidad, copy, gates de pagos live 10.7 |
+| — | [COLLECTIONS](COLLECTIONS.md) | Colección personal, lotes, valor estimado, set progress 12 |
+| — | [STORE-READINESS](release/STORE-READINESS.md) | Checklist App Store / Play (sin submit) |
+| — | [WEB-BETA-QA](release/WEB-BETA-QA.md) | Checklist tester web 11.0 |
+| — | [MOBILE-BETA-QA](release/MOBILE-BETA-QA.md) | Checklist tester mobile 11 |
 | — | [CURSOR](CURSOR.md) | Reglas del agente + prompt inicial |
 
 ## Cobertura del Documento Maestro
@@ -78,7 +86,7 @@ Los 20 puntos acordados:
 | TCG Fase 1 | Pokémon, Magic: The Gathering, One Piece |
 | Moneda | CLP entero (sin decimales) |
 | Auth web | Google-first; email+password fallback; Apple en iOS |
-| Pagos MVP | Mercado Pago + retención hasta confirmación |
+| Pagos MVP | Mercado Pago cuenta **plataforma** (Opción A). HELD interno. Split no. Production gate legal. |
 | Envíos MVP | Chilexpress, Blue Express, encuentro, retiro en tienda |
 | Subastas | Diseñadas, no implementadas hasta Fase 17 |
 | Scanner IA | Diseñado, no implementado hasta Fase 15 |

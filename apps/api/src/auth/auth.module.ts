@@ -6,6 +6,7 @@ import { ThrottlerGuard, ThrottlerModule } from "@nestjs/throttler";
 import { PLATFORM } from "@tcg/config";
 import { AccessAuthGuard } from "../common/guards/access-auth.guard";
 import { RolesGuard } from "../common/guards/roles.guard";
+import { AuthAccountController } from "./auth-account.controller";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
 import { resolveJwtAccessSecret } from "./jwt-secret";
@@ -29,7 +30,7 @@ import { PasswordService } from "./password.service";
       }),
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, AuthAccountController],
   providers: [
     AuthService,
     PasswordService,

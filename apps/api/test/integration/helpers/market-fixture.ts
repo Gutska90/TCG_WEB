@@ -179,8 +179,75 @@ export async function cleanupUsersAndCatalog(
     await prisma.refund.findMany({ where: { paymentId: { in: paymentIds } }, select: { id: true } })
   ).map((row) => row.id);
 
+  const payoutIds = (
+    await prisma.payout.findMany({
+      where: { OR: [{ sellerId: { in: input.userIds } }, { items: { some: { orderId: { in: orderIds } } } }] },
+      select: { id: true },
+    })
+  ).map((row) => row.id);
+
+  const reconRunIds = (
+    await prisma.reconciliationRun.findMany({
+      where: { createdById: { in: input.userIds } },
+      select: { id: true },
+    })
+  ).map((row) => row.id);
+
+  await prisma.reconciliationIssue.deleteMany({
+    where: {
+      OR: [
+        { runId: { in: reconRunIds } },
+        { resolvedById: { in: input.userIds } },
+        { entityId: { in: [...paymentIds, ...refundIds, ...payoutIds, ...orderIds, ...checkoutIds] } },
+      ],
+    },
+  });
+  await prisma.reconciliationRun.deleteMany({
+    where: { OR: [{ id: { in: reconRunIds } }, { createdById: { in: input.userIds } }] },
+  });
+
+  const disputeIds = (
+    await prisma.dispute.findMany({
+      where: { OR: [{ orderId: { in: orderIds } }, { buyerId: { in: input.userIds } }, { sellerId: { in: input.userIds } }] },
+      select: { id: true },
+    })
+  ).map((row) => row.id);
+  await prisma.disputeEvidence.deleteMany({ where: { disputeId: { in: disputeIds } } });
+  await prisma.disputeMessage.deleteMany({ where: { disputeId: { in: disputeIds } } });
+  await prisma.dispute.deleteMany({ where: { id: { in: disputeIds } } });
+  await prisma.report.deleteMany({
+    where: {
+      OR: [
+        { reporterId: { in: input.userIds } },
+        { targetId: { in: [...input.userIds, input.listingId] } },
+      ],
+    },
+  });
+  await prisma.listingRevision.deleteMany({ where: { listingId: input.listingId } });
+  await prisma.moderationAction.deleteMany({
+    where: { OR: [{ actorAdminId: { in: input.userIds } }, { targetId: { in: [...input.userIds, input.listingId, ...orderIds, ...disputeIds] } }] },
+  });
+  await prisma.sellerSuspension.deleteMany({
+    where: { OR: [{ sellerId: { in: input.userIds } }, { createdById: { in: input.userIds } }] },
+  });
+
   await prisma.webhookEvent.deleteMany({ where: { providerEventId: { startsWith: "it-" } } });
-  await prisma.auditLog.deleteMany({ where: { entityId: { in: refundIds } } });
+  await prisma.auditLog.deleteMany({
+    where: { entityId: { in: [...refundIds, ...payoutIds] } },
+  });
+  await prisma.ledgerEntry.deleteMany({
+    where: {
+      OR: [
+        { orderId: { in: orderIds } },
+        { paymentId: { in: paymentIds } },
+        { refundId: { in: refundIds } },
+        { payoutId: { in: payoutIds } },
+        { sellerId: { in: input.userIds } },
+      ],
+    },
+  });
+  await prisma.payoutItem.deleteMany({ where: { payoutId: { in: payoutIds } } });
+  await prisma.payout.deleteMany({ where: { id: { in: payoutIds } } });
   await prisma.refund.deleteMany({ where: { paymentId: { in: paymentIds } } });
   await prisma.payment.deleteMany({ where: { id: { in: paymentIds } } });
   await prisma.shipment.deleteMany({ where: { orderId: { in: orderIds } } });
@@ -193,6 +260,11 @@ export async function cleanupUsersAndCatalog(
   await prisma.auditLog.deleteMany({
     where: { entityId: { in: [...checkoutIds, ...orderIds, input.listingId] } },
   });
+  await prisma.wishlistItem.deleteMany({ where: { userId: { in: input.userIds } } });
+  await prisma.notification.deleteMany({ where: { userId: { in: input.userIds } } });
+  await prisma.notificationPreference.deleteMany({ where: { userId: { in: input.userIds } } });
+  await prisma.collectionItem.deleteMany({ where: { collection: { userId: { in: input.userIds } } } });
+  await prisma.collection.deleteMany({ where: { userId: { in: input.userIds } } });
   await prisma.listing.deleteMany({ where: { id: input.listingId } });
   await prisma.cardVariant.deleteMany({ where: { id: input.variantId } });
   const card = await prisma.card.findFirst({ where: { set: { gameId: input.gameId } } });
@@ -201,6 +273,7 @@ export async function cleanupUsersAndCatalog(
   }
   await prisma.tcgSet.deleteMany({ where: { gameId: input.gameId } });
   await prisma.tcgGame.deleteMany({ where: { id: input.gameId } });
+  await prisma.feedback.deleteMany({ where: { userId: { in: input.userIds } } });
   await prisma.address.deleteMany({ where: { userId: { in: input.userIds } } });
   await prisma.profile.deleteMany({ where: { userId: { in: input.userIds } } });
   await prisma.userRole.deleteMany({ where: { userId: { in: input.userIds } } });

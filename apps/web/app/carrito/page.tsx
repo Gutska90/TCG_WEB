@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CARD_CONDITION_LABELS, formatClp } from "@tcg/config";
 import type { CartView } from "@tcg/types";
-import { ApiError } from "../../lib/api";
+import { userFacingError } from "../../lib/errors";
 import { getCart, putCartItem, removeCartItem } from "../../lib/cart";
+import { FormError, LoadingBlock, PageMain } from "../../components/ui-feedback";
 
 const ISSUE_COPY: Record<NonNullable<CartView["items"][number]["issue"]>, string> = {
   LISTING_NOT_ACTIVE: "Esta publicación ya no está activa.",
@@ -22,7 +23,7 @@ export default function CartPage() {
     getCart()
       .then(setCart)
       .catch((err: unknown) => {
-        setError(err instanceof ApiError ? err.message : "No se pudo cargar el carrito");
+        setError(userFacingError(err));
       });
   }, []);
 
@@ -36,21 +37,29 @@ export default function CartPage() {
       }
       setCart(await putCartItem(listingId, Math.min(quantity, available)));
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "No se pudo actualizar");
+      setError(userFacingError(err));
     } finally {
       setPendingId(null);
     }
   }
 
   if (error && !cart) {
-    return <main className="mx-auto max-w-3xl px-6 py-12 text-red-700">{error}</main>;
+    return (
+      <PageMain width="lg">
+        <FormError message={error} />
+      </PageMain>
+    );
   }
   if (!cart) {
-    return <main className="mx-auto max-w-3xl px-6 py-12 text-neutral-500">Cargando…</main>;
+    return (
+      <PageMain width="lg">
+        <LoadingBlock />
+      </PageMain>
+    );
   }
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <PageMain width="lg">
       <h1 className="text-2xl font-semibold">Carrito</h1>
       {error ? <p className="mt-4 text-sm text-red-700">{error}</p> : null}
       {cart.groups.length === 0 ? (
@@ -139,11 +148,11 @@ export default function CartPage() {
       </dl>
       {cart.groups.length > 0 ? (
         <p className="mt-8">
-          <Link href="/checkout" className="rounded bg-black px-4 py-2 text-sm text-white">
+          <Link href="/checkout" className="rounded bg-neutral-900 px-4 py-2 text-sm text-white">
             Ir a pagar
           </Link>
         </p>
       ) : null}
-    </main>
+    </PageMain>
   );
 }

@@ -1,0 +1,13 @@
+appId: cl.tcgplatform.app
+---
+- launchApp
+- tapOn: "Perfil"
+- tapOn: "Ingresar"
+- tapOn:
+    text: "Email"
+- inputText: "buyer.beta@example.test"
+- tapOn:
+    text: "Contraseña"
+- inputText: "BetaPassw0rd!"
+- tapOn: "Ingresar"
+- assertVisible: "Mis compras"

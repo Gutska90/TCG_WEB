@@ -18,6 +18,18 @@ import { OrdersModule } from "./orders/orders.module";
 import { PaymentsModule } from "./payments/payments.module";
 import { ShippingModule } from "./shipping/shipping.module";
 import { RatingsModule } from "./ratings/ratings.module";
+import { AdminModule } from "./admin/admin.module";
+import { LedgerModule } from "./ledger/ledger.module";
+import { PayoutsModule } from "./payouts/payouts.module";
+import { ReconciliationModule } from "./reconciliation/reconciliation.module";
+import { TrustModule } from "./trust/trust.module";
+import { FlagsModule } from "./flags/flags.module";
+import { ObservabilityModule } from "./observability/observability.module";
+import { JobsModule } from "./jobs/jobs.module";
+import { FeedbackModule } from "./feedback/feedback.module";
+import { CollectionsModule } from "./collections/collections.module";
+import { WishlistModule } from "./wishlist/wishlist.module";
+import { NotificationsModule } from "./notifications/notifications.module";
 
 @Module({
   imports: [
@@ -38,9 +50,21 @@ import { RatingsModule } from "./ratings/ratings.module";
     PaymentsModule,
     ShippingModule,
     RatingsModule,
+    AdminModule,
+    LedgerModule,
+    PayoutsModule,
+    ReconciliationModule,
+    TrustModule,
     FilesModule,
     PlatformConfigModule,
     HealthModule,
+    FlagsModule,
+    ObservabilityModule,
+    JobsModule,
+    FeedbackModule,
+    CollectionsModule,
+    WishlistModule,
+    NotificationsModule,
   ],
   providers: [{ provide: APP_FILTER, useClass: HttpErrorFilter }],
 })

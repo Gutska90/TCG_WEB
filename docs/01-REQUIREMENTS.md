@@ -42,7 +42,7 @@ Agregar:
 Agregar:
 
 - Mercado Pago Checkout Pro o equivalente, con webhooks.
-- Retención / liberación de pago (ver [07-PAYMENTS](07-PAYMENTS.md)).
+- Estados internos de pago (recibido / elegible para liquidación; ver [07-PAYMENTS](07-PAYMENTS.md)). No escrow del procesador.
 - Métodos de envío y entrega presencial.
 - Valoraciones post-compra (estrellas + comentario, una por orden/parte).
 - Notificaciones in-app + email de eventos transaccionales.
@@ -57,7 +57,7 @@ Orden de código en [15-ROADMAP](15-ROADMAP.md). Inventario completo en [23-PROD
 
 | Feature | Requisito resumido |
 |---------|-------------------|
-| Disputas + reportes | Evidencia, motivos, Compra Protegida (Fase 10.5) |
+| Disputas + reportes | Evidencia, motivos; Compra Protegida = reglas internas (10.5 / 10.7) |
 | Colecciones | Ítems, qty, condición, costo, valor, % set, Completar set |
 | Historial de precios | Ventas reales + listings; mediana; **confianza** |
 | Wishlist | Precio objetivo, condición, idioma, alertas agrupadas |

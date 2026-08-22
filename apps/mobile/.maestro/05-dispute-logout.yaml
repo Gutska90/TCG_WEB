@@ -1,0 +1,11 @@
+appId: cl.tcgplatform.app
+---
+- launchApp
+- tapOn: "Perfil"
+- tapOn: "Mis compras"
+- tapOn:
+    index: 0
+- tapOn: "Abrir reclamo"
+- tapOn: "Perfil"
+- tapOn: "Cerrar sesión"
+- assertVisible: "Ingresar"

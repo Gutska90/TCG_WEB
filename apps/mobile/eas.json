@@ -1,0 +1,36 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": { "simulator": true },
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "development",
+        "EXPO_PUBLIC_ENABLE_REAL_PAYMENTS": "false",
+        "EXPO_PUBLIC_ANALYTICS": "false"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "staging",
+        "EXPO_PUBLIC_ENABLE_REAL_PAYMENTS": "false",
+        "EXPO_PUBLIC_ANALYTICS": "false"
+      }
+    },
+    "production": {
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "production",
+        "EXPO_PUBLIC_ENABLE_REAL_PAYMENTS": "false",
+        "EXPO_PUBLIC_ANALYTICS": "false"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

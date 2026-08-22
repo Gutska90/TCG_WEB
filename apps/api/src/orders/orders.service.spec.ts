@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ERROR_CODES, commissionClp, quoteShippingClp } from "@tcg/config";
 import { OrdersService } from "./orders.service";
 import type { RequestUser } from "../auth/request-user";
+import { flagsForTest } from "../flags/feature-flags.service";
+import { MetricsService } from "../observability/metrics.service";
 
 const buyer: RequestUser = {
   id: "buyer-1",
@@ -52,7 +54,17 @@ describe("OrdersService", () => {
     quoteFromPlaces: vi.fn().mockResolvedValue({ priceClp: 0 }),
   };
   const refunds = { execute: vi.fn(), executeOpenForCheckout: vi.fn(), hasBlockingRefund: vi.fn().mockResolvedValue(false) };
-  const service = new OrdersService(prisma as never, audit as never, shipping as never, refunds as never);
+  const ledger = { recordCapture: vi.fn(), recordRelease: vi.fn() };
+  const service = new OrdersService(
+    prisma as never,
+    audit as never,
+    shipping as never,
+    refunds as never,
+    ledger as never,
+    flagsForTest() as never,
+    new MetricsService(),
+    { applySaleDeduction: vi.fn() } as never,
+  );
 
   beforeEach(() => {
     vi.clearAllMocks();

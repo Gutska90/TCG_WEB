@@ -1,5 +1,25 @@
 import { quoteShippingClp } from "./shipping";
 
+export {
+  COMPRA_PROTEGIDA_DEFINITION,
+  FORBIDDEN_PAYMENT_USER_PHRASES,
+  HELP_FAQS,
+  LEGAL,
+  LEGAL_CONSENT_CHECKBOX,
+  LEGAL_DOCUMENTS,
+  MARKETING_CONSENT_CHECKBOX,
+  MARKETPLACE_DOCUMENT,
+  PAYMENT_COPY,
+  PRIVACY_DOCUMENT,
+  PUBLIC_LEGAL_LINKS,
+  REFUNDS_DOCUMENT,
+  REQUIRED_TERMS_HEADINGS,
+  TERMS_DOCUMENT,
+  containsForbiddenPaymentCopy,
+  legalAcceptanceIsCurrent,
+} from "./legal";
+export type { LegalDocument, LegalSection } from "./legal";
+
 export const ROLES = [
   "USER",
   "SELLER",
@@ -10,6 +30,14 @@ export const ROLES = [
 ] as const;
 
 export type Role = (typeof ROLES)[number];
+
+/** Fase 10A: métricas financieras y listados operativos. MODERATOR no entra. */
+export const ADMIN_OPS_ROLES = ["ADMIN", "SUPER_ADMIN"] as const;
+export type AdminOpsRole = (typeof ADMIN_OPS_ROLES)[number];
+
+/** Fase 10.5: disputas, reportes, pause listing. Sin acceso financiero. */
+export const MODERATION_ROLES = ["MODERATOR", "ADMIN", "SUPER_ADMIN"] as const;
+export type ModerationRole = (typeof MODERATION_ROLES)[number];
 
 export const CARD_CONDITIONS = ["NM", "LP", "MP", "HP", "DMG"] as const;
 export type CardCondition = (typeof CARD_CONDITIONS)[number];
@@ -77,7 +105,47 @@ export const PLATFORM = {
   accessTokenTtlSec: 900,
   refreshTokenTtlDays: 30,
   searchPageSizeDefault: 20,
+  reconDefaultWindowHours: 48,
+  reconStaleRunMinutes: 15,
+  disputeMaxEvidence: 8,
+  disputeMaxMessageChars: 4000,
+  disputeEvidenceMaxBytes: 10_000_000,
+  reportMaxPerWindow: 5,
+  reportWindowMinutes: 10,
+  jobStaleMinutes: 20,
+  refundRetryMaxAttempts: 5,
+  refundRetryBackoffMinutes: 15,
+  jsonBodyLimitBytes: 262_144,
+  feedbackMaxPerWindow: 5,
+  feedbackWindowMinutes: 10,
+  feedbackMaxMessageChars: 4000,
+  collectionNotesMaxChars: 500,
+  collectionBulkMaxIds: 50,
+  priceConfidenceHighSales: 10,
+  priceConfidenceMediumSales: 3,
+  priceDropMinBps: 1000,
 } as const;
+
+export const FEEDBACK_CATEGORIES = [
+  "ACCOUNT",
+  "BUY",
+  "SELL",
+  "DISPUTE",
+  "REFUND",
+  "ABUSE",
+  "OTHER",
+] as const;
+export type FeedbackCategory = (typeof FEEDBACK_CATEGORIES)[number];
+
+export const FEEDBACK_CATEGORY_LABELS: Record<FeedbackCategory, string> = {
+  ACCOUNT: "Cuenta",
+  BUY: "Compra",
+  SELL: "Venta",
+  DISPUTE: "Disputa",
+  REFUND: "Reembolso",
+  ABUSE: "Reportar abuso",
+  OTHER: "Otro",
+};
 
 export const SHIPPING_METHODS = [
   "CHILEXPRESS",
@@ -151,6 +219,260 @@ export const PAYMENT_STATUSES = [
 ] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
+export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
+  PENDING: "Pendiente",
+  APPROVED: "Aprobado (procesador)",
+  REJECTED: "Rechazado",
+  HELD: "Recibido por la plataforma (interno)",
+  RELEASED: "Elegible para liquidación (interno)",
+  REFUNDED: "Reembolsado",
+};
+
+/** Copy para usuario final. No usa códigos HELD/RELEASED. */
+export const PAYMENT_STATUS_USER_LABELS: Record<PaymentStatus, string> = {
+  PENDING: "Pendiente de pago",
+  APPROVED: "Procesando el cobro",
+  REJECTED: "No se pudo cobrar",
+  HELD: "Pago recibido por la plataforma; aún no elegible para liquidación al vendedor.",
+  RELEASED: "Orden elegible para liquidación al vendedor.",
+  REFUNDED: "Reembolsado",
+};
+
+export const PAYOUT_STATUS_USER_LABELS: Record<
+  "PENDING" | "APPROVED" | "PROCESSING" | "PAID" | "FAILED" | "CANCELLED",
+  string
+> = {
+  PENDING: "Liquidación registrada al vendedor.",
+  APPROVED: "Liquidación registrada al vendedor.",
+  PROCESSING: "Liquidación en curso.",
+  PAID: "Liquidación pagada al vendedor.",
+  FAILED: "La liquidación no se completó.",
+  CANCELLED: "Liquidación cancelada.",
+};
+
+export const REFUND_STATUSES = ["PENDING", "COMPLETED", "FAILED"] as const;
+export type RefundStatus = (typeof REFUND_STATUSES)[number];
+
+export const PAYOUT_STATUSES = [
+  "PENDING",
+  "APPROVED",
+  "PROCESSING",
+  "PAID",
+  "FAILED",
+  "CANCELLED",
+] as const;
+export type PayoutStatus = (typeof PAYOUT_STATUSES)[number];
+
+export const PAYOUT_STATUS_LABELS: Record<PayoutStatus, string> = {
+  PENDING: "Pendiente",
+  APPROVED: "Aprobado",
+  PROCESSING: "En proceso",
+  PAID: "Pagado",
+  FAILED: "Fallido",
+  CANCELLED: "Cancelado",
+};
+
+export const PAYOUT_METHODS = ["MANUAL"] as const;
+export type PayoutMethod = (typeof PAYOUT_METHODS)[number];
+
+export const LEDGER_ENTRY_TYPES = [
+  "PAYMENT_CAPTURED",
+  "SELLER_PAYABLE",
+  "PLATFORM_FEE",
+  "REFUND",
+  "PAYOUT_RESERVED",
+  "PAYOUT_PAID",
+  "PAYOUT_REVERSED",
+  "ADJUSTMENT",
+] as const;
+export type LedgerEntryType = (typeof LEDGER_ENTRY_TYPES)[number];
+
+export const LEDGER_ENTRY_TYPE_LABELS: Record<LedgerEntryType, string> = {
+  PAYMENT_CAPTURED: "Cobro capturado",
+  SELLER_PAYABLE: "Obligación seller",
+  PLATFORM_FEE: "Comisión plataforma",
+  REFUND: "Reembolso",
+  PAYOUT_RESERVED: "Payout reservado",
+  PAYOUT_PAID: "Payout pagado",
+  PAYOUT_REVERSED: "Payout revertido",
+  ADJUSTMENT: "Ajuste",
+};
+
+export const RECONCILIATION_RUN_STATUSES = ["RUNNING", "COMPLETED", "FAILED"] as const;
+export type ReconciliationRunStatus = (typeof RECONCILIATION_RUN_STATUSES)[number];
+
+export const RECONCILIATION_ISSUE_STATUSES = ["OPEN", "ACKNOWLEDGED", "RESOLVED", "IGNORED"] as const;
+export type ReconciliationIssueStatus = (typeof RECONCILIATION_ISSUE_STATUSES)[number];
+
+export const RECONCILIATION_SEVERITIES = ["INFO", "WARNING", "CRITICAL"] as const;
+export type ReconciliationSeverity = (typeof RECONCILIATION_SEVERITIES)[number];
+
+export const RECONCILIATION_ISSUE_TYPES = [
+  "PAYMENT_MISSING_LOCAL",
+  "PAYMENT_MISSING_PROVIDER",
+  "PAYMENT_STATUS_MISMATCH",
+  "PAYMENT_AMOUNT_MISMATCH",
+  "REFUND_MISSING_LOCAL",
+  "REFUND_MISSING_PROVIDER",
+  "REFUND_STATUS_MISMATCH",
+  "REFUND_AMOUNT_MISMATCH",
+  "UNKNOWN_PROVIDER_PAYMENT",
+  "DUPLICATE_PROVIDER_PAYMENT",
+  "LEDGER_MISSING_PAYMENT_CAPTURED",
+  "LEDGER_MISSING_SELLER_PAYABLE",
+  "LEDGER_MISSING_REFUND",
+  "PAYOUT_LEDGER_MISMATCH",
+] as const;
+export type ReconciliationIssueType = (typeof RECONCILIATION_ISSUE_TYPES)[number];
+
+export const RECONCILIATION_ISSUE_TYPE_LABELS: Record<ReconciliationIssueType, string> = {
+  PAYMENT_MISSING_LOCAL: "Pago ausente en Postgres",
+  PAYMENT_MISSING_PROVIDER: "Pago ausente en el proveedor",
+  PAYMENT_STATUS_MISMATCH: "Estado de pago distinto",
+  PAYMENT_AMOUNT_MISMATCH: "Monto de pago distinto",
+  REFUND_MISSING_LOCAL: "Refund ausente en Postgres",
+  REFUND_MISSING_PROVIDER: "Refund ausente en el proveedor",
+  REFUND_STATUS_MISMATCH: "Estado de refund distinto",
+  REFUND_AMOUNT_MISMATCH: "Monto de refund distinto",
+  UNKNOWN_PROVIDER_PAYMENT: "Pago proveedor desconocido",
+  DUPLICATE_PROVIDER_PAYMENT: "Pago proveedor duplicado",
+  LEDGER_MISSING_PAYMENT_CAPTURED: "Falta PAYMENT_CAPTURED",
+  LEDGER_MISSING_SELLER_PAYABLE: "Falta SELLER_PAYABLE",
+  LEDGER_MISSING_REFUND: "Falta asiento REFUND",
+  PAYOUT_LEDGER_MISMATCH: "Payout PAID sin PAYOUT_PAID",
+};
+
+export const RECONCILIATION_SEVERITY_LABELS: Record<ReconciliationSeverity, string> = {
+  INFO: "Info",
+  WARNING: "Advertencia",
+  CRITICAL: "Crítico",
+};
+
+export const RECONCILIATION_ISSUE_STATUS_LABELS: Record<ReconciliationIssueStatus, string> = {
+  OPEN: "Abierto",
+  ACKNOWLEDGED: "Reconocido",
+  RESOLVED: "Resuelto",
+  IGNORED: "Ignorado",
+};
+
+export const DISPUTE_REASONS = [
+  "ITEM_NOT_RECEIVED",
+  "WRONG_ITEM",
+  "WRONG_CONDITION",
+  "DAMAGED",
+  "COUNTERFEIT_SUSPECTED",
+  "SELLER_UNRESPONSIVE",
+  "OTHER",
+] as const;
+export type DisputeReason = (typeof DISPUTE_REASONS)[number];
+
+export const DISPUTE_REASON_LABELS: Record<DisputeReason, string> = {
+  ITEM_NOT_RECEIVED: "No llegó",
+  WRONG_ITEM: "Ítem incorrecto",
+  WRONG_CONDITION: "Condición distinta",
+  DAMAGED: "Dañado",
+  COUNTERFEIT_SUSPECTED: "Posible falso",
+  SELLER_UNRESPONSIVE: "Vendedor no responde",
+  OTHER: "Otro",
+};
+
+export const DISPUTE_STATUSES = [
+  "OPEN",
+  "WAITING_BUYER",
+  "WAITING_SELLER",
+  "UNDER_REVIEW",
+  "RESOLVED_BUYER",
+  "RESOLVED_SELLER",
+  "CANCELLED",
+] as const;
+export type DisputeStatus = (typeof DISPUTE_STATUSES)[number];
+
+export const DISPUTE_STATUS_LABELS: Record<DisputeStatus, string> = {
+  OPEN: "Abierta",
+  WAITING_BUYER: "Espera comprador",
+  WAITING_SELLER: "Espera vendedor",
+  UNDER_REVIEW: "En revisión",
+  RESOLVED_BUYER: "Resuelta a favor del comprador",
+  RESOLVED_SELLER: "Resuelta a favor del vendedor",
+  CANCELLED: "Cancelada",
+};
+
+export const DISPUTE_EVIDENCE_TYPES = ["PHOTO", "VIDEO", "DOCUMENT", "OTHER"] as const;
+export type DisputeEvidenceType = (typeof DISPUTE_EVIDENCE_TYPES)[number];
+
+export const REPORT_TARGET_TYPES = ["USER", "LISTING", "IMAGE"] as const;
+export type ReportTargetType = (typeof REPORT_TARGET_TYPES)[number];
+
+export const REPORT_REASONS = [
+  "COUNTERFEIT",
+  "STOLEN_IMAGE",
+  "SPAM",
+  "MISLEADING_DESCRIPTION",
+  "SCAM_SUSPECTED",
+  "ABUSIVE_CONTENT",
+  "OTHER",
+] as const;
+export type ReportReason = (typeof REPORT_REASONS)[number];
+
+export const REPORT_REASON_LABELS: Record<ReportReason, string> = {
+  COUNTERFEIT: "Falsificación",
+  STOLEN_IMAGE: "Foto ajena",
+  SPAM: "Spam",
+  MISLEADING_DESCRIPTION: "Descripción engañosa",
+  SCAM_SUSPECTED: "Posible estafa",
+  ABUSIVE_CONTENT: "Contenido abusivo",
+  OTHER: "Otro",
+};
+
+export const REPORT_STATUSES = ["OPEN", "IN_REVIEW", "RESOLVED", "DISMISSED"] as const;
+export type ReportStatus = (typeof REPORT_STATUSES)[number];
+
+export const REPORT_STATUS_LABELS: Record<ReportStatus, string> = {
+  OPEN: "Abierto",
+  IN_REVIEW: "En revisión",
+  RESOLVED: "Resuelto",
+  DISMISSED: "Descartado",
+};
+
+export const MODERATION_ACTION_TYPES = [
+  "LISTING_PAUSED",
+  "LISTING_RESTORED",
+  "USER_WARNED",
+  "SELLER_SUSPENDED",
+  "SELLER_RESTORED",
+  "REPORT_RESOLVED",
+  "DISPUTE_ASSIGNED",
+  "DISPUTE_RESOLVED",
+] as const;
+export type ModerationActionType = (typeof MODERATION_ACTION_TYPES)[number];
+
+export const DISPUTE_EVIDENCE_MIMES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "application/pdf",
+  "video/mp4",
+  "video/webm",
+] as const;
+
+export const REFUND_STATUS_LABELS: Record<RefundStatus, string> = {
+  PENDING: "Pendiente",
+  COMPLETED: "Completado",
+  FAILED: "Fallido",
+};
+
+export const LISTING_STATUSES = ["DRAFT", "ACTIVE", "PAUSED", "SOLD", "CANCELLED"] as const;
+export type ListingStatus = (typeof LISTING_STATUSES)[number];
+
+export const LISTING_STATUS_LABELS: Record<ListingStatus, string> = {
+  DRAFT: "Borrador",
+  ACTIVE: "Activa",
+  PAUSED: "Pausada",
+  SOLD: "Vendida",
+  CANCELLED: "Cancelada",
+};
+
 export const SHIPMENT_STATUSES = [
   "PENDING",
   "LABEL_CREATED",
@@ -193,6 +515,24 @@ export const ERROR_CODES = {
   PAYMENT_NOT_HELD: "PAYMENT_NOT_HELD",
   REFUND_PROVIDER_ERROR: "REFUND_PROVIDER_ERROR",
   SHIPPING_METHOD_UNAVAILABLE: "SHIPPING_METHOD_UNAVAILABLE",
+  PAYOUT_ILLEGAL_TRANSITION: "PAYOUT_ILLEGAL_TRANSITION",
+  PAYOUT_UNAVAILABLE: "PAYOUT_UNAVAILABLE",
+  PAYOUT_PROVIDER_REF_REQUIRED: "PAYOUT_PROVIDER_REF_REQUIRED",
+  INSUFFICIENT_SELLER_BALANCE: "INSUFFICIENT_SELLER_BALANCE",
+  RECONCILIATION_IN_PROGRESS: "RECONCILIATION_IN_PROGRESS",
+  DISPUTE_ALREADY_OPEN: "DISPUTE_ALREADY_OPEN",
+  DISPUTE_ILLEGAL_TRANSITION: "DISPUTE_ILLEGAL_TRANSITION",
+  REPORT_DUPLICATE: "REPORT_DUPLICATE",
+  SELLER_SUSPENDED: "SELLER_SUSPENDED",
+  EVIDENCE_LIMIT: "EVIDENCE_LIMIT",
+  FILE_NOT_ALLOWED: "FILE_NOT_ALLOWED",
+  FEATURE_DISABLED: "FEATURE_DISABLED",
+  SERVICE_TEMPORARILY_DISABLED: "SERVICE_TEMPORARILY_DISABLED",
+  PAYOUT_DISPUTED: "PAYOUT_DISPUTED",
+  LEGAL_CONSENT_REQUIRED: "LEGAL_CONSENT_REQUIRED",
+  ACCOUNT_DEACTIVATED: "ACCOUNT_DEACTIVATED",
+  LAST_AUTH_METHOD: "LAST_AUTH_METHOD",
+  PASSWORD_ALREADY_SET: "PASSWORD_ALREADY_SET",
 } as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
@@ -239,3 +579,158 @@ export function suggestListingPrice(input: {
   }
   return suggested < 1 ? 1 : suggested;
 }
+
+export const CARD_PRICE_SOURCES = ["LISTING_MIN", "LISTING_AVG", "SALE", "IMPORT"] as const;
+export type CardPriceSource = (typeof CARD_PRICE_SOURCES)[number];
+
+export const PRICE_RANGES = ["1m", "3m", "6m", "1a"] as const;
+export type PriceRange = (typeof PRICE_RANGES)[number];
+
+export const PRICE_RANGE_DAYS: Record<PriceRange, number> = {
+  "1m": 30,
+  "3m": 90,
+  "6m": 180,
+  "1a": 365,
+};
+
+export const PRICE_CONFIDENCE = ["HIGH", "MEDIUM", "LOW"] as const;
+export type PriceConfidence = (typeof PRICE_CONFIDENCE)[number];
+
+export const PRICE_CONFIDENCE_LABELS: Record<PriceConfidence, string> = {
+  HIGH: "Alta",
+  MEDIUM: "Media",
+  LOW: "Baja",
+};
+
+export const NOTIFICATION_TYPES = ["WISHLIST_HIT", "PRICE_DROP"] as const;
+export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
+
+export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
+  WISHLIST_HIT: "Aviso de wishlist",
+  PRICE_DROP: "Bajada de precio",
+};
+
+export const JOB_RUN_STATUSES = ["RUNNING", "COMPLETED", "FAILED", "SKIPPED"] as const;
+export type JobRunStatus = (typeof JOB_RUN_STATUSES)[number];
+
+export const JOB_RUN_STATUS_LABELS: Record<JobRunStatus, string> = {
+  RUNNING: "En curso",
+  COMPLETED: "Completado",
+  FAILED: "Fallido",
+  SKIPPED: "Omitido",
+};
+
+function envFlag(value: string | undefined, fallback: boolean): boolean {
+  if (value == null || value === "") return fallback;
+  return value === "1" || value.toLowerCase() === "true";
+}
+
+/**
+ * Defensa adicional al production gate de ADR 0008.
+ * No sustituye revisión legal. Nunca dejar REAL_PAYMENTS_LEGAL_APPROVED=true en el repo.
+ */
+export function assertRealPaymentsLegalGate(env: NodeJS.Dict<string> = process.env): void {
+  if ((env.NODE_ENV ?? "") !== "production") return;
+  if (!envFlag(env.ENABLE_REAL_PAYMENTS, false)) return;
+  if (!envFlag(env.REAL_PAYMENTS_LEGAL_APPROVED, false)) {
+    throw new Error(
+      "ENABLE_REAL_PAYMENTS=true in production requires REAL_PAYMENTS_LEGAL_APPROVED=true after legal review. Do not set that flag in the repository.",
+    );
+  }
+}
+
+/** Flags y kill switches. La API los sirve; la UI no lee env. */
+export type FeatureFlagSnapshot = {
+  enableRealPayments: boolean;
+  enablePayouts: boolean;
+  enableCollections: boolean;
+  enablePrices: boolean;
+  enableWishlist: boolean;
+  enableScanner: boolean;
+  enableStores: boolean;
+  enableAuctions: boolean;
+  disableCheckout: boolean;
+  disableNewListings: boolean;
+  disablePayouts: boolean;
+  disableRefundsAutomation: boolean;
+  jobsEnabled: boolean;
+  refundRetryJobEnabled: boolean;
+  errorTrackingEnabled: boolean;
+  enableGoogleAuth: boolean;
+  enableAppleAuth: boolean;
+  authStubOauth: boolean;
+};
+
+export function loadFeatureFlags(env: NodeJS.Dict<string> = process.env): FeatureFlagSnapshot {
+  return {
+    enableRealPayments: envFlag(env.ENABLE_REAL_PAYMENTS, false),
+    enablePayouts: envFlag(env.ENABLE_PAYOUTS, env.NODE_ENV !== "production"),
+    enableCollections: envFlag(env.ENABLE_COLLECTIONS, true),
+    enablePrices: envFlag(env.ENABLE_PRICES, true),
+    enableWishlist: envFlag(env.ENABLE_WISHLIST, true),
+    enableScanner: envFlag(env.ENABLE_SCANNER, false),
+    enableStores: envFlag(env.ENABLE_STORES, false),
+    enableAuctions: envFlag(env.ENABLE_AUCTIONS, false),
+    disableCheckout: envFlag(env.DISABLE_CHECKOUT, false),
+    disableNewListings: envFlag(env.DISABLE_NEW_LISTINGS, false),
+    disablePayouts: envFlag(env.DISABLE_PAYOUTS, false),
+    disableRefundsAutomation: envFlag(env.DISABLE_REFUNDS_AUTOMATION, false),
+    jobsEnabled: envFlag(env.JOBS_ENABLED, env.NODE_ENV !== "test"),
+    refundRetryJobEnabled: envFlag(env.ENABLE_REFUND_RETRY_JOB, false),
+    errorTrackingEnabled: envFlag(env.ERROR_TRACKING_ENABLED, false),
+    enableGoogleAuth: envFlag(env.ENABLE_GOOGLE_AUTH, false),
+    enableAppleAuth: envFlag(env.ENABLE_APPLE_AUTH, false),
+    authStubOauth: envFlag(env.AUTH_STUB_OAUTH, false),
+  };
+}
+
+export function publicFeatureFlags(flags: FeatureFlagSnapshot) {
+  return {
+    enableCollections: flags.enableCollections,
+    enablePrices: flags.enablePrices,
+    enableWishlist: flags.enableWishlist,
+    enableScanner: flags.enableScanner,
+    enableStores: flags.enableStores,
+    enableAuctions: flags.enableAuctions,
+    enablePayouts: flags.enablePayouts && !flags.disablePayouts,
+    paymentsSandbox: !flags.enableRealPayments,
+    enableGoogleAuth: flags.enableGoogleAuth,
+    enableAppleAuth: flags.enableAppleAuth,
+    authStub: flags.authStubOauth,
+  };
+}
+
+function uniqueNonEmpty(values: Array<string | undefined>): string[] {
+  return [...new Set(values.map((value) => value?.trim() ?? "").filter(Boolean))];
+}
+
+export function googleClientAudiences(env: NodeJS.Dict<string> = process.env): string[] {
+  return uniqueNonEmpty([
+    env.GOOGLE_CLIENT_ID_WEB,
+    env.GOOGLE_CLIENT_ID,
+    env.GOOGLE_CLIENT_ID_IOS,
+    env.GOOGLE_CLIENT_ID_ANDROID,
+  ]);
+}
+
+export function appleClientAudiences(env: NodeJS.Dict<string> = process.env): string[] {
+  return uniqueNonEmpty([env.APPLE_CLIENT_ID, env.APPLE_CLIENT_ID_IOS, env.APPLE_CLIENT_ID_SERVICE]);
+}
+
+export function assertOauthRuntimeConfig(env: NodeJS.Dict<string> = process.env): void {
+  const nodeEnv = env.NODE_ENV ?? "development";
+  const appEnv = env.APP_ENV ?? "";
+  const strict = nodeEnv === "production" || nodeEnv === "staging" || appEnv === "staging" || appEnv === "production";
+  const flags = loadFeatureFlags(env);
+
+  if (flags.authStubOauth && (nodeEnv === "production" || flags.enableRealPayments)) {
+    throw new Error("AUTH_STUB_OAUTH is forbidden in production and when real payments are enabled");
+  }
+  if (strict && flags.enableGoogleAuth && googleClientAudiences(env).length === 0) {
+    throw new Error("ENABLE_GOOGLE_AUTH=true requires GOOGLE_CLIENT_ID or GOOGLE_CLIENT_ID_WEB/IOS/ANDROID");
+  }
+  if (strict && flags.enableAppleAuth && appleClientAudiences(env).length === 0) {
+    throw new Error("ENABLE_APPLE_AUTH=true requires APPLE_CLIENT_ID");
+  }
+}
+

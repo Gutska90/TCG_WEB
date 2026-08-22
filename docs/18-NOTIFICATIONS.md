@@ -37,11 +37,11 @@ Defaults al crear usuario: transaccionales (venta/compra/envío) on en los tres 
 
 | Método | Path | Fase |
 |--------|------|------|
-| GET | `/v1/me/notifications` | 7 |
-| POST | `/v1/me/notifications/:id/read` | 7 |
-| POST | `/v1/me/notifications/read-all` | 7 |
-| GET/PATCH | `/v1/me/notification-preferences` | 7 |
-| POST | `/v1/me/push-tokens` | 11 |
+| GET | `/v1/me/notifications` | 7 / 14 |
+| POST | `/v1/me/notifications/:id/read` | 7 / 14 |
+| POST | `/v1/me/notifications/read-all` | 7 / 14 |
+| GET/PATCH | `/v1/me/notification-preferences` | 7 / 14 |
+| POST | `/v1/me/push-tokens` | 11 (reservado) |
 | DELETE | `/v1/me/push-tokens/:id` | 11 |
 
 ## Entrega

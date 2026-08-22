@@ -11,13 +11,20 @@ function SellWizard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const presetVariant = searchParams.get("variantId");
+  const presetCondition = searchParams.get("condition");
+  const presetQuantity = searchParams.get("quantity");
+  const sourceCollectionItemId = searchParams.get("collectionItemId");
   const [step, setStep] = useState(presetVariant ? 3 : 1);
   const [q, setQ] = useState("");
   const [hits, setHits] = useState<SearchCardView[]>([]);
   const [card, setCard] = useState<CardDetailView | null>(null);
   const [variantId, setVariantId] = useState(presetVariant ?? "");
-  const [condition, setCondition] = useState<(typeof CARD_CONDITIONS)[number]>("NM");
-  const [quantity, setQuantity] = useState(1);
+  const [condition, setCondition] = useState<(typeof CARD_CONDITIONS)[number]>(
+    CARD_CONDITIONS.includes(presetCondition as (typeof CARD_CONDITIONS)[number])
+      ? (presetCondition as (typeof CARD_CONDITIONS)[number])
+      : "NM",
+  );
+  const [quantity, setQuantity] = useState(Math.max(1, Number(presetQuantity) || 1));
   const [priceClp, setPriceClp] = useState(1000);
   const [suggestion, setSuggestion] = useState<PriceSuggestionView | null>(null);
   const [allowsMeetup, setAllowsMeetup] = useState(true);
@@ -30,7 +37,7 @@ function SellWizard() {
     fetchMe()
       .then((me) => {
         if (!me.emailVerified) {
-          setMessage("Verifica tu email para vender.");
+          setMessage("Verifica tu email para vender. Ve a tu perfil para reenviar el correo.");
           return;
         }
         if (!me.roles.includes("SELLER") && !me.profile.sellerOnboardedAt) {
@@ -90,6 +97,7 @@ function SellWizard() {
           quantity,
           priceClp,
           imageFileIds,
+          sourceCollectionItemId: sourceCollectionItemId || undefined,
           allowsMeetup,
           allowsShipping,
           description,
@@ -106,7 +114,7 @@ function SellWizard() {
   }
 
   return (
-    <main className="mx-auto max-w-xl px-6 py-12">
+    <main id="contenido" className="mx-auto max-w-xl px-4 py-10 sm:px-6 sm:py-12">
       <h1 className="text-2xl font-semibold">Vender</h1>
       <p className="mt-1 text-sm text-neutral-500">Paso {step} de 6</p>
       {message ? <p className="mt-4 text-sm text-red-700">{message}</p> : null}

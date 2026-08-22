@@ -1,0 +1,9 @@
+appId: cl.tcgplatform.app
+---
+- launchApp
+- tapOn: "Perfil"
+- tapOn: "Mis ventas"
+- tapOn:
+    index: 0
+- tapOn: "Preparar"
+- tapOn: "Marcar despachado"

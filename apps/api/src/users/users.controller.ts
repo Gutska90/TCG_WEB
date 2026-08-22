@@ -64,4 +64,10 @@ export class UsersController {
   async deleteAddress(@CurrentUser() user: RequestUser, @Param("id") id: string) {
     await this.users.deleteAddress(user.id, id);
   }
+
+  @Post("me/deletion-request")
+  @Roles("USER", "SELLER", "STORE", "MODERATOR", "ADMIN", "SUPER_ADMIN")
+  requestDeletion(@CurrentUser() user: RequestUser) {
+    return this.users.requestDeletion(user);
+  }
 }

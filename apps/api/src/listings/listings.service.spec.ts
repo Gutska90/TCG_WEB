@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ERROR_CODES } from "@tcg/config";
 import { ListingsService } from "./listings.service";
 import type { RequestUser } from "../auth/request-user";
+import { flagsForTest } from "../flags/feature-flags.service";
 
 const seller: RequestUser = {
   id: "seller-1",
@@ -16,13 +17,22 @@ const seller: RequestUser = {
 describe("ListingsService", () => {
   const prisma = {
     listing: { findUnique: vi.fn(), update: vi.fn(), findMany: vi.fn(), count: vi.fn() },
+    collectionItem: { findFirst: vi.fn() },
+    sellerSuspension: { findFirst: vi.fn().mockResolvedValue(null) },
     $transaction: vi.fn(),
   };
   const market = { snapshotVariant: vi.fn(), summarizeForVariant: vi.fn() };
   const audit = { log: vi.fn() };
-  const service = new ListingsService(prisma as never, market as never, audit as never, {
-    summarizeForUsers: vi.fn().mockResolvedValue(new Map()),
-  } as never);
+  const revisions = { record: vi.fn(), snapshot: vi.fn((row: unknown) => row) };
+  const service = new ListingsService(
+    prisma as never,
+    market as never,
+    audit as never,
+    { summarizeForUsers: vi.fn().mockResolvedValue(new Map()) } as never,
+    revisions as never,
+    flagsForTest() as never,
+    { checkVariant: vi.fn().mockResolvedValue({ hits: 0, drops: 0 }) } as never,
+  );
 
   beforeEach(() => {
     vi.clearAllMocks();

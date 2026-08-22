@@ -11,7 +11,11 @@
     "test": "vitest run",
     "test:integration": "vitest run test/integration",
     "catalog:seed": "tsx src/catalog/cli.ts seed",
-    "catalog:import-scryfall": "tsx src/catalog/cli.ts import-scryfall"
+    "beta:seed": "tsx src/catalog/beta-seed.cli.ts",
+    "catalog:import-scryfall": "tsx src/catalog/cli.ts import-scryfall",
+    "ledger:backfill": "tsx src/ledger/backfill.cli.ts",
+    "recon:day": "tsx src/reconciliation/recon.cli.ts",
+    "prices:capture": "tsx src/prices/prices.cli.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.6",

@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { SkipThrottle } from "@nestjs/throttler";
-import { paginationQuerySchema, type PaginationQuery } from "@tcg/validation";
+import { paginationQuerySchema, variantPricesQuerySchema, type PaginationQuery, type VariantPricesQuery } from "@tcg/validation";
 import { Public } from "../common/decorators/public.decorator";
 import { ZodPipe } from "../common/pipes/zod-pipe";
 import { CatalogService } from "./catalog.service";
@@ -64,6 +64,14 @@ export class CatalogController {
   @Get("cards/:id")
   getCard(@Param("id") id: string) {
     return this.catalog.getCard(id);
+  }
+
+  @Get("variants/:id/prices")
+  prices(
+    @Param("id") id: string,
+    @Query(new ZodPipe(variantPricesQuerySchema)) query: VariantPricesQuery,
+  ) {
+    return this.catalog.variantPrices(id, query.range);
   }
 
   @Get("variants/:id/price-suggestion")

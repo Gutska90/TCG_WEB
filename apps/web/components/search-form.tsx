@@ -15,7 +15,7 @@ export function SearchForm({
 }) {
   if (compact) {
     return (
-      <form action="/buscar" method="get" className="hidden sm:block">
+      <form action="/buscar" method="get" className="w-full">
         <label className="sr-only" htmlFor="header-q">
           Buscar cartas
         </label>
@@ -25,7 +25,7 @@ export function SearchForm({
           type="search"
           defaultValue={values?.q ?? ""}
           placeholder="Buscar cartas"
-          className="w-48 rounded border px-3 py-1.5 text-sm"
+          className="w-full max-w-56 rounded border px-3 py-1.5 text-sm"
         />
       </form>
     );

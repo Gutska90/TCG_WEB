@@ -3,12 +3,15 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useMemo, useState } from "react";
-import { SHIPPING_METHOD_LABELS, formatClp, type ShippingMethod } from "@tcg/config";
-import type { AddressView, CartView, ShippingQuoteView } from "@tcg/types";
+import { CARD_CONDITION_LABELS, LEGAL, SHIPPING_METHOD_LABELS, formatClp, type ShippingMethod } from "@tcg/config";
+import type { AddressView, CartView, PublicPlatformConfig, ShippingQuoteView } from "@tcg/types";
 import { ApiError, api, fetchMe } from "../../lib/api";
+import { fetchPublicConfig } from "../../lib/config";
 import { getCart } from "../../lib/cart";
+import { userFacingError, loginHref } from "../../lib/errors";
 import { createCheckout } from "../../lib/orders";
 import { quoteShipping } from "../../lib/shipping";
+import { FormError, LoadingBlock, PageMain, SandboxNotice, buttonClass } from "../../components/ui-feedback";
 
 const METHODS: ShippingMethod[] = ["MEETUP", "CHILEXPRESS", "BLUE_EXPRESS", "COORDINATED"];
 
@@ -16,6 +19,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const [cart, setCart] = useState<CartView | null>(null);
   const [addresses, setAddresses] = useState<AddressView[]>([]);
+  const [sandbox, setSandbox] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [methods, setMethods] = useState<Record<string, ShippingMethod>>({});
@@ -23,8 +27,17 @@ export default function CheckoutPage() {
   const [quotes, setQuotes] = useState<Record<string, ShippingQuoteView | null>>({});
 
   useEffect(() => {
-    Promise.all([getCart(), api<AddressView[]>("/v1/me/addresses"), fetchMe()])
-      .then(([nextCart, nextAddresses]) => {
+    Promise.all([
+      getCart(),
+      api<AddressView[]>("/v1/me/addresses"),
+      fetchMe(),
+      fetchPublicConfig().catch((): PublicPlatformConfig | null => null),
+    ])
+      .then(([nextCart, nextAddresses, me, config]) => {
+        if (!me.emailVerified) {
+          setError("Verifica tu email antes de pagar.");
+        }
+        setSandbox(config?.features.paymentsSandbox ?? true);
         setCart(nextCart);
         setAddresses(nextAddresses);
         setAddressId(nextAddresses.find((row) => row.isDefaultShipping)?.id ?? nextAddresses[0]?.id ?? "");
@@ -38,10 +51,10 @@ export default function CheckoutPage() {
       })
       .catch((err: unknown) => {
         if (err instanceof ApiError && err.status === 401) {
-          router.replace("/ingresar");
+          router.replace(loginHref("/checkout"));
           return;
         }
-        setError(err instanceof ApiError ? err.message : "No se pudo cargar el checkout");
+        setError(userFacingError(err));
       });
   }, [router]);
 
@@ -97,46 +110,69 @@ export default function CheckoutPage() {
           addressId: (methods[group.seller.id] ?? "MEETUP") === "MEETUP" ? undefined : addressId,
         })),
       );
-      if (checkout.mercadopago.initPoint) {
+      if (checkout.mercadopago.initPoint && !checkout.mercadopago.mock) {
         window.location.href = checkout.mercadopago.initPoint;
         return;
       }
       router.push(`/checkout/retorno?checkoutId=${checkout.id}`);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "No se pudo crear el pedido");
+      setError(userFacingError(err));
     } finally {
       setPending(false);
     }
   }
 
   if (error && !cart) {
-    return <main className="mx-auto max-w-2xl px-6 py-12 text-red-700">{error}</main>;
+    return (
+      <PageMain>
+        <FormError message={error} />
+      </PageMain>
+    );
   }
   if (!cart) {
-    return <main className="mx-auto max-w-2xl px-6 py-12 text-neutral-500">Cargando…</main>;
+    return (
+      <PageMain>
+        <LoadingBlock label="Cargando el checkout…" />
+      </PageMain>
+    );
   }
   if (cart.itemCount === 0) {
     return (
-      <main className="mx-auto max-w-2xl px-6 py-12">
-        <p>Tu carrito está vacío.</p>
-        <Link href="/carrito" className="underline">
-          Volver al carrito
-        </Link>
-      </main>
+      <PageMain>
+        <h1 className="text-2xl font-semibold">Pagar</h1>
+        <p className="mt-4">
+          Tu carrito está vacío.{" "}
+          <Link href="/buscar" className="underline">
+            Buscar cartas
+          </Link>
+        </p>
+      </PageMain>
     );
   }
 
   return (
-    <main className="mx-auto max-w-2xl px-6 py-12">
+    <PageMain>
       <h1 className="text-2xl font-semibold">Pagar</h1>
+      <p className="mt-2 text-sm text-neutral-600">{LEGAL.betaProductNotice}</p>
+      <div className="mt-4">{sandbox ? <SandboxNotice /> : null}</div>
       <form onSubmit={(event) => void onSubmit(event)} className="mt-8 grid gap-6">
         {cart.groups.map((group) => {
           const quote = quotes[group.seller.id];
           const method = methods[group.seller.id] ?? "MEETUP";
           return (
             <fieldset key={group.seller.id} className="rounded border p-4">
-              <legend className="font-medium">{group.seller.displayName}</legend>
-              <p className="mt-1 text-sm text-neutral-600">{formatClp(group.subtotalClp)} en productos</p>
+              <legend className="font-medium">Vendedor: {group.seller.displayName}</legend>
+              <ul className="mt-3 grid gap-2 text-sm">
+                {group.items.map((item) => (
+                  <li key={item.listingId} className="flex justify-between gap-3">
+                    <span>
+                      {item.listing.title} · {CARD_CONDITION_LABELS[item.listing.condition]} · x{item.quantity}
+                    </span>
+                    <span>{formatClp(item.lineTotalClp)}</span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-sm text-neutral-600">Subtotal productos {formatClp(group.subtotalClp)}</p>
               <label className="mt-3 block text-sm">
                 Entrega
                 <select
@@ -192,19 +228,44 @@ export default function CheckoutPage() {
             )}
           </label>
         ) : null}
-        <p className="text-sm text-neutral-700">
-          Productos {formatClp(cart.productTotalClp)} · Envío {formatClp(shippingTotalClp)} · Total{" "}
-          {formatClp(cart.productTotalClp + shippingTotalClp)}
+        <dl className="grid max-w-sm gap-1 text-sm">
+          <div className="flex justify-between">
+            <dt>Productos</dt>
+            <dd>{formatClp(cart.productTotalClp)}</dd>
+          </div>
+          <div className="flex justify-between">
+            <dt>Envío</dt>
+            <dd>{formatClp(shippingTotalClp)}</dd>
+          </div>
+          <div className="flex justify-between font-semibold">
+            <dt>Total</dt>
+            <dd>{formatClp(cart.productTotalClp + shippingTotalClp)}</dd>
+          </div>
+        </dl>
+        <FormError message={error} />
+        <p className="text-sm text-neutral-600">
+          Al continuar aceptas los{" "}
+          <Link href="/terminos" className="underline">
+            Términos
+          </Link>
+          , las{" "}
+          <Link href="/marketplace" className="underline">
+            reglas del marketplace
+          </Link>{" "}
+          y{" "}
+          <Link href="/refunds" className="underline">
+            reembolsos
+          </Link>
+          .
         </p>
-        {error ? <p className="text-sm text-red-700">{error}</p> : null}
         <button
           type="submit"
           disabled={pending || (needsAddress && !addressId)}
-          className="rounded bg-black px-4 py-2 text-white disabled:opacity-50"
+          className={buttonClass}
         >
-          {pending ? "Creando pedido…" : "Confirmar y pagar"}
+          {pending ? "Creando pedido…" : sandbox ? "Confirmar pago de prueba" : "Confirmar y pagar"}
         </button>
       </form>
-    </main>
+    </PageMain>
   );
 }

@@ -6,9 +6,11 @@
 
 Google **no** reemplaza: fila `User`, `Session`, JWT de la plataforma, RBAC, onboarding de vendedor, términos, dirección, ni Mercado Pago. Solo identidad y prueba de email.
 
-- Google (ID token / GIS). Obligatorio `GOOGLE_CLIENT_ID`.
-- Apple: obligatorio en iOS si hay login de terceros (regla App Store). Web opcional.
-- Email + password: queda en API para cuentas ya creadas y como fallback interno. La web no promociona `/registro` ni verificación de email para usuarios nuevos.
+Detalle de linking, sesiones y storage: [AUTH-IDENTITY-AND-SESSIONS.md](AUTH-IDENTITY-AND-SESSIONS.md).
+
+- Google (ID token / GIS). Audiencias: `GOOGLE_CLIENT_ID` y/o `GOOGLE_CLIENT_ID_WEB` / `_IOS` / `_ANDROID`. Flag `ENABLE_GOOGLE_AUTH`.
+- Apple: obligatorio en iOS si hay login de terceros (regla App Store). Flag `ENABLE_APPLE_AUTH`. Web no ofrece Apple en esta fase.
+- Email + password: cuentas existentes, fallback, y alta explícita en `/registro`.
 
 Después: Facebook no es prioridad. MFA TOTP opcional post-MVP 3.
 
@@ -17,8 +19,9 @@ Después: Facebook no es prioridad. MFA TOTP opcional post-MVP 3.
 ### Registro email (legacy / fallback)
 
 1. `POST /v1/auth/register` crea `User` + `AuthIdentity(EMAIL)` + `UserRole(USER)`.
-2. Envía email de verificación (token de un solo uso, 24 h).
-3. Login permitido con email no verificado, pero **vender y checkout** requieren `emailVerifiedAt`.
+2. Exige `acceptTerms: true` (no preseleccionado en UI). Guarda `termsVersion`, `privacyVersion`, `acceptedAt`. `marketingOptIn` es opcional y separado.
+3. Envía email de verificación (token de un solo uso, 24 h).
+4. Login permitido con email no verificado, pero **vender y checkout** requieren `emailVerifiedAt`.
 
 Los usuarios nuevos de Google no pasan por este flujo.
 
@@ -30,10 +33,11 @@ Los usuarios nuevos de Google no pasan por este flujo.
 
 ### OAuth (Google / Apple)
 
-- Si `providerSubject` existe → login.
-- Si email existe con otro provider → vincular solo si el email está verificado en ambos lados; si no, 409 `ACCOUNT_CONFLICT`.
-- Si no existe → crear usuario `USER`. Con Google, exigir `email_verified`; si no, rechazar (no crear cuenta a medias).
-- `emailVerifiedAt` se copia de `email_verified` de Google/Apple. Checkout y vender usan el mismo gate.
+- Si `providerSubject` existe → login (sin reconsentir).
+- Si el email coincide con otro `User` y el `sub` es nuevo → **no** vincular en el login. 409 `ACCOUNT_CONFLICT`. El usuario entra con su método actual y vincula desde Seguridad.
+- Si no existe → crear `USER`. Google exige `email_verified` del proveedor. La **creación** exige `acceptTerms: true` persistido. Cuentas existentes no se reconsienten (`legal.stale` informativo).
+- Linking autenticado: `POST /v1/me/auth-identities/link/google|apple` con prueba del proveedor (ID/identity token). Unlink solo si queda password u otro OAuth.
+- `emailVerifiedAt` se copia solo si el proveedor certifica el email.
 
 ### Password reset
 
@@ -102,7 +106,7 @@ Actualizar [03-DATABASE](03-DATABASE.md) en implementación: agregar `Listing.st
 
 ## Sesiones
 
-`GET /v1/auth/sessions` lista dispositivos. Logout de uno o de todos.
+`GET /v1/me/sessions` (alias `/v1/auth/sessions`) lista dispositivos. Logout de uno, de todos los demás, o de la sesión actual. Refresh con rotación y detección de reuse. Ver [AUTH-IDENTITY-AND-SESSIONS.md](AUTH-IDENTITY-AND-SESSIONS.md).
 
 ## MFA (diseño, no MVP)
 
@@ -116,8 +120,8 @@ El panel admin usa los mismos endpoints `/v1/admin` con cookie de dominio admin.
 
 | Ruta | Límite |
 |------|--------|
-| login / register | 10 / 15 min / IP |
-| forgot-password | 5 / hora / email+IP |
+| login / register / OAuth / linking | 10 / 15 min / IP |
+| forgot-password / resend-verification | 5 / hora / email+IP |
 | API autenticada | 120 / min / user |
 | search | 60 / min / IP |
 

@@ -1,6 +1,7 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
-import { ERROR_CODES } from "@tcg/config";
-import type { AddressView, MeView, PublicUserView } from "@tcg/types";
+import type { Role } from "@prisma/client";
+import { ERROR_CODES, LEGAL, legalAcceptanceIsCurrent } from "@tcg/config";
+import type { AccountDeletionView, AddressView, MeView, PublicUserView } from "@tcg/types";
 import type { CreateAddressInput, PatchMeInput, SellerOnboardingInput } from "@tcg/validation";
 import { AppError } from "../common/errors/app-error";
 import { PrismaService } from "../prisma/prisma.service";
@@ -24,22 +25,7 @@ export class UsersService {
     if (!user) {
       throw new AppError(HttpStatus.UNAUTHORIZED, ERROR_CODES.UNAUTHORIZED, "No autenticado");
     }
-    return {
-      id: user.id,
-      email: user.email,
-      emailVerified: Boolean(user.emailVerifiedAt),
-      displayName: user.displayName,
-      slug: user.slug,
-      roles: user.roles.map((row) => row.role),
-      profile: {
-        bio: user.profile?.bio ?? null,
-        region: user.profile?.region ?? null,
-        comuna: user.profile?.comuna ?? null,
-        country: user.profile?.country ?? "CL",
-        sellerOnboardedAt: user.profile?.sellerOnboardedAt?.toISOString() ?? null,
-      },
-      createdAt: user.createdAt.toISOString(),
-    };
+    return toMeView(user);
   }
 
   async updateMe(actor: RequestUser, input: PatchMeInput): Promise<MeView> {
@@ -48,6 +34,12 @@ export class UsersService {
         await tx.user.update({
           where: { id: actor.id },
           data: { displayName: input.displayName },
+        });
+      }
+      if (input.marketingOptIn !== undefined) {
+        await tx.user.update({
+          where: { id: actor.id },
+          data: { marketingOptIn: input.marketingOptIn },
         });
       }
       await tx.profile.upsert({
@@ -190,6 +182,40 @@ export class UsersService {
     }
     await this.prisma.address.delete({ where: { id } });
   }
+
+  async requestDeletion(actor: RequestUser): Promise<AccountDeletionView> {
+    const user = await this.prisma.user.findFirst({
+      where: { id: actor.id, deletedAt: null },
+    });
+    if (!user) {
+      throw new AppError(HttpStatus.UNAUTHORIZED, ERROR_CODES.UNAUTHORIZED, "No autenticado");
+    }
+    const now = new Date();
+    await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: actor.id },
+        data: {
+          deletionRequestedAt: user.deletionRequestedAt ?? now,
+          deletedAt: now,
+          tokenVersion: { increment: 1 },
+        },
+      });
+      await tx.session.updateMany({
+        where: { userId: actor.id, revokedAt: null },
+        data: { revokedAt: now },
+      });
+    });
+    await this.audit.log({
+      actorId: actor.id,
+      action: "user.deletion_requested",
+      entityType: "User",
+      entityId: actor.id,
+    });
+    return {
+      status: "requested",
+      deletionRequestedAt: (user.deletionRequestedAt ?? now).toISOString(),
+    };
+  }
 }
 
 function toAddressView(row: {
@@ -215,5 +241,54 @@ function toAddressView(row: {
     region: row.region,
     postalCode: row.postalCode,
     isDefaultShipping: row.isDefaultShipping,
+  };
+}
+
+function toMeView(user: {
+  id: string;
+  email: string;
+  emailVerifiedAt: Date | null;
+  displayName: string;
+  slug: string;
+  createdAt: Date;
+  termsVersion: string | null;
+  privacyVersion: string | null;
+  acceptedAt: Date | null;
+  marketingOptIn: boolean;
+  deletionRequestedAt: Date | null;
+  roles: { role: Role }[];
+  profile: {
+    bio: string | null;
+    region: string | null;
+    comuna: string | null;
+    country: string;
+    sellerOnboardedAt: Date | null;
+  } | null;
+}): MeView {
+  return {
+    id: user.id,
+    email: user.email,
+    emailVerified: Boolean(user.emailVerifiedAt),
+    displayName: user.displayName,
+    slug: user.slug,
+    roles: user.roles.map((row) => row.role),
+    profile: {
+      bio: user.profile?.bio ?? null,
+      region: user.profile?.region ?? null,
+      comuna: user.profile?.comuna ?? null,
+      country: user.profile?.country ?? "CL",
+      sellerOnboardedAt: user.profile?.sellerOnboardedAt?.toISOString() ?? null,
+    },
+    createdAt: user.createdAt.toISOString(),
+    legal: {
+      termsVersion: user.termsVersion,
+      privacyVersion: user.privacyVersion,
+      acceptedAt: user.acceptedAt?.toISOString() ?? null,
+      marketingOptIn: user.marketingOptIn,
+      currentTermsVersion: LEGAL.termsVersion,
+      currentPrivacyVersion: LEGAL.privacyVersion,
+      stale: !legalAcceptanceIsCurrent(user),
+      deletionRequestedAt: user.deletionRequestedAt?.toISOString() ?? null,
+    },
   };
 }

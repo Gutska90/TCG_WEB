@@ -1,11 +1,13 @@
 import { Module, forwardRef } from "@nestjs/common";
 import { PaymentsModule } from "../payments/payments.module";
 import { ShippingModule } from "../shipping/shipping.module";
+import { LedgerModule } from "../ledger/ledger.module";
+import { CollectionsModule } from "../collections/collections.module";
 import { OrdersController } from "./orders.controller";
 import { OrdersService } from "./orders.service";
 
 @Module({
-  imports: [ShippingModule, forwardRef(() => PaymentsModule)],
+  imports: [ShippingModule, LedgerModule, CollectionsModule, forwardRef(() => PaymentsModule)],
   controllers: [OrdersController],
   providers: [OrdersService],
   exports: [OrdersService],

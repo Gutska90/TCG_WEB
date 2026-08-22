@@ -20,6 +20,7 @@ import {
   refreshSchema,
   registerSchema,
   resetPasswordSchema,
+  testOauthSchema,
   verifyEmailSchema,
   type AppleAuthInput,
   type ForgotPasswordInput,
@@ -28,6 +29,7 @@ import {
   type RefreshInput,
   type RegisterInput,
   type ResetPasswordInput,
+  type TestOauthInput,
   type VerifyEmailInput,
 } from "@tcg/validation";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
@@ -115,6 +117,7 @@ export class AuthController {
   }
 
   @Post("resend-verification")
+  @Throttle({ default: { limit: 5, ttl: 60 * 60_000 } })
   @HttpCode(202)
   async resendVerification(@CurrentUser() user: RequestUser) {
     await this.auth.resendVerification(user);
@@ -122,6 +125,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: 10, ttl: 15 * 60_000 } })
   @Post("oauth/google")
   async google(
     @Body(new ZodPipe(googleAuthSchema)) body: GoogleAuthInput,
@@ -134,6 +138,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: 10, ttl: 15 * 60_000 } })
   @Post("oauth/apple")
   async apple(
     @Body(new ZodPipe(appleAuthSchema)) body: AppleAuthInput,
@@ -141,6 +146,19 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const tokens = await this.auth.loginWithApple(body, this.ctx(req));
+    this.setRefreshCookie(res, tokens.refreshToken);
+    return tokens;
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 10, ttl: 15 * 60_000 } })
+  @Post("oauth/test")
+  async testOauth(
+    @Body(new ZodPipe(testOauthSchema)) body: TestOauthInput,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const tokens = await this.auth.loginWithTestOauth(body, this.ctx(req));
     this.setRefreshCookie(res, tokens.refreshToken);
     return tokens;
   }
@@ -154,6 +172,12 @@ export class AuthController {
   @HttpCode(204)
   async revokeSession(@CurrentUser() user: RequestUser, @Param("id") id: string) {
     await this.auth.revokeSession(user, id);
+  }
+
+  @Post("sessions/revoke-all")
+  @HttpCode(204)
+  async revokeAll(@CurrentUser() user: RequestUser) {
+    await this.auth.revokeAllSessions(user);
   }
 
   private ctx(req: Request): { ip?: string; userAgent?: string } {
@@ -170,17 +194,24 @@ export class AuthController {
     return typeof value === "string" ? value : undefined;
   }
 
-  private setRefreshCookie(res: Response, token: string): void {
-    res.cookie(REFRESH_COOKIE, token, {
+  private cookieOpts(): { httpOnly: true; sameSite: "lax"; secure: boolean; path: "/" } {
+    const webUrl = process.env.APP_WEB_URL ?? "";
+    return {
       httpOnly: true,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: PLATFORM.refreshTokenTtlDays * 24 * 60 * 60 * 1000,
+      secure: process.env.NODE_ENV === "production" || webUrl.startsWith("https://"),
       path: "/",
+    };
+  }
+
+  private setRefreshCookie(res: Response, token: string): void {
+    res.cookie(REFRESH_COOKIE, token, {
+      ...this.cookieOpts(),
+      maxAge: PLATFORM.refreshTokenTtlDays * 24 * 60 * 60 * 1000,
     });
   }
 
   private clearRefreshCookie(res: Response): void {
-    res.clearCookie(REFRESH_COOKIE, { path: "/" });
+    res.clearCookie(REFRESH_COOKIE, this.cookieOpts());
   }
 }

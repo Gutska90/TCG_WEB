@@ -14,6 +14,8 @@
     "typecheck": "turbo typecheck",
     "test": "turbo test",
     "test:integration": "pnpm --filter @tcg/api test:integration",
+    "test:e2e": "pnpm --filter @tcg/api beta:seed && playwright test",
+    "beta:seed": "pnpm --filter @tcg/api beta:seed",
     "db:up": "docker compose -f docker/compose.yml up -d",
     "db:down": "docker compose -f docker/compose.yml down",
     "db:generate": "prisma generate",
@@ -21,12 +23,15 @@
     "db:studio": "prisma studio",
     "catalog:seed": "pnpm --filter @tcg/api catalog:seed",
     "catalog:import-scryfall": "pnpm --filter @tcg/api run catalog:import-scryfall --",
+    "ledger:backfill": "pnpm --filter @tcg/api ledger:backfill",
+    "recon:day": "pnpm --filter @tcg/api recon:day",
     "postinstall": "prisma generate"
   },
   "prisma": {
     "schema": "prisma/schema.prisma"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
     "prisma": "^6.15.0",
     "turbo": "^2.5.6",
     "typescript": "^5.9.2"

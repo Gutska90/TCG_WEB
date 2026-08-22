@@ -12,9 +12,12 @@ describe("CatalogService", () => {
     $transaction: vi.fn(),
   };
 
-  const service = new CatalogService(prisma as never, { summarizeForCard: vi.fn() } as never, {
-    listPublic: vi.fn(),
-  } as never);
+  const service = new CatalogService(
+    prisma as never,
+    { summarizeForCard: vi.fn() } as never,
+    { listPublic: vi.fn() } as never,
+    { suggestionForVariant: vi.fn(), history: vi.fn() } as never,
+  );
 
   beforeEach(() => {
     vi.clearAllMocks();
