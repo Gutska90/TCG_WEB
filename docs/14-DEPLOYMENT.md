@@ -57,6 +57,8 @@ CI:
 
 Load HTTP (B3): `pnpm test:load` contra API local o staging. Ver [runbooks/PERFORMANCE.md](runbooks/PERFORMANCE.md). No corre en CI (hace falta el proceso API y el throttle de search).
 
+Preflight B1 (operador): `pnpm staging:preflight -- --env-file .env.staging`. No corre en CI.
+
 QA (B4): `pnpm test:e2e` (Playwright web+admin) es gate de CI. Maestro mobile es opcional (`pnpm test:maestro`, `.github/workflows/maestro.yml`). Checklists: [release/B4-QA.md](release/B4-QA.md).
 
 Infra (B5): Sentry, backups, Redis líder de jobs. [runbooks/PRODUCTION.md](runbooks/PRODUCTION.md). `pnpm db:backup` es dump lógico de drill, no sustituye PITR del managed Postgres.

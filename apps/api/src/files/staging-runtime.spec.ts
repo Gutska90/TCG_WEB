@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   assertErrorTrackingConfig,
   assertStagingRuntimeDeps,
+  collectStagingOperatorReport,
   mailDeliveryConfigured,
   objectStorageConfigured,
 } from "@tcg/config";
@@ -60,6 +61,50 @@ describe("assertStagingRuntimeDeps", () => {
         ENABLE_REAL_PAYMENTS: "false",
       }),
     ).not.toThrow();
+  });
+});
+
+describe("collectStagingOperatorReport", () => {
+  it("flags the committed staging example as not ready for testers", () => {
+    const report = collectStagingOperatorReport({
+      NODE_ENV: "staging",
+      APP_ENV: "staging",
+      DATABASE_URL: "",
+      JWT_ACCESS_SECRET: "",
+      APP_WEB_URL: "https://staging.example.test",
+      APP_ADMIN_URL: "https://admin.staging.example.test",
+      API_PUBLIC_URL: "https://api.staging.example.test",
+      CORS_ORIGINS: "https://staging.example.test,https://admin.staging.example.test",
+      ENABLE_REAL_PAYMENTS: "false",
+      AUTH_STUB_OAUTH: "false",
+    });
+    expect(report.blockers.some((row) => /object storage/i.test(row))).toBe(true);
+    expect(report.blockers.some((row) => /RESEND_API_KEY or SMTP_HOST/i.test(row))).toBe(true);
+    expect(report.blockers.some((row) => /JWT_ACCESS_SECRET/i.test(row))).toBe(true);
+    expect(report.warnings.some((row) => /placeholder/i.test(row))).toBe(true);
+  });
+
+  it("passes a filled staging contract", () => {
+    const report = collectStagingOperatorReport({
+      NODE_ENV: "staging",
+      APP_ENV: "staging",
+      DATABASE_URL: "postgresql://tcg:tcg@db/tcg_platform",
+      JWT_ACCESS_SECRET: "a".repeat(32),
+      APP_WEB_URL: "https://staging.tcg.cl",
+      APP_ADMIN_URL: "https://admin.staging.tcg.cl",
+      API_PUBLIC_URL: "https://api.staging.tcg.cl",
+      CORS_ORIGINS: "https://staging.tcg.cl,https://admin.staging.tcg.cl",
+      ADMIN_IP_ALLOWLIST: "203.0.113.10",
+      R2_ACCOUNT_ID: "acct",
+      R2_ACCESS_KEY_ID: "id",
+      R2_SECRET_ACCESS_KEY: "secret",
+      R2_BUCKET: "tcg-files",
+      RESEND_API_KEY: "re_test",
+      ENABLE_REAL_PAYMENTS: "false",
+      AUTH_STUB_OAUTH: "false",
+      ENABLE_SCANNER: "false",
+    });
+    expect(report.blockers).toEqual([]);
   });
 });
 

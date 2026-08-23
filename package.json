@@ -22,6 +22,7 @@
     "test:load": "node scripts/load-test.mjs",
     "audit:deps": "node scripts/audit-deps.mjs",
     "beta:seed": "pnpm --filter @tcg/api beta:seed",
+    "staging:preflight": "pnpm --filter @tcg/api exec tsx src/ops/staging-preflight.cli.ts",
     "db:up": "docker compose -f docker/compose.yml up -d",
     "db:down": "docker compose -f docker/compose.yml down",
     "db:generate": "prisma generate",

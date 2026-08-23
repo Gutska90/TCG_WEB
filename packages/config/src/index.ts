@@ -814,6 +814,96 @@ export function assertStagingRuntimeDeps(env: NodeJS.Dict<string> = process.env)
   }
 }
 
+export type StagingOperatorReport = {
+  blockers: string[];
+  warnings: string[];
+};
+
+function catchMessage(run: () => void, into: string[]): void {
+  try {
+    run();
+  } catch (error) {
+    into.push(error instanceof Error ? error.message : String(error));
+  }
+}
+
+function looksLikePlaceholderHost(url: string): boolean {
+  return /example\.test|localhost|127\.0\.0\.1|\.local(?:[:/]|$)/i.test(url);
+}
+
+/**
+ * Operator checklist for B1. Does not provision hosting.
+ * `blockers` must be empty before pointing testers at the URL.
+ */
+export function collectStagingOperatorReport(env: NodeJS.Dict<string> = process.env): StagingOperatorReport {
+  const blockers: string[] = [];
+  const warnings: string[] = [];
+  catchMessage(() => assertOauthRuntimeConfig(env), blockers);
+  catchMessage(() => assertErrorTrackingConfig(env), blockers);
+  catchMessage(() => assertRealPaymentsLegalGate(env), blockers);
+
+  if (isStrictDeployEnv(env)) {
+    if (!objectStorageConfigured(env)) {
+      blockers.push(
+        "staging/production requires object storage: R2_ACCOUNT_ID+R2_ACCESS_KEY_ID+R2_SECRET_ACCESS_KEY+R2_BUCKET or S3_ENDPOINT+S3_ACCESS_KEY_ID+S3_SECRET_ACCESS_KEY+S3_BUCKET",
+      );
+    }
+    if (!mailDeliveryConfigured(env)) {
+      blockers.push("staging/production requires RESEND_API_KEY or SMTP_HOST");
+    }
+    const staging = (env.NODE_ENV ?? "") === "staging" || (env.APP_ENV ?? "") === "staging";
+    if (staging && envFlag(env.ENABLE_REAL_PAYMENTS, false)) {
+      blockers.push("ENABLE_REAL_PAYMENTS must be false in staging");
+    }
+  }
+
+  const jwt = envTrimmed(env.JWT_ACCESS_SECRET);
+  if (jwt.length < 32 || /change-me|changeme|dev-only|replace-me/i.test(jwt)) {
+    blockers.push("JWT_ACCESS_SECRET must be ≥32 characters and not a placeholder");
+  }
+  if (!envTrimmed(env.DATABASE_URL)) {
+    blockers.push("DATABASE_URL is empty");
+  }
+
+  for (const key of ["APP_WEB_URL", "APP_ADMIN_URL", "API_PUBLIC_URL"] as const) {
+    const value = envTrimmed(env[key]);
+    if (!value) {
+      blockers.push(`${key} is empty`);
+      continue;
+    }
+    if (isStrictDeployEnv(env) && !value.startsWith("https://")) {
+      blockers.push(`${key} must be HTTPS in staging/production`);
+    }
+    if (looksLikePlaceholderHost(value)) {
+      warnings.push(`${key} still looks local or placeholder (${value})`);
+    }
+  }
+
+  if (!envTrimmed(env.CORS_ORIGINS)) {
+    warnings.push("CORS_ORIGINS is empty");
+  } else if (env.CORS_ORIGINS?.includes("*")) {
+    blockers.push("CORS_ORIGINS must be an explicit allowlist (no *)");
+  }
+
+  if (isStrictDeployEnv(env) && !envTrimmed(env.ADMIN_IP_ALLOWLIST)) {
+    warnings.push("ADMIN_IP_ALLOWLIST is empty — do not publish admin on the internet without it or a VPN");
+  }
+
+  if (envFlag(env.ENABLE_SCANNER, false) || envFlag(env.ENABLE_STORES, false) || envFlag(env.ENABLE_AUCTIONS, false)) {
+    blockers.push("ENABLE_SCANNER / ENABLE_STORES / ENABLE_AUCTIONS must stay false during the beta freeze");
+  }
+
+  if (isStrictDeployEnv(env) && envFlag(env.AUTH_STUB_OAUTH, false)) {
+    blockers.push("AUTH_STUB_OAUTH must be false in staging/production");
+  }
+
+  if (envFlag(env.ENABLE_GOOGLE_AUTH, false) === false && envFlag(env.ENABLE_APPLE_AUTH, false) === false) {
+    warnings.push("Google/Apple auth flags are off — testers will use email/password (OK for B1)");
+  }
+
+  return { blockers: [...new Set(blockers)], warnings: [...new Set(warnings)] };
+}
+
 /** B5: the flag is not a no-op. Tracking on without DSN fails closed. */
 export function assertErrorTrackingConfig(env: NodeJS.Dict<string> = process.env): void {
   if (!envFlag(env.ERROR_TRACKING_ENABLED, false)) return;

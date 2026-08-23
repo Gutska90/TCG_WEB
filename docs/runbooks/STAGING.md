@@ -13,6 +13,16 @@ El código es 12-factor; **este documento no crea la cuenta de hosting**. Un ope
 - API contenedor: `docker/Dockerfile.api`.
 - Minio local: Compose puertos **9100** (S3) y **9101** (consola). Inbucket sigue en **9000**.
 
+## Preflight (antes de pegar secretos en el host)
+
+Copia `.env.staging.example` a `.env.staging` (gitignored), llena valores reales y corre:
+
+```bash
+pnpm staging:preflight -- --env-file .env.staging
+```
+
+Exit 1 = blockers (no invites testers). Warnings (host `example.test`, admin sin IP allowlist, OAuth off) no impiden el boot. Este comando **no** crea el servidor.
+
 ## Checklist operador
 
 1. Postgres managed + `prisma migrate deploy` (nunca `db push`).
