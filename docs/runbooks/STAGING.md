@@ -59,7 +59,7 @@ Migraciones: job aparte `pnpm exec prisma migrate deploy` con `DATABASE_URL` de 
 
 ## Fuera de B1
 
-Android/iOS preview (B6/B7) necesitan `EXPO_PUBLIC_API_BASE_URL` HTTPS de este staging. CSP Next y `pnpm audit` son B2. Sentry/backups/Redis líder: [PRODUCTION.md](PRODUCTION.md) (B5).
+Android/iOS (B6/B7) necesitan `EXPO_PUBLIC_API_BASE_URL` HTTPS de este staging. Contrato: [B6-ANDROID-BETA](../release/B6-ANDROID-BETA.md), [B7-IOS-TESTFLIGHT](../release/B7-IOS-TESTFLIGHT.md). CSP Next y `pnpm audit` son B2. Sentry/backups/Redis líder: [PRODUCTION.md](PRODUCTION.md) (B5).
 
 ## Housekeeping (B4 / B0-PAY-01)
 

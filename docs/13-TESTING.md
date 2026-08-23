@@ -108,6 +108,7 @@ Postgres debe estar arriba (`DATABASE_URL`). CI corre migrate + ambos.
 - B3: unit `chile-time` / `async-pool`; SALE por `completedAt`; sort `estimatedValue` paginado; `pnpm test:load` (API arriba). No 50 rps en CI (throttle + ruido).
 - B4: Playwright admin (refund retry + payout manual); checklists F12–14 + notificaciones in-app; `pnpm beta:seed` expira checkouts vencidos y restockea si available < 8. Maestro no es gate de CI. Throttle HTTP off en development/test (`E2E_RELAX_THROTTLE`).
 - B5: unit `ErrorTrackingService` / `RedisSchedulerLock`; `assertErrorTrackingConfig`; Redis no se exige en CI. Dump `pnpm db:backup` no corre en CI.
+- B6/B7: unit `release-config.js` + contrato `eas.json` (preview APK interno, sin submit Android, TestFlight iOS). `expo config` en typecheck mobile. EAS build es `workflow_dispatch`, no gate de `check`.
 
 ## Datos de test
 
@@ -117,4 +118,4 @@ Postgres debe estar arriba (`DATABASE_URL`). CI corre migrate + ambos.
 
 ## CI
 
-GitHub Actions (`.github/workflows/ci.yml`): Postgres 16 → `prisma migrate deploy` → `pnpm audit:deps` → lint → typecheck → `pnpm test` → `pnpm test:integration` → `pnpm build` → `pnpm test:e2e`. El PR falla si algún gate falla. El smoke de dinero vive en integración API. Playwright no usa Mercado Pago live. Maestro: `.github/workflows/maestro.yml` (`workflow_dispatch` only).
+GitHub Actions (`.github/workflows/ci.yml`): Postgres 16 → `prisma migrate deploy` → `pnpm audit:deps` → lint → typecheck → `pnpm test` → `pnpm test:integration` → `pnpm build` → `pnpm test:e2e`. El PR falla si algún gate falla. El smoke de dinero vive en integración API. Playwright no usa Mercado Pago live. Maestro: `.github/workflows/maestro.yml`. EAS Android/iOS: `eas-android-preview.yml` / `eas-ios-testflight.yml` (`workflow_dispatch` only; secretos Expo).

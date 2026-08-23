@@ -40,9 +40,9 @@ B2        Security                       ✓
 B3        Performance                    ✓
 B4        QA                             ✓
 B5        Production Infrastructure      ✓
-B6        Android Beta
-B7        iOS TestFlight
-B8        Closed Beta
+B6        Android Beta                   ✓
+B7        iOS TestFlight                 ✓
+B8        Closed Beta                    🟡 playbook; invitaciones = operador
 
 FASE 15   Scanner                        ⏸ congelada
 FASE 16   Tiendas                        ⏸ congelada
@@ -296,11 +296,11 @@ Wishlist privada (no favoritos ni colección). Precio objetivo CLP, alerta `WISH
 
 ## UI.1 — Visual Refresh ✓
 
-Refresh visual marketplace (web + mobile) entre Fase 14 y el Beta Release Program. Tokens, Light/Dark/System, header TCG MARKET, home, search, ficha, colección, wishlist, carrito/checkout, perfil. **Sin** cambios de API, Prisma, pagos, ledger, jobs ni flags. **No** inicia Scanner ni B6.
+Refresh visual marketplace (web + mobile) entre Fase 14 y el Beta Release Program. Tokens, Light/Dark/System, header TCG MARKET, home, search, ficha, colección, wishlist, carrito/checkout, perfil. **Sin** cambios de API, Prisma, pagos, ledger, jobs ni flags. **No** inicia Scanner.
 
 Doc: [design/DESIGN-SYSTEM.md](design/DESIGN-SYSTEM.md).
 
-**Estado: listo.** Siguiente producto: **B6 Android Beta**. No Scanner. B0–B5 ya cerrados.
+**Estado: listo.** B0–B7 en repo. **B8** playbook de testers invitados (operador). No Scanner.
 
 ## Feature freeze (B0–B8)
 
@@ -316,9 +316,9 @@ Auditoría canónica: [audits/BETA-RELEASE-AUDIT-2026-08.md](audits/BETA-RELEASE
 | **B3** Performance | Load test search/card/collection/prices/wishlist/checkout/admin; SALE=`completedAt`; calendario Chile; captura/wishlist paginadas; sort estimado SQL | ✓ |
 | **B4** QA | Checklists web/mobile/admin (F12–14 + in-app); Playwright admin refund/payout; Maestro opcional. Staging cloud = operador B1 | ✓ [B4-QA](release/B4-QA.md) |
 | **B5** Production infrastructure | Sentry (`SENTRY_DSN`), backups/restore, Redis líder de jobs (sin BullMQ) | ✓ [PRODUCTION](runbooks/PRODUCTION.md) |
-| **B6** Android Beta | EAS preview interno (no Play submit) | |
-| **B7** iOS TestFlight | EAS + Apple (no App Store submit) | |
-| **B8** Closed Beta | Testers invitados, sandbox, sin plata real | |
+| **B6** Android Beta | EAS preview interno (no Play submit) | ✓ [B6-ANDROID-BETA](release/B6-ANDROID-BETA.md) |
+| **B7** iOS TestFlight | EAS + Apple (no App Store submit) | ✓ [B7-IOS-TESTFLIGHT](release/B7-IOS-TESTFLIGHT.md) |
+| **B8** Closed Beta | Testers invitados, sandbox, sin plata real | 🟡 [B8-CLOSED-BETA](release/B8-CLOSED-BETA.md) playbook; invitaciones = operador |
 
 ## Fases 13–17
 

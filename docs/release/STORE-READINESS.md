@@ -42,8 +42,10 @@ Contacto: `soporte@localhost` y `privacidad@localhost` son placeholders de beta.
 
 ## Bloqueos antes de submit
 
-- App Expo MVP + OAuth 11.5 existen; **no** publicar aún. Pendiente: push, universal links de host público, review de store.
+- App Expo MVP + OAuth 11.5 existen; **no** publicar Play/App Store. B6 = APK interno; B7 = TestFlight. Pendiente para store pública: push, universal links de host público, review.
 - `ENABLE_REAL_PAYMENTS=false`.
 - Revisión legal de términos/privacidad.
-- Emails de soporte y privacidad reales.
+- Emails de soporte y privacidad reales (blocker de review, no de preview interno).
 - Icono, screenshots, IDs y cuenta de developer.
+
+Detalle operativo: [B6-ANDROID-BETA](B6-ANDROID-BETA.md), [B7-IOS-TESTFLIGHT](B7-IOS-TESTFLIGHT.md), [B8-CLOSED-BETA](B8-CLOSED-BETA.md).

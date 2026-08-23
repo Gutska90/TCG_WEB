@@ -74,14 +74,16 @@ Eventos: `app_open`, `login_success`, `search`, `card_view`, `listing_view`, `ad
 
 ## EAS
 
-`apps/mobile/eas.json`: perfiles `development`, `preview`, `production`. Android `cl.tcgplatform.app`, iOS `cl.tcgplatform.app`. No hay secretos de firma en el repo. No publicar stores todavía.
+`apps/mobile/eas.json`: `development` (dev client), **`preview`** (APK/ad hoc interno, B6/B7), **`testflight`** (iOS store-dist para TestFlight, B7), `production` (AAB, sin submit). Package/bundle `cl.tcgplatform.app`. Keystore y `.p8` fuera de git. `EAS_PROJECT_ID` por env/secret, no en el árbol.
+
+Staging/production fallan al evaluar `app.config.ts` si la API no es HTTPS pública o si `EXPO_PUBLIC_ENABLE_REAL_PAYMENTS=true`. En EAS cloud también exige `EAS_PROJECT_ID`.
 
 ```text
-cd apps/mobile
-pnpm exec eas build --profile preview --platform android
+pnpm eas:android:preview
+pnpm eas:ios:testflight
 ```
 
-Requiere `eas login` y `EAS_PROJECT_ID` en el entorno (no commitear).
+Detalle: [release/B6-ANDROID-BETA.md](release/B6-ANDROID-BETA.md), [release/B7-IOS-TESTFLIGHT.md](release/B7-IOS-TESTFLIGHT.md). `eas submit` Android está prohibido en esta beta. iOS submit solo `--profile testflight`.
 
 ## Tests
 

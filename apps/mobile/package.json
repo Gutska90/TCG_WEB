@@ -10,7 +10,10 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit && expo config --type public --json > /dev/null",
     "test": "vitest run",
-    "config:check": "expo config --type public --json > /dev/null"
+    "config:check": "expo config --type public --json > /dev/null",
+    "eas:android:preview": "eas build --profile preview --platform android",
+    "eas:ios:preview": "eas build --profile preview --platform ios",
+    "eas:ios:testflight": "eas build --profile testflight --platform ios"
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",

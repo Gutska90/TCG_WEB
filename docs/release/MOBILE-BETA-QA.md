@@ -9,7 +9,7 @@ Cuentas (solo local/staging, nunca producción):
 
 Scheme: `tcgplatform://checkout-return?checkoutId=`. El estado del deep link **no** prueba el pago; debe verse polling al servidor.
 
-`EXPO_PUBLIC_API_BASE_URL` en dispositivo físico = API HTTPS de staging (B1 operador) o IP LAN en local.
+`EXPO_PUBLIC_API_BASE_URL` en dispositivo físico = API HTTPS de staging (B1 operador) o IP LAN en local. APK interno: [B6-ANDROID-BETA.md](B6-ANDROID-BETA.md). TestFlight: [B7-IOS-TESTFLIGHT.md](B7-IOS-TESTFLIGHT.md).
 
 Probar al menos: Android teléfono pequeño, Android grande, iPhone estándar, iPhone grande. Tablet no es bloqueo si el layout no se rompe.
 

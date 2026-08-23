@@ -18,7 +18,7 @@ Docker Compose:
 |--|-------|---------|------------|
 | API | localhost | Fly/Railway/Render/k8s TBD | TBD |
 | Web | localhost | Vercel o mismo cluster | TBD |
-| Mobile | Expo Go / EAS preview | EAS `preview` interno | EAS `production` (no submit aún) |
+| Mobile | Expo Go / EAS preview | EAS `preview` APK interno (B6); iOS `testflight` (B7) | EAS `production` binario (sin submit de store) |
 | Admin | localhost | auth restringida | IP allowlist o VPN recomendada |
 | DB | docker | managed Postgres | managed + backups diarios |
 | Files | Minio o R2 dev | R2 | R2 |
@@ -61,6 +61,8 @@ QA (B4): `pnpm test:e2e` (Playwright web+admin) es gate de CI. Maestro mobile es
 
 Infra (B5): Sentry, backups, Redis líder de jobs. [runbooks/PRODUCTION.md](runbooks/PRODUCTION.md). `pnpm db:backup` es dump lógico de drill, no sustituye PITR del managed Postgres.
 
+Mobile (B6/B7): `pnpm eas:android:preview` / `pnpm eas:ios:testflight`. Exigen `eas-cli` + cuenta Expo. No corre en el job `check`.
+
 ## Migraciones
 
 Solo Prisma Migrate. Nombre descriptivo. Revisar SQL generado en PR.
@@ -69,4 +71,4 @@ Solo Prisma Migrate. Nombre descriptivo. Revisar SQL generado en PR.
 
 Manager del host (no en git). Rotación de JWT secret invalida access; refresh sigue hasta revocar sesiones si se diseña `tokenVersion` en User — recomendado `User.tokenVersion` desde Fase 1.
 
-EAS: no commitear keystores, `google-services.json`, ni `EAS_PROJECT_ID` secretos. Perfiles en `apps/mobile/eas.json`.
+EAS: no commitear keystores, `google-services.json`, ni `EAS_PROJECT_ID`. Perfiles en `apps/mobile/eas.json`. Android interno: [B6-ANDROID-BETA](release/B6-ANDROID-BETA.md). iOS TestFlight: [B7-IOS-TESTFLIGHT](release/B7-IOS-TESTFLIGHT.md). Closed beta: [B8-CLOSED-BETA](release/B8-CLOSED-BETA.md). Workflows `workflow_dispatch` (no gate de `ci.yml`): `eas-android-preview.yml`, `eas-ios-testflight.yml`.

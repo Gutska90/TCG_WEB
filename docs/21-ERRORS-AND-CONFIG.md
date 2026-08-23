@@ -118,6 +118,20 @@ E2E_RELAX_THROTTLE           # solo Playwright/local; nunca staging/production
 
 Ninguna de estas en el repo. `.env.example` con claves vacías en Fase 0.
 
+## Variables de entorno (mobile / EAS)
+
+```text
+EXPO_PUBLIC_API_BASE_URL     # default local http://localhost:4000; staging/prod HTTPS público (B6/B7)
+EXPO_PUBLIC_APP_ENV          # development | staging | production
+EXPO_PUBLIC_ENABLE_REAL_PAYMENTS   # false en esta beta; fail-fast si true
+EXPO_PUBLIC_ANALYTICS
+EXPO_PUBLIC_GOOGLE_CLIENT_ID_IOS / _ANDROID / _WEB
+EXPO_PUBLIC_ASSOCIATED_DOMAIN      # opcional, host sin esquema (B7)
+EAS_PROJECT_ID                     # secret EAS/CI; no commitear
+```
+
+`app.config.ts` rechaza staging/production con API localhost o HTTP. EAS cloud (`EAS_BUILD=true`) exige `EAS_PROJECT_ID`.
+
 ## Config pública al cliente
 
 `GET /v1/config` (no auth): `currency`, `country`, condiciones, finishes, `legal` (versiones de términos/privacidad), `features` públicos (`enableGoogleAuth`, `enableAppleAuth`, `authStub`). **Nunca** secrets.

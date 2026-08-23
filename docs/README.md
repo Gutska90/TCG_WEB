@@ -3,7 +3,7 @@
 **Nombre de trabajo:** TCG Market Chile  
 **Nombre interno:** `tcg-platform`  
 **Fecha:** 21 agosto 2026  
-**Estado:** Fase **14** lista. **UI.1** Visual Refresh ✓. **Feature freeze:** Fases 15–20 congeladas. **B0** ✓. **B1** contrato staging. **B2** ✓. **B3** ✓. **B4** ✓. **B5** ✓. Siguiente **B6** Android Beta. No adelantar Scanner ni pagos live. Auditoría: [audits/BETA-RELEASE-AUDIT-2026-08.md](audits/BETA-RELEASE-AUDIT-2026-08.md). Staging: [runbooks/STAGING.md](runbooks/STAGING.md). QA: [release/B4-QA.md](release/B4-QA.md). Infra: [runbooks/PRODUCTION.md](runbooks/PRODUCTION.md). Design: [design/DESIGN-SYSTEM.md](design/DESIGN-SYSTEM.md).
+**Estado:** Fase **14** lista. **UI.1** Visual Refresh ✓. **Feature freeze:** Fases 15–20 congeladas. **B0–B7** ✓ en repo. **B1** hosting cloud y **B8** invitaciones = operador. No adelantar Scanner ni pagos live. Auditoría: [audits/BETA-RELEASE-AUDIT-2026-08.md](audits/BETA-RELEASE-AUDIT-2026-08.md). Staging: [runbooks/STAGING.md](runbooks/STAGING.md). Android: [release/B6-ANDROID-BETA.md](release/B6-ANDROID-BETA.md). iOS: [release/B7-IOS-TESTFLIGHT.md](release/B7-IOS-TESTFLIGHT.md). Closed beta: [release/B8-CLOSED-BETA.md](release/B8-CLOSED-BETA.md). Design: [design/DESIGN-SYSTEM.md](design/DESIGN-SYSTEM.md).
 
 Este repositorio no es una copia de TCGMatch. TCGMatch es **referencia funcional** de un marketplace chileno de cartas. El producto objetivo es una **plataforma TCG integral** para coleccionistas, jugadores y tiendas, con web, PWA y apps móviles sobre **un solo backend y una sola base de datos**.
 
@@ -55,6 +55,9 @@ Este repositorio no es una copia de TCGMatch. TCGMatch es **referencia funcional
 | — | [MOBILE-BETA-QA](release/MOBILE-BETA-QA.md) | Checklist tester mobile B4 |
 | — | [ADMIN-BETA-QA](release/ADMIN-BETA-QA.md) | Checklist staff B4 |
 | — | [B4-QA](release/B4-QA.md) | Índice QA beta (Playwright + Maestro opcional) |
+| — | [B6-ANDROID-BETA](release/B6-ANDROID-BETA.md) | EAS preview APK interno (no Play) |
+| — | [B7-IOS-TESTFLIGHT](release/B7-IOS-TESTFLIGHT.md) | EAS iOS + TestFlight (no App Store) |
+| — | [B8-CLOSED-BETA](release/B8-CLOSED-BETA.md) | Testers invitados, sandbox |
 | — | [DESIGN-SYSTEM](design/DESIGN-SYSTEM.md) | UI.1 tokens, tema, componentes |
 
 ## Cobertura del Documento Maestro

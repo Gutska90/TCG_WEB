@@ -40,4 +40,4 @@ Compose local: Redis `:6379`. No es cola de emails/webhooks.
 
 ## Fuera de B5
 
-EAS/Apple (B6/B7). Grafana/Prometheus export. BullMQ. Pagos live.
+Grafana/Prometheus export. BullMQ. Pagos live. Builds móviles: [B6-ANDROID-BETA](../release/B6-ANDROID-BETA.md), [B7-IOS-TESTFLIGHT](../release/B7-IOS-TESTFLIGHT.md).

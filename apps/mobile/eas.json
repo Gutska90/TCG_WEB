@@ -7,7 +7,9 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "channel": "development",
       "ios": { "simulator": true },
+      "android": { "buildType": "apk" },
       "env": {
         "EXPO_PUBLIC_APP_ENV": "development",
         "EXPO_PUBLIC_ENABLE_REAL_PAYMENTS": "false",
@@ -16,6 +18,32 @@
     },
     "preview": {
       "distribution": "internal",
+      "channel": "preview",
+      "android": {
+        "buildType": "apk",
+        "credentialsSource": "remote"
+      },
+      "ios": {
+        "simulator": false,
+        "credentialsSource": "remote"
+      },
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "staging",
+        "EXPO_PUBLIC_ENABLE_REAL_PAYMENTS": "false",
+        "EXPO_PUBLIC_ANALYTICS": "false"
+      }
+    },
+    "testflight": {
+      "extends": "preview",
+      "distribution": "store",
+      "channel": "testflight",
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "ios": {
+        "simulator": false,
+        "credentialsSource": "remote"
+      },
       "env": {
         "EXPO_PUBLIC_APP_ENV": "staging",
         "EXPO_PUBLIC_ENABLE_REAL_PAYMENTS": "false",
@@ -23,6 +51,10 @@
       }
     },
     "production": {
+      "channel": "production",
+      "android": {
+        "buildType": "app-bundle"
+      },
       "env": {
         "EXPO_PUBLIC_APP_ENV": "production",
         "EXPO_PUBLIC_ENABLE_REAL_PAYMENTS": "false",
@@ -31,6 +63,8 @@
     }
   },
   "submit": {
-    "production": {}
+    "testflight": {
+      "ios": {}
+    }
   }
 }

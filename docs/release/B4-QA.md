@@ -17,4 +17,4 @@ Checklists sobre **staging** (si el operador ya publicó B1) o **localhost**. Fe
 
 ## Fuera de B4
 
-Hosting/DNS/TLS (operador B1). EAS/Apple (B6/B7). 50 rps de search en CI (throttle).
+Hosting/DNS/TLS (operador B1). Builds EAS (operador B6/B7; contrato en [B6-ANDROID-BETA](B6-ANDROID-BETA.md) / [B7-IOS-TESTFLIGHT](B7-IOS-TESTFLIGHT.md)). Testers invitados: [B8-CLOSED-BETA](B8-CLOSED-BETA.md). 50 rps de search en CI (throttle).
