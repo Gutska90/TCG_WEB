@@ -20,7 +20,7 @@ describe("RatingsService", () => {
     user: { findFirst: vi.fn() },
   };
   const audit = { log: vi.fn() };
-  const service = new RatingsService(prisma as never, audit as never);
+  const service = new RatingsService(prisma as never, audit as never, { safeEmit: vi.fn() } as never);
 
   beforeEach(() => {
     vi.clearAllMocks();

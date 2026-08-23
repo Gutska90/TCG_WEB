@@ -11,6 +11,7 @@ import { ShippingService } from "../../../src/shipping/shipping.service";
 import type { PaymentProvider } from "../../../src/payments/payment-provider";
 import { flagsForTest } from "../../../src/flags/feature-flags.service";
 import { MetricsService } from "../../../src/observability/metrics.service";
+import { NotificationsService } from "../../../src/notifications/notifications.service";
 
 export function createMoneyServices(prisma: PrismaService, provider: PaymentProvider) {
   const audit = new AuditService(prisma);
@@ -22,6 +23,7 @@ export function createMoneyServices(prisma: PrismaService, provider: PaymentProv
   const refunds = new RefundsService(prisma, audit, provider, ledger, payouts, metrics);
   const shipping = new ShippingService(prisma);
   const collections = new CollectionsService(prisma, flags, audit);
-  const orders = new OrdersService(prisma, audit, shipping, refunds, ledger, flags, metrics, collections);
-  return { audit, ledger, balances, payouts, refunds, shipping, orders, flags, metrics, collections };
+  const notifications = new NotificationsService(prisma, { send: async () => undefined } as never);
+  const orders = new OrdersService(prisma, audit, shipping, refunds, ledger, flags, metrics, collections, notifications);
+  return { audit, ledger, balances, payouts, refunds, shipping, orders, flags, metrics, collections, notifications };
 }

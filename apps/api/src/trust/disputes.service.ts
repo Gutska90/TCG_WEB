@@ -28,6 +28,7 @@ import { AuditService } from "../audit/audit.service";
 import type { RequestUser } from "../auth/request-user";
 import { AppError } from "../common/errors/app-error";
 import { FilesService } from "../files/files.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import { MetricsService } from "../observability/metrics.service";
 import { PayoutsService } from "../payouts/payouts.service";
 import { PrismaService } from "../prisma/prisma.service";
@@ -69,6 +70,7 @@ export class DisputesService {
     private readonly payouts: PayoutsService,
     private readonly metrics: MetricsService,
     private readonly files: FilesService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async open(actor: RequestUser, orderId: string, input: OpenDisputeInput): Promise<DisputeDetailView> {
@@ -135,6 +137,15 @@ export class DisputesService {
       });
       await this.payouts.onActiveDispute(order.id, actor.id);
       this.metrics.inc("dispute_opened_total");
+      const counterpartId = actor.id === order.buyerId ? order.sellerId : order.buyerId;
+      await this.notifications.safeEmit({
+        userId: counterpartId,
+        type: "ORDER_DISPUTED",
+        title: "Reclamo abierto",
+        body: `Hay un reclamo en el pedido. Revisa tus reclamos.`,
+        data: { orderId: order.id, disputeId: created.id },
+        dedupeKey: `ORDER_DISPUTED:${order.id}:${counterpartId}`,
+      });
       return this.get(actor, created.id);
     } catch (error) {
       if (isUniqueViolation(error)) {

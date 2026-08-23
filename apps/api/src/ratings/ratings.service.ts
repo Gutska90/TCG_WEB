@@ -5,6 +5,7 @@ import type { CreateRatingInput, PaginationQuery } from "@tcg/validation";
 import { AppError } from "../common/errors/app-error";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
+import { NotificationsService } from "../notifications/notifications.service";
 import type { RequestUser } from "../auth/request-user";
 import {
   EMPTY_REPUTATION,
@@ -18,6 +19,7 @@ export class RatingsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async summarizeForUsers(userIds: string[]): Promise<Map<string, ReputationView>> {
@@ -104,6 +106,14 @@ export class RatingsService {
       entityType: "SellerRating",
       entityId: row.id,
       metadata: { orderId: order.id, stars: input.stars },
+    });
+    await this.notifications.safeEmit({
+      userId: order.sellerId,
+      type: "RATING_RECEIVED",
+      title: "Nueva valoración",
+      body: `${row.from.displayName} te valoró con ${input.stars} estrellas.`,
+      data: { orderId: order.id, stars: input.stars },
+      dedupeKey: `RATING_RECEIVED:${order.id}`,
     });
     return toSellerRatingView(row);
   }

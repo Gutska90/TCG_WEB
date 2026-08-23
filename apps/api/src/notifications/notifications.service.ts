@@ -1,6 +1,6 @@
-import { HttpStatus, Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable, Logger } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
-import { ERROR_CODES, NOTIFICATION_TYPES, type NotificationType } from "@tcg/config";
+import { ERROR_CODES, NOTIFICATION_TYPES, isNotificationType, type NotificationType } from "@tcg/config";
 import type {
   NotificationListView,
   NotificationPreferenceView,
@@ -11,13 +11,34 @@ import { AppError } from "../common/errors/app-error";
 import { MailService } from "../mail/mail.service";
 import { PrismaService } from "../prisma/prisma.service";
 
+const TRANSACTIONAL = { inApp: true, email: true, push: false } as const;
+
 const DEFAULTS: Record<NotificationType, { inApp: boolean; email: boolean; push: boolean }> = {
+  SALE_MADE: TRANSACTIONAL,
+  PURCHASE_MADE: TRANSACTIONAL,
+  ORDER_SHIPPED: TRANSACTIONAL,
+  ORDER_DELIVERED: TRANSACTIONAL,
+  ORDER_CONFIRMED: { inApp: true, email: true, push: false },
+  ORDER_CANCELLED: { inApp: true, email: true, push: false },
+  ORDER_DISPUTED: { inApp: true, email: true, push: false },
+  RATING_RECEIVED: { inApp: true, email: false, push: false },
   WISHLIST_HIT: { inApp: true, email: true, push: false },
   PRICE_DROP: { inApp: false, email: false, push: false },
 };
 
+export type NotificationEmitInput = {
+  userId: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  data: Record<string, unknown>;
+  dedupeKey: string;
+};
+
 @Injectable()
 export class NotificationsService {
+  private readonly logger = new Logger(NotificationsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly mail: MailService,
@@ -101,14 +122,7 @@ export class NotificationsService {
     return { type: input.type, inApp: row.inApp, email: row.email, push: row.push };
   }
 
-  async emit(input: {
-    userId: string;
-    type: NotificationType;
-    title: string;
-    body: string;
-    data: Record<string, unknown>;
-    dedupeKey: string;
-  }): Promise<boolean> {
+  async emit(input: NotificationEmitInput): Promise<boolean> {
     const prefs = await this.preferenceFor(input.userId, input.type);
     const persistInApp = input.type === "WISHLIST_HIT" || prefs.inApp;
     if (persistInApp) {
@@ -140,6 +154,18 @@ export class NotificationsService {
     return persistInApp;
   }
 
+  /** After money/order commits. Email/in-app failure must not fail the mutation. */
+  async safeEmit(input: NotificationEmitInput): Promise<void> {
+    try {
+      await this.emit(input);
+    } catch (error) {
+      this.logger.error(
+        error instanceof Error ? error.message : "notification emit failed",
+        error instanceof Error ? error.stack : undefined,
+      );
+    }
+  }
+
   private async preferenceFor(userId: string, type: NotificationType) {
     const row = await this.prisma.notificationPreference.findUnique({
       where: { userId_type: { userId, type } },
@@ -168,14 +194,13 @@ function toView(row: {
   readAt: Date | null;
   createdAt: Date;
 }): NotificationView {
-  const type = row.type === "PRICE_DROP" ? "PRICE_DROP" : "WISHLIST_HIT";
   const data =
     row.data && typeof row.data === "object" && !Array.isArray(row.data)
       ? (row.data as Record<string, unknown>)
       : {};
   return {
     id: row.id,
-    type,
+    type: isNotificationType(row.type) ? row.type : "WISHLIST_HIT",
     title: row.title,
     body: row.body,
     data,

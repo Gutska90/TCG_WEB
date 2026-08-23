@@ -31,7 +31,7 @@ function actor(id: string): RequestUser {
 describe("Fase 10.7 legal beta (postgres)", () => {
   const prisma = new PrismaService();
   const audit = new AuditService(prisma);
-  const users = new UsersService(prisma, audit, new RatingsService(prisma, audit));
+  const users = new UsersService(prisma, audit, new RatingsService(prisma, audit, { safeEmit: async () => undefined } as never));
   const feedback = new FeedbackService(prisma);
   const ops = new AdminOpsService(prisma, flagsForTest());
   const auth = new AuthService(

@@ -91,6 +91,7 @@ Notificaciones **in-app** existen (Fase 14, `/notifications`). **Push tokens sig
 
 - [ ] Añadir con precio máximo, listar, quitar
 - [ ] Alerta in-app `WISHLIST_HIT` si hay listing ≤ objetivo (no spam del mismo listing)
+- [ ] Tras checkout sandbox: in-app `PURCHASE_MADE` (comprador) y `SALE_MADE` (vendedor)
 
 ## NOTIFICATIONS (in-app)
 

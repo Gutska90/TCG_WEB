@@ -27,6 +27,10 @@ API: misma, `ENABLE_REAL_PAYMENTS=false`. Checkout = “Pago de prueba / sandbox
 - No afirmar escrow de Mercado Pago. Compra Protegida = reglas internas. Ver [LEGAL-BETA.md](../LEGAL-BETA.md).
 - Feedback: `POST /v1/feedback` (web y mobile).
 
+## Notificaciones in-app (código)
+
+Tras pago sandbox / envío / entrega / confirmación / cancelación / reclamo / valoración, el tester ve el aviso en `/me/notificaciones` y en la app. Wishlist y `PRICE_DROP` siguen igual. Push no está activo.
+
 ## Checklist operador (abrir la beta)
 
 1. Staging HTTPS vivo: `/health`, `/ready`, correo de verify, fotos (R2), checkout sandbox. [STAGING.md](../runbooks/STAGING.md)

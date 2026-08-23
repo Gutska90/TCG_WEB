@@ -42,12 +42,16 @@ describe("Fase 10.5 trust (postgres)", () => {
   const revisions = new ListingRevisionService(prisma);
   const log = new ModerationLogService(prisma, audit);
   const files = new FilesService(prisma, new DeferredObjectStore());
-  const disputes = new DisputesService(prisma, audit, revisions, log, payouts, metrics, files);
+  const disputes = new DisputesService(prisma, audit, revisions, log, payouts, metrics, files, {
+    safeEmit: async () => undefined,
+  } as never);
   const reports = new ReportsService(prisma, audit, log, metrics);
   const market = new MarketService(prisma);
   const flags = flagsForTest();
   const moderation = new ModerationService(prisma, revisions, log, market, flags);
-  const listings = new ListingsService(prisma, market, audit, new RatingsService(prisma), revisions, flags, {
+  const listings = new ListingsService(prisma, market, audit, new RatingsService(prisma, audit, {
+    safeEmit: async () => undefined,
+  } as never), revisions, flags, {
     checkVariant: async () => ({ hits: 0, drops: 0 }),
   } as never);
 

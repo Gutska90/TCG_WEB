@@ -108,7 +108,7 @@ Postgres debe estar arriba (`DATABASE_URL`). CI corre migrate + ambos.
 - B3: unit `chile-time` / `async-pool`; SALE por `completedAt`; sort `estimatedValue` paginado; `pnpm test:load` (API arriba). No 50 rps en CI (throttle + ruido).
 - B4: Playwright admin (refund retry + payout manual); checklists F12–14 + notificaciones in-app; `pnpm beta:seed` expira checkouts vencidos y restockea si available < 8. Maestro no es gate de CI. Throttle HTTP off en development/test (`E2E_RELAX_THROTTLE`).
 - B5: unit `ErrorTrackingService` / `RedisSchedulerLock`; `assertErrorTrackingConfig`; Redis no se exige en CI. Dump `pnpm db:backup` no corre en CI.
-- B6/B7: unit `release-config.js` + contrato `eas.json` (preview APK interno, sin submit Android, TestFlight iOS). `expo config` en typecheck mobile. EAS build es `workflow_dispatch`, no gate de `check`.
+- B8: in-app de orden (`SALE_MADE` / `PURCHASE_MADE` / envío / cancel / disputa / rating) con `safeEmit` post-commit; integración `notifications.integration.spec.ts`. Push diferido. Testers invitados = operador.
 
 ## Datos de test
 

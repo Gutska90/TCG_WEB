@@ -30,6 +30,8 @@ import { LedgerService } from "../ledger/ledger.service";
 import { FeatureFlagsService } from "../flags/feature-flags.service";
 import { MetricsService } from "../observability/metrics.service";
 import { CollectionsService } from "../collections/collections.service";
+import { NotificationsService } from "../notifications/notifications.service";
+import { formatClp, orderCardLabel } from "../notifications/order-notification-copy";
 
 const LATE_PAYMENT_NOTE =
   "[late_payment] Cobro Mercado Pago tras checkout terminal. Sin fulfillment. Reembolso pendiente.";
@@ -55,6 +57,7 @@ export class OrdersService {
     private readonly flags: FeatureFlagsService,
     private readonly metrics: MetricsService,
     private readonly collections: CollectionsService,
+    private readonly notifications: NotificationsService,
   ) {}
 
   async createCheckout(
@@ -311,6 +314,7 @@ export class OrdersService {
           entityId: order.shipment.id,
         });
       }
+      await this.notifyBuyerShipped(updated);
       return toOrderView(updated);
     }
     const updated = await this.prisma.$transaction(async (tx) => {
@@ -339,6 +343,7 @@ export class OrdersService {
         metadata: { trackingCode: input.trackingCode ?? null },
       });
     }
+    await this.notifyBuyerShipped(updated);
     return toOrderView(updated);
   }
 
@@ -367,6 +372,14 @@ export class OrdersService {
         entityId: order.shipment.id,
       });
     }
+    await this.notifications.safeEmit({
+      userId: order.buyerId,
+      type: "ORDER_DELIVERED",
+      title: "Pedido entregado",
+      body: `Marcaron como entregado el pedido ${order.orderNumber}.`,
+      data: { orderId: id, orderNumber: order.orderNumber },
+      dedupeKey: `ORDER_DELIVERED:${id}`,
+    });
     return toOrderView(updated);
   }
 
@@ -425,6 +438,14 @@ export class OrdersService {
       entityType: "Payment",
       entityId: payment.id,
     });
+    await this.notifications.safeEmit({
+      userId: order.sellerId,
+      type: "ORDER_CONFIRMED",
+      title: "Recepción confirmada",
+      body: `El comprador confirmó la recepción de ${order.orderNumber}.`,
+      data: { orderId: id, orderNumber: order.orderNumber },
+      dedupeKey: `ORDER_CONFIRMED:${id}`,
+    });
     return toOrderView(updated);
   }
 
@@ -436,6 +457,7 @@ export class OrdersService {
       throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Orden no encontrada");
     }
     let refundId: string | null = null;
+    const beforeStatus = order.status;
     await this.prisma.$transaction(async (tx) => {
       const graph = await lockCheckoutGraph(tx, order.checkoutId);
       const fresh = graph?.orders.find((row) => row.id === id);
@@ -538,7 +560,11 @@ export class OrdersService {
         );
       }
     }
-    return this.get(actor, id);
+    const view = await this.get(actor, id);
+    if (view.status !== beforeStatus || refundId) {
+      await this.notifyOrderCancelled(order.buyerId, order.sellerId, view.id, view.orderNumber);
+    }
+    return view;
   }
 
   async dispute(actor: RequestUser, id: string, input: DisputeOrderInput): Promise<OrderView> {
@@ -559,6 +585,15 @@ export class OrdersService {
       entityId: id,
       metadata: { reason: input.reason },
     });
+    const counterpartId = actor.id === order.buyerId ? order.sellerId : order.buyerId;
+    await this.notifications.safeEmit({
+      userId: counterpartId,
+      type: "ORDER_DISPUTED",
+      title: "Reclamo abierto",
+      body: `Hay un reclamo en el pedido ${order.orderNumber}.`,
+      data: { orderId: id, orderNumber: order.orderNumber },
+      dedupeKey: `ORDER_DISPUTED:${id}:${counterpartId}`,
+    });
     return toOrderView(updated);
   }
 
@@ -573,6 +608,9 @@ export class OrdersService {
     );
     if (result.kind === "late_payment") {
       await this.refunds.executeOpenForCheckout(checkoutId);
+    }
+    if (result.kind === "paid") {
+      await this.notifyPaidCheckout(checkoutId);
     }
     return result;
   }
@@ -654,6 +692,7 @@ export class OrdersService {
 
   async applyRejected(checkoutId: string, payload: Prisma.InputJsonValue): Promise<void> {
     await this.prisma.$transaction((tx) => this.applyRejectedInTx(tx, checkoutId, payload), MONEY_TX);
+    await this.notifyCancelledCheckout(checkoutId);
   }
 
   async applyRejectedInTx(
@@ -956,6 +995,89 @@ export class OrdersService {
 
   private isStaff(actor: RequestUser): boolean {
     return actor.roles.some((role) => STAFF_ROLES.has(role));
+  }
+
+  async notifyPaidCheckout(checkoutId: string): Promise<void> {
+    const checkout = await this.prisma.checkout.findUnique({
+      where: { id: checkoutId },
+      include: checkoutInclude,
+    });
+    if (!checkout) return;
+    for (const order of checkout.orders) {
+      if (order.status !== "PAID") continue;
+      const cardName = orderCardLabel(order.items);
+      const price = formatClp(order.totalClp);
+      await this.notifications.safeEmit({
+        userId: order.sellerId,
+        type: "SALE_MADE",
+        title: "Nueva venta",
+        body: `Vendiste ${cardName} por ${price}.`,
+        data: { orderId: order.id, orderNumber: order.orderNumber },
+        dedupeKey: `SALE_MADE:${order.id}`,
+      });
+      await this.notifications.safeEmit({
+        userId: order.buyerId,
+        type: "PURCHASE_MADE",
+        title: "Compra confirmada",
+        body: `Compraste ${cardName} por ${price}.`,
+        data: { orderId: order.id, orderNumber: order.orderNumber },
+        dedupeKey: `PURCHASE_MADE:${order.id}`,
+      });
+    }
+  }
+
+  async notifyCancelledCheckout(checkoutId: string): Promise<void> {
+    const checkout = await this.prisma.checkout.findUnique({
+      where: { id: checkoutId },
+      include: checkoutInclude,
+    });
+    if (!checkout) return;
+    for (const order of checkout.orders) {
+      if (order.status !== "CANCELLED") continue;
+      await this.notifyOrderCancelled(order.buyerId, order.sellerId, order.id, order.orderNumber);
+    }
+  }
+
+  private async notifyBuyerShipped(order: {
+    id: string;
+    buyerId: string;
+    orderNumber: string;
+    seller: { displayName: string };
+  }): Promise<void> {
+    await this.notifications.safeEmit({
+      userId: order.buyerId,
+      type: "ORDER_SHIPPED",
+      title: "Pedido en camino",
+      body: `${order.seller.displayName} despachó tu pedido ${order.orderNumber}.`,
+      data: { orderId: order.id, orderNumber: order.orderNumber },
+      dedupeKey: `ORDER_SHIPPED:${order.id}`,
+    });
+  }
+
+  private async notifyOrderCancelled(
+    buyerId: string,
+    sellerId: string,
+    orderId: string,
+    orderNumber: string,
+  ): Promise<void> {
+    const body = `Se canceló el pedido ${orderNumber}.`;
+    const data = { orderId, orderNumber };
+    await this.notifications.safeEmit({
+      userId: buyerId,
+      type: "ORDER_CANCELLED",
+      title: "Pedido cancelado",
+      body,
+      data,
+      dedupeKey: `ORDER_CANCELLED:${orderId}:${buyerId}`,
+    });
+    await this.notifications.safeEmit({
+      userId: sellerId,
+      type: "ORDER_CANCELLED",
+      title: "Pedido cancelado",
+      body,
+      data,
+      dedupeKey: `ORDER_CANCELLED:${orderId}:${sellerId}`,
+    });
   }
 
   private newOrderNumber(): string {

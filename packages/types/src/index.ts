@@ -10,6 +10,7 @@ import type {
   LedgerEntryType,
   ListingStatus,
   ModerationActionType,
+  NotificationType,
   OrderStatus,
   PaymentStatus,
   PayoutMethod,
@@ -55,6 +56,7 @@ export type {
   ReportReason,
   ReportStatus,
   ModerationActionType,
+  NotificationType,
   ShipmentStatus,
   ShippingZone,
 } from "@tcg/config";
@@ -345,7 +347,7 @@ export type WishlistItemView = {
 
 export type NotificationView = {
   id: string;
-  type: "WISHLIST_HIT" | "PRICE_DROP";
+  type: NotificationType;
   title: string;
   body: string;
   data: Record<string, unknown>;
@@ -358,7 +360,7 @@ export type NotificationListView = Paginated<NotificationView> & {
 };
 
 export type NotificationPreferenceView = {
-  type: "WISHLIST_HIT" | "PRICE_DROP";
+  type: NotificationType;
   inApp: boolean;
   email: boolean;
   push: boolean;

@@ -3,11 +3,12 @@ import { PaymentsModule } from "../payments/payments.module";
 import { ShippingModule } from "../shipping/shipping.module";
 import { LedgerModule } from "../ledger/ledger.module";
 import { CollectionsModule } from "../collections/collections.module";
+import { NotificationsModule } from "../notifications/notifications.module";
 import { OrdersController } from "./orders.controller";
 import { OrdersService } from "./orders.service";
 
 @Module({
-  imports: [ShippingModule, LedgerModule, CollectionsModule, forwardRef(() => PaymentsModule)],
+  imports: [ShippingModule, LedgerModule, CollectionsModule, NotificationsModule, forwardRef(() => PaymentsModule)],
   controllers: [OrdersController],
   providers: [OrdersService],
   exports: [OrdersService],

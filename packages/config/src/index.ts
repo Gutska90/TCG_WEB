@@ -610,10 +610,33 @@ export const PRICE_CONFIDENCE_LABELS: Record<PriceConfidence, string> = {
   LOW: "Baja",
 };
 
-export const NOTIFICATION_TYPES = ["WISHLIST_HIT", "PRICE_DROP"] as const;
+export const NOTIFICATION_TYPES = [
+  "SALE_MADE",
+  "PURCHASE_MADE",
+  "ORDER_SHIPPED",
+  "ORDER_DELIVERED",
+  "ORDER_CONFIRMED",
+  "ORDER_CANCELLED",
+  "ORDER_DISPUTED",
+  "RATING_RECEIVED",
+  "WISHLIST_HIT",
+  "PRICE_DROP",
+] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
+export function isNotificationType(value: string): value is NotificationType {
+  return (NOTIFICATION_TYPES as readonly string[]).includes(value);
+}
+
 export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
+  SALE_MADE: "Venta",
+  PURCHASE_MADE: "Compra",
+  ORDER_SHIPPED: "Pedido despachado",
+  ORDER_DELIVERED: "Pedido entregado",
+  ORDER_CONFIRMED: "Recepción confirmada",
+  ORDER_CANCELLED: "Pedido cancelado",
+  ORDER_DISPUTED: "Reclamo",
+  RATING_RECEIVED: "Valoración",
   WISHLIST_HIT: "Aviso de wishlist",
   PRICE_DROP: "Bajada de precio",
 };

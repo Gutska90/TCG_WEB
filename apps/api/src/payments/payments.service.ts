@@ -188,6 +188,8 @@ export class PaymentsService {
 
     if (checkoutId) {
       await this.refunds.executeOpenForCheckout(checkoutId);
+      await this.orders.notifyPaidCheckout(checkoutId);
+      await this.orders.notifyCancelledCheckout(checkoutId);
     }
   }
 

@@ -64,6 +64,7 @@ describe("OrdersService", () => {
     flagsForTest() as never,
     new MetricsService(),
     { applySaleDeduction: vi.fn() } as never,
+    { safeEmit: vi.fn() } as never,
   );
 
   beforeEach(() => {

@@ -10,7 +10,7 @@ FASE 3    Buscador                       ✓
 FASE 4    Marketplace (listings)         ✓
 FASE 5    Carrito                        ✓
 FASE 6    Órdenes                        ✓
-FASE 7    Pagos                          🟡 implementation (hardening 9.5)
+FASE 7    Pagos                          ✓ sandbox (live gated)
 FASE 8    Envíos                         ✓ MVP
 FASE 9    Reputación                     ✓
 FASE 9.5A MONEY SAFETY                   ✓
@@ -42,7 +42,7 @@ B4        QA                             ✓
 B5        Production Infrastructure      ✓
 B6        Android Beta                   ✓
 B7        iOS TestFlight                 ✓
-B8        Closed Beta                    🟡 playbook; invitaciones = operador
+B8        Closed Beta                    🟡 invitaciones = operador
 
 FASE 15   Scanner                        ⏸ congelada
 FASE 16   Tiendas                        ⏸ congelada
@@ -318,7 +318,7 @@ Auditoría canónica: [audits/BETA-RELEASE-AUDIT-2026-08.md](audits/BETA-RELEASE
 | **B5** Production infrastructure | Sentry (`SENTRY_DSN`), backups/restore, Redis líder de jobs (sin BullMQ) | ✓ [PRODUCTION](runbooks/PRODUCTION.md) |
 | **B6** Android Beta | EAS preview interno (no Play submit) | ✓ [B6-ANDROID-BETA](release/B6-ANDROID-BETA.md) |
 | **B7** iOS TestFlight | EAS + Apple (no App Store submit) | ✓ [B7-IOS-TESTFLIGHT](release/B7-IOS-TESTFLIGHT.md) |
-| **B8** Closed Beta | Testers invitados, sandbox, sin plata real | 🟡 [B8-CLOSED-BETA](release/B8-CLOSED-BETA.md) playbook; invitaciones = operador |
+| **B8** Closed Beta | Testers invitados, sandbox, sin plata real | 🟡 invitaciones = operador. In-app `SALE_MADE`/`PURCHASE_MADE`/envío/cancel/disputa/rating ✓ [B8-CLOSED-BETA](release/B8-CLOSED-BETA.md) |
 
 ## Fases 13–17
 

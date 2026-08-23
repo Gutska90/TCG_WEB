@@ -49,7 +49,9 @@ Defaults al crear usuario: transaccionales (venta/compra/envío) on en los tres 
 - MVP 1–2: emails de auth síncronos o cola mínima.
 - MVP 3: BullMQ. Fallo de email no revierte la orden.
 - Push: Expo Push API. Token por dispositivo.
-- In-app: persistir siempre que el type tenga In-app ✓. Badge = unread count.
+- In-app: persistir siempre que el type tenga In-app ✓ y la preferencia lo permita (`WISHLIST_HIT` siempre). Badge = unread count.
+- B8 emite eventos de orden (`SALE_MADE`, `PURCHASE_MADE`, envío, entrega, confirmación, cancelación, disputa, `RATING_RECEIVED`) **después** del commit de dinero. Dedupe por `dedupeKey`. Fallo de email/in-app no revierte la orden. Push sigue diferido (`push: false`).
+- No se emite `PAYMENT_APPROVED` (solo `PURCHASE_MADE` + `SALE_MADE`). Auction/MESSAGE/ADMIN_BROADCAST no están en esta beta.
 
 ## Copy (es-CL, ejemplos)
 

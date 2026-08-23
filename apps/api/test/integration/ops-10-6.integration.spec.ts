@@ -56,7 +56,9 @@ describe("Fase 10.6 ops safety (postgres)", () => {
   const revisions = new ListingRevisionService(prisma);
   const log = new ModerationLogService(prisma, audit);
   const files = new FilesService(prisma, new DeferredObjectStore());
-  const disputes = new DisputesService(prisma, audit, revisions, log, payouts, metrics, files);
+  const disputes = new DisputesService(prisma, audit, revisions, log, payouts, metrics, files, {
+    safeEmit: async () => undefined,
+  } as never);
   const moderation = new ModerationService(prisma, revisions, log, new MarketService(prisma), flags);
   const ops = new AdminOpsService(prisma, flags);
 

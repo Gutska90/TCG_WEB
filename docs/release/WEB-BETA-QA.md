@@ -41,7 +41,7 @@ Carta semilla de compra: **Test Mon #1** (Pokémon / Set de prueba).
 - [ ] Colección: agregar desde ficha, listar `/me/coleccion`, editar cantidad, progreso de set, CTA vender.
 - [ ] Historial de precios en ficha (rangos 1m/3m/6m/1a). Copy de índice TCG Market Chile, no precios de terceros.
 - [ ] Wishlist: añadir con precio máximo, listar `/me/wishlist`, quitar.
-- [ ] Notificaciones **in-app** `/me/notificaciones` (listado + preferencias). Push no está en esta beta. Email de alerta requiere correo de staging (Resend/SMTP).
+- [ ] Notificaciones **in-app** `/me/notificaciones` (listado + preferencias). Tras un checkout sandbox deben aparecer `PURCHASE_MADE` / `SALE_MADE`. Push no está en esta beta. Email de alerta requiere correo de staging (Resend/SMTP).
 
 ## Seller
 
