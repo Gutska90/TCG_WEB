@@ -30,6 +30,7 @@ import { FeedbackModule } from "./feedback/feedback.module";
 import { CollectionsModule } from "./collections/collections.module";
 import { WishlistModule } from "./wishlist/wishlist.module";
 import { NotificationsModule } from "./notifications/notifications.module";
+import { SellerPlansModule } from "./seller-plans/seller-plans.module";
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { NotificationsModule } from "./notifications/notifications.module";
     CollectionsModule,
     WishlistModule,
     NotificationsModule,
+    SellerPlansModule,
   ],
   providers: [{ provide: APP_FILTER, useClass: HttpErrorFilter }],
 })

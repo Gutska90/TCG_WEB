@@ -112,7 +112,7 @@ Los 20 puntos acordados:
 | Tema | Opciones | Default provisional |
 |------|----------|---------------------|
 | Marca pública | TCG Market Chile vs marca nueva | Nombre de trabajo hasta definir identidad |
-| Comisión marketplace | 6% / 8% / 10% + fee MP | 8% + costo Mercado Pago al comprador o incluido |
+| Comisión marketplace | SELLER_PLANS_V1 6%–3% + cap; processor fee separado | 8% fijo + MP al comprador o incluido |
 | Búsqueda post-MVP | Meilisearch vs Typesense | PostgreSQL FTS + pg_trgm en MVP |
 | Object storage | Cloudflare R2 vs S3 | R2 |
 | Email | Resend vs Amazon SES | Resend |

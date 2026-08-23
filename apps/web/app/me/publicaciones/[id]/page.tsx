@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useState } from "react";
 import { CARD_CONDITION_LABELS, CARD_CONDITIONS, formatClp } from "@tcg/config";
-import type { ListingView } from "@tcg/types";
+import type { FeePreviewView, ListingView } from "@tcg/types";
 import { ApiError, api } from "../../../../lib/api";
+import { previewSellerFee } from "../../../../lib/seller-plans";
 import { userFacingError, loginHref } from "../../../../lib/errors";
 import { FormError, LoadingBlock, PageMain, SuccessNote, buttonClass } from "../../../../components/ui-feedback";
 
@@ -16,15 +17,28 @@ export default function EditListingPage() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [priceClp, setPriceClp] = useState<number | null>(null);
+  const [feePreview, setFeePreview] = useState<FeePreviewView | null>(null);
 
   useEffect(() => {
     api<ListingView>(`/v1/listings/${id}`)
-      .then(setListing)
+      .then((row) => {
+        setListing(row);
+        setPriceClp(row.priceClp);
+      })
       .catch((err: unknown) => {
         if (err instanceof ApiError && err.status === 401) router.replace(loginHref(`/me/publicaciones/${id}`));
         else setError(userFacingError(err));
       });
   }, [id, router]);
+
+  useEffect(() => {
+    const amount = priceClp ?? listing?.priceClp ?? 0;
+    if (amount < 1) return;
+    void previewSellerFee(amount)
+      .then(setFeePreview)
+      .catch(() => setFeePreview(null));
+  }, [priceClp, listing?.priceClp]);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -97,8 +111,24 @@ export default function EditListingPage() {
         </label>
         <label className="text-sm">
           Precio CLP
-          <input name="priceClp" type="number" min={1} defaultValue={listing.priceClp} className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2" />
+          <input
+            name="priceClp"
+            type="number"
+            min={1}
+            value={priceClp ?? listing.priceClp}
+            onChange={(event) => setPriceClp(Number(event.target.value) || 1)}
+            className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2"
+          />
         </label>
+        {feePreview ? (
+          <p className="text-sm text-text-muted">
+            Comisión estimada ({feePreview.plan}): {formatClp(feePreview.feeClp)}. Recibirías antes del costo del medio de
+            pago: {formatClp(feePreview.payableBeforeProcessorClp)}. El costo del medio de pago se calcula por separado.
+            {feePreview.promotionCode
+              ? ` Promoción ${feePreview.promotionCode}. Tarifa normal del plan: ${feePreview.normalFeeBps / 100}%.`
+              : null}
+          </p>
+        ) : null}
         <label className="flex items-center gap-2 text-sm">
           <input name="allowsMeetup" type="checkbox" defaultChecked={listing.allowsMeetup} />
           Encuentro

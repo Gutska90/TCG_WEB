@@ -50,6 +50,7 @@ export default function RootLayout() {
               <Stack.Screen name="sell/new" options={{ title: "Vender" }} />
               <Stack.Screen name="sell/[id]" options={{ title: "Editar publicación" }} />
               <Stack.Screen name="balance" options={{ title: "Saldo" }} />
+              <Stack.Screen name="seller-plan" options={{ title: "Tu plan" }} />
               <Stack.Screen name="addresses" options={{ title: "Direcciones" }} />
               <Stack.Screen name="notifications" options={{ title: "Notificaciones" }} />
               <Stack.Screen name="feedback" options={{ title: "Feedback" }} />

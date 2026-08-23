@@ -50,7 +50,7 @@ El cliente ramifica por `error.code`, no por el texto.
 
 | clave | default | |
 |-------|---------|--|
-| `commissionBps` | 800 | 8.00% |
+| `commissionBps` | (legacy) | Reemplazado por `SELLER_PLANS_V1`. FREE = 600 bps / cap $25.000. Ver [SELLER-PLANS-AND-FEES](SELLER-PLANS-AND-FEES.md). |
 | `orderConfirmTimeoutDays` | 7 | auto-confirm |
 | `checkoutReservationMinutes` | 30 | |
 | `shippingFlatClp` | 3990 | tarifa Chilexpress RM→RM (semilla); el resto usa `ShippingRate` |

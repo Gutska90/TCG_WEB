@@ -185,6 +185,25 @@ enum ReconciliationIssueType {
   LEDGER_MISSING_SELLER_PAYABLE
   LEDGER_MISSING_REFUND
   PAYOUT_LEDGER_MISMATCH
+  PLATFORM_FEE_SNAPSHOT_MISMATCH
+}
+
+enum SellerPlan {
+  FREE
+  SELLER_PLUS
+  SELLER_PRO
+  STORE
+}
+
+enum SellerSubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+enum SellerSubscriptionSource {
+  MANUAL
+  FUTURE_BILLING_PROVIDER
 }
 
 /// Bootstrap de Fase 0. Se mantiene como marca de migraciones tempranas.
@@ -259,8 +278,28 @@ model User {
   suspensionsCreated   SellerSuspension[]   @relation("SuspensionCreator")
   suspensionsLifted    SellerSuspension[]   @relation("SuspensionLifter")
   feedback             Feedback[]
+  sellerSubscriptions  SellerSubscription[]
 
   @@map("users")
+}
+
+model SellerSubscription {
+  id        String                     @id @default(uuid()) @db.Uuid
+  sellerId  String                     @map("seller_id") @db.Uuid
+  plan      SellerPlan
+  status    SellerSubscriptionStatus
+  source    SellerSubscriptionSource   @default(MANUAL)
+  startsAt  DateTime                   @map("starts_at") @db.Timestamptz(6)
+  endsAt    DateTime?                  @map("ends_at") @db.Timestamptz(6)
+  reason    String
+  createdAt DateTime                   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime                   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  seller User @relation(fields: [sellerId], references: [id], onDelete: Restrict)
+
+  @@index([sellerId, status, startsAt])
+  @@index([sellerId, createdAt])
+  @@map("seller_subscriptions")
 }
 
 model UserRole {
@@ -748,8 +787,13 @@ model Order {
   status             OrderStatus    @default(PENDING_PAYMENT)
   subtotalClp        Int            @map("subtotal_clp")
   shippingClp        Int            @map("shipping_clp")
-  commissionClp      Int            @map("commission_clp")
-  totalClp           Int            @map("total_clp")
+  commissionClp                 Int            @map("commission_clp")
+  marketplaceFeePolicyVersion   String?        @map("marketplace_fee_policy_version")
+  sellerPlanCode                SellerPlan?    @map("seller_plan_code")
+  marketplacePromotionCode      String?        @map("marketplace_promotion_code")
+  marketplaceFeeBps             Int?           @map("marketplace_fee_bps")
+  marketplaceFeeCapClp          Int?           @map("marketplace_fee_cap_clp")
+  totalClp                      Int            @map("total_clp")
   shippingMethod     ShippingMethod @map("shipping_method")
   shippingAddressId  String?        @map("shipping_address_id") @db.Uuid
   notes              String         @default("")

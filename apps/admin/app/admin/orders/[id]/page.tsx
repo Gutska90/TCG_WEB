@@ -45,7 +45,7 @@ export default function AdminOrderDetailPage() {
         <Meta label="Total">{formatClp(data.totalClp)}</Meta>
         <Meta label="Subtotal">{formatClp(data.subtotalClp)}</Meta>
         <Meta label="Envío">{formatClp(data.shippingClp)}</Meta>
-        <Meta label="Comisión">{formatClp(data.commissionClp)}</Meta>
+        <Meta label="Comisión TCG Market">{formatClp(data.commissionClp)}</Meta>
         <Meta label="Buyer">
           {data.buyer.email}
           <span className="block text-neutral-500">{data.buyer.displayName}</span>
@@ -59,6 +59,20 @@ export default function AdminOrderDetailPage() {
         </Meta>
         <Meta label="Envío método">{data.shippingMethod}</Meta>
       </section>
+
+      {data.marketplaceFee ? (
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <Meta label="Plan vendedor">{data.marketplaceFee.planCode ?? "sin snapshot"}</Meta>
+          <Meta label="Política">{data.marketplaceFee.policyVersion ?? "—"}</Meta>
+          <Meta label="Promo">{data.marketplaceFee.promotionCode ?? "ninguna"}</Meta>
+          <Meta label="Fee / cap">
+            {data.marketplaceFee.feeBps ?? "—"} bps / {data.marketplaceFee.feeCapClp ?? "—"}
+          </Meta>
+          <Meta label="Comisión TCG Market">{formatClp(data.marketplaceFee.platformFeeClp)}</Meta>
+          <Meta label="Seller payable">{formatClp(data.marketplaceFee.sellerPayableClp)}</Meta>
+          <Meta label="Costo medio de pago">Se calcula por separado</Meta>
+        </section>
+      ) : null}
 
       <section>
         <h2 className="mb-2 text-sm font-semibold uppercase">Ítems</h2>

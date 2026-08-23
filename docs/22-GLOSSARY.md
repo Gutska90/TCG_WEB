@@ -5,7 +5,10 @@
 | Variante | Combinación carta + idioma + finish. Unidad de precio y de listing single. |
 | Listing | Publicación de venta. Un single apunta a una variante. |
 | Checkout | Agrupa N órdenes (una por vendedor) y un intento de pago. |
-| Order | Contrato comprador–vendedor. Una por seller por compra. |
+| Order | Contrato comprador–vendedor. Una por seller por compra. Snapshot de comisión M1. |
+| Plan de vendedor | Entitlement FREE / PLUS / PRO / STORE. Default FREE. Mensualidad informativa en M1. |
+| Comisión TCG Market | `PLATFORM_FEE` sobre subtotal de productos, con cap. Distinta del processor fee. |
+| Promo `LAUNCH_3_PERCENT` | Ventana por env: 3% / cap $15.000 para todos los planes. No reescribe Orders viejas. |
 | HELD | Cobro MP approved **en la cuenta plataforma**. El seller aún no es liquidable. **No** es retención de Mercado Pago. |
 | RELEASED | Orden elegible para `Payout`. `confirm()` no llama a MP. |
 | Payout | Única salida real de fondos al vendedor. `PAID` exige `providerRef`. MVP: lote manual (`ManualPayoutProvider`). |
@@ -17,7 +20,9 @@
 | availableClp | Neto `RELEASED` aún no reservado en un payout activo. |
 | pendingClp | Neto `HELD` (capturado, no confirmado). |
 | reservedClp | Neto en un payout `PENDING`/`APPROVED`/`PROCESSING`. |
-| GMV | Suma de `Order.subtotalClp` (productos) en un período; no incluye envío salvo que se documente lo contrario. Default: **solo productos**. |
+| Plan de vendedor | Entitlement FREE/PLUS/PRO/STORE. Default FREE. Mensualidad informativa en M1; cobro real es M2. |
+| Comisión TCG Market | `PLATFORM_FEE` sobre subtotal de productos, con cap. Snapshot en Order. Distinta del processor fee. |
+| Promo `LAUNCH_3_PERCENT` | Ventana env: 3% / cap $15.000 para todos los planes. No reescribe Orders viejas. |
 | Encuentro / meetup | Entrega presencial coordinada. |
 | Escrow operativo | Obligación interna (HELD→Payout). MP no es el escrow. Ver ADR 0008. |
 | Compra Protegida | Reglas internas de soporte, moderación y disputas. No es seguro, escrow, garantía financiera ni certificación de autenticidad. |

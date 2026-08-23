@@ -35,7 +35,11 @@ Máximo `pageSize=100`.
 |--------|------|------|-------|
 | GET | `/health` | no | liveness |
 | GET | `/ready` | no | postgres ok |
-| GET | `/v1/config` | no | currency, condiciones, finishes, `legal` (versiones), flags públicos; sin secretos |
+| GET | `/v1/config` | no | currency, condiciones, finishes, `legal`, flags, catálogo `sellerPlans`; sin secretos |
+| GET | `/v1/me/seller-plan` | sí | plan efectivo, tarifas, promo |
+| POST | `/v1/me/seller-plan/fee-preview` | sí | `{ amountClp }` → fee estimado; no es neto final |
+| GET | `/v1/admin/sellers/:id/plan` | admin | plan actual |
+| POST | `/v1/admin/sellers/:id/plan` | ADMIN/SUPER_ADMIN | asignación manual; `reason` obligatorio; AuditLog; sin cobro |
 | GET | `/v1/disputes/:id/evidence/:evidenceId/file` | dueño o staff | stream de bytes (no bucket público). Sin objeto: `FILE_NOT_STORED` |
 
 ---

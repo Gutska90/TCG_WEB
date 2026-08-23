@@ -1,4 +1,5 @@
 import { quoteShippingClp } from "./shipping";
+import { LAUNCH_PROMO_CODE, quoteMarketplaceFee } from "./seller-plans";
 
 export {
   COMPRA_PROTEGIDA_DEFINITION,
@@ -19,6 +20,32 @@ export {
   legalAcceptanceIsCurrent,
 } from "./legal";
 export type { LegalDocument, LegalSection } from "./legal";
+export {
+  LAUNCH_PROMO_CODE,
+  LAUNCH_PROMO_FEE_BPS,
+  LAUNCH_PROMO_FEE_CAP_CLP,
+  SELLER_PLANS,
+  SELLER_PLANS_POLICY_VERSION,
+  SELLER_PLAN_LABELS,
+  SELLER_PLAN_RATES,
+  SELLER_SUBSCRIPTION_SOURCES,
+  SELLER_SUBSCRIPTION_STATUSES,
+  feeBeforeCap,
+  formatFeePercentEsCl,
+  isLaunchPromoActive,
+  loadLaunchPromoWindow,
+  publicSellerPlansConfig,
+  quoteMarketplaceFee,
+  sellerPlanCatalog,
+} from "./seller-plans";
+export type {
+  LaunchPromoWindow,
+  MarketplaceFeeQuote,
+  SellerPlan,
+  SellerPlanRates,
+  SellerSubscriptionSource,
+  SellerSubscriptionStatus,
+} from "./seller-plans";
 
 export const ROLES = [
   "USER",
@@ -91,7 +118,8 @@ export const PLATFORM = {
   currency: "CLP",
   country: "CL",
   locale: "es-CL",
-  commissionBps: 800,
+  /** @deprecated M1: no usar para Orders. Ver SELLER_PLAN_RATES + MarketplaceFeeService. */
+  commissionBps: 600,
   orderConfirmTimeoutDays: 7,
   checkoutReservationMinutes: 30,
   shippingFlatClp: 3990,
@@ -174,10 +202,17 @@ export function shippingClpForMethod(method: ShippingMethod): number {
   return quoteShippingClp(method, "RM", "RM") ?? 0;
 }
 
-/** Comisión 8% del subtotal de productos, entero CLP, mínimo 0. */
+/**
+ * Helper de catálogo FREE sin promo (seeds/legacy).
+ * Las Orders nuevas deben usar MarketplaceFeeService — no este helper.
+ */
 export function commissionClp(subtotalClp: number): number {
   if (subtotalClp <= 0) return 0;
-  return Math.floor((subtotalClp * PLATFORM.commissionBps) / 10_000);
+  return quoteMarketplaceFee({
+    plan: "FREE",
+    orderSubtotalClp: subtotalClp,
+    promoWindow: { enabled: false, code: LAUNCH_PROMO_CODE, startsAt: null, endsAt: null },
+  }).platformFeeClp;
 }
 
 export const ORDER_STATUSES = [
@@ -322,6 +357,7 @@ export const RECONCILIATION_ISSUE_TYPES = [
   "LEDGER_MISSING_SELLER_PAYABLE",
   "LEDGER_MISSING_REFUND",
   "PAYOUT_LEDGER_MISMATCH",
+  "PLATFORM_FEE_SNAPSHOT_MISMATCH",
 ] as const;
 export type ReconciliationIssueType = (typeof RECONCILIATION_ISSUE_TYPES)[number];
 
@@ -340,6 +376,7 @@ export const RECONCILIATION_ISSUE_TYPE_LABELS: Record<ReconciliationIssueType, s
   LEDGER_MISSING_SELLER_PAYABLE: "Falta SELLER_PAYABLE",
   LEDGER_MISSING_REFUND: "Falta asiento REFUND",
   PAYOUT_LEDGER_MISMATCH: "Payout PAID sin PAYOUT_PAID",
+  PLATFORM_FEE_SNAPSHOT_MISMATCH: "PLATFORM_FEE no coincide con el snapshot de la Order",
 };
 
 export const RECONCILIATION_SEVERITY_LABELS: Record<ReconciliationSeverity, string> = {
@@ -680,6 +717,7 @@ export type FeatureFlagSnapshot = {
   enableScanner: boolean;
   enableStores: boolean;
   enableAuctions: boolean;
+  enableSellerPlans: boolean;
   disableCheckout: boolean;
   disableNewListings: boolean;
   disablePayouts: boolean;
@@ -702,6 +740,7 @@ export function loadFeatureFlags(env: NodeJS.Dict<string> = process.env): Featur
     enableScanner: envFlag(env.ENABLE_SCANNER, false),
     enableStores: envFlag(env.ENABLE_STORES, false),
     enableAuctions: envFlag(env.ENABLE_AUCTIONS, false),
+    enableSellerPlans: envFlag(env.ENABLE_SELLER_PLANS, true),
     disableCheckout: envFlag(env.DISABLE_CHECKOUT, false),
     disableNewListings: envFlag(env.DISABLE_NEW_LISTINGS, false),
     disablePayouts: envFlag(env.DISABLE_PAYOUTS, false),
@@ -723,6 +762,7 @@ export function publicFeatureFlags(flags: FeatureFlagSnapshot) {
     enableScanner: flags.enableScanner,
     enableStores: flags.enableStores,
     enableAuctions: flags.enableAuctions,
+    enableSellerPlans: flags.enableSellerPlans,
     enablePayouts: flags.enablePayouts && !flags.disablePayouts,
     paymentsSandbox: !flags.enableRealPayments,
     enableGoogleAuth: flags.enableGoogleAuth,

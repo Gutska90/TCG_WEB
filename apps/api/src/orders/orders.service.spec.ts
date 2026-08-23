@@ -25,8 +25,8 @@ const seller: RequestUser = {
 };
 
 describe("money snapshots", () => {
-  it("takes 8% commission from product subtotal only", () => {
-    expect(commissionClp(10_000)).toBe(800);
+  it("takes 6% FREE commission from product subtotal only (no promo)", () => {
+    expect(commissionClp(10_000)).toBe(600);
     expect(commissionClp(1)).toBe(0);
   });
 
@@ -65,6 +65,8 @@ describe("OrdersService", () => {
     new MetricsService(),
     { applySaleDeduction: vi.fn() } as never,
     { safeEmit: vi.fn() } as never,
+    { lockSellers: vi.fn() } as never,
+    { calculate: vi.fn(), recordOrderQuote: vi.fn() } as never,
   );
 
   beforeEach(() => {

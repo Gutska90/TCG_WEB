@@ -61,6 +61,7 @@ export default function ProfileScreen() {
       {isSeller ? <TextLink href="/sales" label="Mis ventas" /> : null}
       {isSeller ? <TextLink href="/sell" label="Mis publicaciones" /> : null}
       {isSeller ? <TextLink href="/balance" label="Saldo vendedor" /> : null}
+      {isSeller ? <TextLink href="/seller-plan" label="Tu plan" /> : null}
       {!isSeller ? <TextLink href="/seller-onboarding" label="Activar cuenta vendedor" /> : null}
       <TextLink href="/addresses" label="Direcciones" />
       <TextLink href="/security" label="Seguridad" />

@@ -24,7 +24,8 @@ Cada pantalla lista: fase, ruta, datos (API), acciones, vacío, error. Si la API
 | 4 | ficha + bloque vendedores | listings by variant | add cart |
 | 4 | `/listings/{id}` | listing | |
 | 4 | `/vendedores/{slug}` | user public + listings | |
-| 4 | `/vender` wizard | search cards, suggestion, POST listing | 6 pasos |
+| `/planes` | Comparación de planes de vendedor (M1). Promo de lanzamiento si está activa. |
+| `/vender` | Wizard + estimación de comisión + link “Ver planes” |
 | 5 | `/carrito` | cart | qty, quitar |
 | 6 | `/checkout` | checkout | address, shipping, pagar |
 | 6 | `/me/compras` | orders as=buyer | |

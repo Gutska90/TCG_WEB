@@ -30,6 +30,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import {
   compareLedger,
   comparePayments,
+  comparePlatformFeeSnapshots,
   compareRefunds,
   issueFingerprint,
   type DraftIssue,
@@ -217,6 +218,7 @@ export class ReconciliationService {
           payouts: snapshot.payouts,
           ledger: snapshot.ledger,
         }),
+        ...(await this.platformFeeSnapshotIssues(window)),
       ];
 
       const persist = await this.persistIssues(runId, drafts);
@@ -278,6 +280,33 @@ export class ReconciliationService {
       if (error instanceof AppError) throw error;
       return toRunView(await this.prisma.reconciliationRun.findUniqueOrThrow({ where: { id: runId } }));
     }
+  }
+
+  private async platformFeeSnapshotIssues(window: { from: Date; to: Date }) {
+    const orders = await this.prisma.order.findMany({
+      where: {
+        status: "COMPLETED",
+        completedAt: { gte: window.from, lte: window.to },
+        marketplaceFeePolicyVersion: { not: null },
+      },
+      select: {
+        id: true,
+        status: true,
+        commissionClp: true,
+        marketplaceFeePolicyVersion: true,
+      },
+    });
+    if (orders.length === 0) return [];
+    const fees = await this.prisma.ledgerEntry.findMany({
+      where: { entryType: "PLATFORM_FEE", orderId: { in: orders.map((row) => row.id) } },
+      select: { orderId: true, amountClp: true },
+    });
+    const platformFeeByOrderId = new Map<string, number>();
+    for (const row of fees) {
+      if (!row.orderId) continue;
+      platformFeeByOrderId.set(row.orderId, (platformFeeByOrderId.get(row.orderId) ?? 0) + row.amountClp);
+    }
+    return comparePlatformFeeSnapshots({ orders, platformFeeByOrderId });
   }
 
   private async collect(window: { from: Date; to: Date }) {

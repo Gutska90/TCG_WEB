@@ -12,6 +12,8 @@ import type { PaymentProvider } from "../../../src/payments/payment-provider";
 import { flagsForTest } from "../../../src/flags/feature-flags.service";
 import { MetricsService } from "../../../src/observability/metrics.service";
 import { NotificationsService } from "../../../src/notifications/notifications.service";
+import { MarketplaceFeeService } from "../../../src/seller-plans/marketplace-fee.service";
+import { SellerPlanService } from "../../../src/seller-plans/seller-plan.service";
 
 export function createMoneyServices(prisma: PrismaService, provider: PaymentProvider) {
   const audit = new AuditService(prisma);
@@ -24,6 +26,20 @@ export function createMoneyServices(prisma: PrismaService, provider: PaymentProv
   const shipping = new ShippingService(prisma);
   const collections = new CollectionsService(prisma, flags, audit);
   const notifications = new NotificationsService(prisma, { send: async () => undefined } as never);
-  const orders = new OrdersService(prisma, audit, shipping, refunds, ledger, flags, metrics, collections, notifications);
-  return { audit, ledger, balances, payouts, refunds, shipping, orders, flags, metrics, collections, notifications };
+  const sellerPlans = new SellerPlanService(prisma, audit);
+  const marketplaceFees = new MarketplaceFeeService(sellerPlans, metrics);
+  const orders = new OrdersService(
+    prisma,
+    audit,
+    shipping,
+    refunds,
+    ledger,
+    flags,
+    metrics,
+    collections,
+    notifications,
+    sellerPlans,
+    marketplaceFees,
+  );
+  return { audit, ledger, balances, payouts, refunds, shipping, orders, flags, metrics, collections, notifications, sellerPlans, marketplaceFees };
 }

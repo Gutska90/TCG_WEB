@@ -14,8 +14,8 @@ test("wishlist-happy-path: add from card, list, remove", async ({ page }) => {
   await page.goto("/me/wishlist");
   await expect(page.getByRole("heading", { name: "Wishlist" })).toBeVisible();
   await expect(page.getByText(SEARCH_CARD).first()).toBeVisible();
-  await page.getByRole("button", { name: "Quitar" }).click();
-  await expect(page.getByText("Aún no hay cartas en tu wishlist.")).toBeVisible();
+  await page.getByRole("listitem").filter({ hasText: SEARCH_CARD }).getByRole("button", { name: "Quitar" }).click();
+  await expect(page.getByText(SEARCH_CARD)).toHaveCount(0);
 
   await page.goto("/me/notificaciones");
   await expect(page.getByRole("heading", { name: "Notificaciones" })).toBeVisible();

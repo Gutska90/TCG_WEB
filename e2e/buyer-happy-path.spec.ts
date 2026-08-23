@@ -22,13 +22,14 @@ test("buyer-happy-path: register, search, cart, sandbox checkout, order", async 
   await sandboxCheckout(page);
   await page.goto("/me/notificaciones");
   await expect(page.getByRole("heading", { name: "Notificaciones" })).toBeVisible();
-  await expect(page.getByText("Compra confirmada")).toBeVisible();
+  await expect(page.getByText("Compra confirmada").first()).toBeVisible();
   await page.goto("/me/compras");
   await expect(page.getByRole("heading", { name: "Mis compras" })).toBeVisible();
   await expect(page.locator("a[href^='/me/compras/']").first()).toBeVisible();
 
-  await page.getByRole("button", { name: "Cerrar sesión" }).first().click();
+  await page.goto("/me");
+  await page.getByRole("button", { name: "Cerrar sesión" }).click();
   await login(page, BETA_USERS.seller.email, BETA_USERS.seller.password);
   await page.goto("/me/notificaciones");
-  await expect(page.getByText("Nueva venta")).toBeVisible();
+  await expect(page.getByText("Nueva venta").first()).toBeVisible();
 });

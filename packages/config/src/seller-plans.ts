@@ -121,6 +121,39 @@ export function sellerPlanCatalog() {
   }));
 }
 
+/** 600 → "6%", 450 → "4,5%". No usar color como único indicador. */
+export function formatFeePercentEsCl(bps: number): string {
+  const whole = Math.trunc(bps / 100);
+  const frac = bps % 100;
+  if (frac === 0) return `${whole}%`;
+  const decimals = String(frac).padStart(2, "0").replace(/0+$/, "");
+  return `${whole},${decimals}%`;
+}
+
+export function publicSellerPlansConfig(at = new Date(), env: NodeJS.Dict<string> = process.env) {
+  const window = loadLaunchPromoWindow(env);
+  const active = isLaunchPromoActive(at, window);
+  return {
+    policyVersion: SELLER_PLANS_POLICY_VERSION,
+    plans: sellerPlanCatalog().map((plan) => ({
+      plan: plan.plan,
+      label: plan.label,
+      monthlyPriceClp: plan.monthlyPriceClp,
+      platformFeeBps: plan.platformFeeBps,
+      platformFeeCapClp: plan.platformFeeCapClp,
+    })),
+    launchPromo: {
+      enabled: window.enabled,
+      active,
+      code: LAUNCH_PROMO_CODE,
+      startsAt: window.startsAt?.toISOString() ?? null,
+      endsAt: window.endsAt?.toISOString() ?? null,
+      feeBps: LAUNCH_PROMO_FEE_BPS,
+      feeCapClp: LAUNCH_PROMO_FEE_CAP_CLP,
+    },
+  };
+}
+
 function assertPositiveIntegerClp(value: number, field: string): number {
   if (!Number.isInteger(value) || value <= 0) {
     throw new Error(`${field} must be an integer CLP amount > 0`);

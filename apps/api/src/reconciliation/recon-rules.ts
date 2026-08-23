@@ -442,3 +442,38 @@ function draft(
     actualAmountClp: issue.actualAmountClp ?? null,
   };
 }
+
+export type LocalOrderFeeRow = {
+  id: string;
+  status: OrderStatus;
+  commissionClp: number;
+  marketplaceFeePolicyVersion: string | null;
+};
+
+export function comparePlatformFeeSnapshots(input: {
+  orders: LocalOrderFeeRow[];
+  platformFeeByOrderId: ReadonlyMap<string, number>;
+}): DraftIssue[] {
+  const issues: DraftIssue[] = [];
+  for (const order of input.orders) {
+    if (order.status !== "COMPLETED" || !order.marketplaceFeePolicyVersion) continue;
+    const posted = input.platformFeeByOrderId.get(order.id);
+    if (posted === undefined) continue;
+    if (posted !== order.commissionClp) {
+      issues.push(
+        draft({
+          issueType: "PLATFORM_FEE_SNAPSHOT_MISMATCH",
+          severity: "CRITICAL",
+          entityType: "Order",
+          entityId: order.id,
+          expectedAmountClp: order.commissionClp,
+          actualAmountClp: posted,
+          details: {
+            message: "PLATFORM_FEE del ledger no coincide con el snapshot de la Order. No se corrige en automático.",
+          },
+        }),
+      );
+    }
+  }
+  return issues;
+}

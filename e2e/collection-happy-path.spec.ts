@@ -21,7 +21,7 @@ test("collection-happy-path: add, list, edit, set progress, sell click", async (
 
   await page.goto("/me/coleccion");
   await page.getByRole("heading", { name: "Progreso por set" }).locator("..").getByRole("link").first().click();
-  await expect(page.getByText(/Te faltan|Set completo/)).toBeVisible();
+  await expect(page.getByText(/Te faltan|Set completo/).first()).toBeVisible();
 
   await page.goto("/me/coleccion");
   await page.getByText(SEARCH_CARD).first().click();

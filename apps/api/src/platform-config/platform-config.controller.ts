@@ -6,6 +6,7 @@ import {
   LEGAL,
   PLATFORM,
   publicFeatureFlags,
+  publicSellerPlansConfig,
 } from "@tcg/config";
 import type { PublicPlatformConfig } from "@tcg/types";
 import { Public } from "../common/decorators/public.decorator";
@@ -31,6 +32,7 @@ export class PlatformConfigController {
         beta: true,
       },
       features: publicFeatureFlags(this.flags.current()),
+      sellerPlans: publicSellerPlansConfig(),
     };
   }
 }

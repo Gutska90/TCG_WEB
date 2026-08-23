@@ -95,11 +95,31 @@ export type PublicPlatformConfig = {
     enableScanner: boolean;
     enableStores: boolean;
     enableAuctions: boolean;
+    enableSellerPlans: boolean;
     enablePayouts: boolean;
     paymentsSandbox: boolean;
     enableGoogleAuth: boolean;
     enableAppleAuth: boolean;
     authStub: boolean;
+  };
+  sellerPlans: {
+    policyVersion: string;
+    plans: Array<{
+      plan: string;
+      label: string;
+      monthlyPriceClp: number;
+      platformFeeBps: number;
+      platformFeeCapClp: number;
+    }>;
+    launchPromo: {
+      enabled: boolean;
+      active: boolean;
+      code: string;
+      startsAt: string | null;
+      endsAt: string | null;
+      feeBps: number;
+      feeCapClp: number;
+    };
   };
 };
 
@@ -441,6 +461,13 @@ export type OrderView = {
   payment: OrderPaymentView | null;
   shipment: ShipmentView | null;
   rating: SellerRatingView | null;
+  marketplaceFee: {
+    policyVersion: string | null;
+    planCode: string | null;
+    promotionCode: string | null;
+    feeBps: number | null;
+    feeCapClp: number | null;
+  } | null;
 };
 
 export type SellerRatingView = {
@@ -631,6 +658,16 @@ export type AdminOrderDetailView = {
   payment: AdminPaymentListItem | null;
   refunds: AdminRefundListItem[];
   timeline: AdminAuditEventView[];
+  marketplaceFee: {
+    policyVersion: string | null;
+    planCode: string | null;
+    promotionCode: string | null;
+    feeBps: number | null;
+    feeCapClp: number | null;
+    platformFeeClp: number;
+    sellerPayableClp: number;
+    processorFeeClp: null;
+  };
 };
 
 export type AdminPaymentDetailView = AdminPaymentListItem & {
@@ -1022,4 +1059,41 @@ export type CollectionSetDetailView = {
   progress: CollectionSetProgressView;
   missing: Paginated<CollectionMissingCardView>;
   disclaimer: string;
+};
+
+export type SellerPlanView = {
+  policyVersion: string;
+  plan: string;
+  monthlyPriceClp: number;
+  source: string | null;
+  startsAt: string | null;
+  endsAt: string | null;
+  normalFeeBps: number;
+  normalFeeCapClp: number;
+  promotion: {
+    active: boolean;
+    code: string | null;
+    endsAt: string | null;
+    effectiveFeeBps: number;
+    effectiveFeeCapClp: number;
+  };
+  billing: {
+    automaticCollection: false;
+    message: string;
+  };
+};
+
+export type FeePreviewView = {
+  plan: string;
+  promotionCode: string | null;
+  amountClp: number;
+  feeClp: number;
+  payableBeforeProcessorClp: number;
+  normalFeeBps: number;
+  effectiveFeeBps: number;
+};
+
+export type AdminSellerPlanView = SellerPlanView & {
+  sellerId: string;
+  notice: string;
 };

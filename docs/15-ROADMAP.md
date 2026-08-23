@@ -338,6 +338,14 @@ Auditoría canónica: [audits/BETA-RELEASE-AUDIT-2026-08.md](audits/BETA-RELEASE
 | **B7** iOS TestFlight | EAS + Apple (no App Store submit) | ✓ [B7-IOS-TESTFLIGHT](release/B7-IOS-TESTFLIGHT.md) |
 | **B8** Closed Beta | Testers invitados, sandbox, sin plata real | 🟡 invitaciones = operador. In-app `SALE_MADE`/`PURCHASE_MADE`/envío/cancel/disputa/rating ✓ [B8-CLOSED-BETA](release/B8-CLOSED-BETA.md) |
 
+## M1 — Seller Plans + Fee Engine
+
+**Estado: esta entrega.** Planes FREE / PLUS / PRO / STORE, caps, promo `LAUNCH_3_PERCENT`, snapshot por Order, admin manual. **No** pagos live, **no** billing de suscripción, **no** Scanner/Stores/Auctions. Doc: [SELLER-PLANS-AND-FEES](SELLER-PLANS-AND-FEES.md).
+
+## M2 — Subscription Billing (futuro, no implementar)
+
+Cobro real de mensualidades (Mercado Pago u otro). `SellerSubscription.source = FUTURE_BILLING_PROVIDER`. No forma parte de M1.
+
 ## Fases 13–17
 
 | Fase | Qué |

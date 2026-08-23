@@ -29,7 +29,9 @@ No hay columna `User.balance`. El cliente **no** envía `amountClp` ni `commissi
 | `PAYOUT_REVERSED` | cancel de payout aún no procesado | `+monto` | reserved→available |
 | `ADJUSTMENT` | solo `SUPER_ADMIN` + reason + `AuditLog` | ± | available |
 
-`neto = Order.totalClp − Order.commissionClp` (snapshot; no se recalcula).
+`neto = Order.totalClp − Order.commissionClp` (snapshot de comisión TCG Market; no se recalcula con el plan actual). El processor fee no entra en este asiento.
+
+## Ejemplos (subtotal $100.000, FREE 6% = $6.000, neto $94.000)
 
 ## Balances
 
@@ -77,15 +79,15 @@ Disputa activa (10.6): cancela payout `PENDING`/`APPROVED` que incluya la orden.
 
 La comisión `PLATFORM_FEE` reconocida en el release **no** se reversa en 10C (la plataforma absorbe el fee MP del refund post-completa). Conciliación cash MP es 10D.
 
-## Ejemplos (subtotal $80.000, comisión 8% = $6.400, neto $73.600)
+## Ejemplos (subtotal $100.000, FREE 6% = $6.000, neto $94.000; Orders viejas pueden tener 8% snapshot)
 
 **Venta + release**
 
 ```text
-HELD      PAYMENT_CAPTURED  seller  +73.600
-confirm   SELLER_PAYABLE    seller  +73.600
-confirm   PLATFORM_FEE      (plat)  +6.400
-balance   pending 0 / available 73.600
+HELD      PAYMENT_CAPTURED  seller  +100.000
+confirm   SELLER_PAYABLE    seller  +94.000
+confirm   PLATFORM_FEE      (plat)  +6.000
+balance   pending 0 / available 94.000
 ```
 
 **Refund antes de confirm (caso A)**

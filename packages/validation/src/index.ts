@@ -26,6 +26,7 @@ import {
   RECONCILIATION_SEVERITIES,
   REFUND_STATUSES,
   ROLES,
+  SELLER_PLANS,
   SHIPPING_METHODS,
 } from "@tcg/config";
 
@@ -615,6 +616,20 @@ export const patchNotificationPreferenceSchema = z.object({
 
 export type UpsertWishlistItemInput = z.infer<typeof upsertWishlistItemSchema>;
 export type PatchNotificationPreferenceInput = z.infer<typeof patchNotificationPreferenceSchema>;
+
+export const feePreviewSchema = z.object({
+  amountClp: z.number().int().positive().max(99_999_999),
+});
+
+export const assignSellerPlanSchema = z.object({
+  plan: z.enum(SELLER_PLANS),
+  reason: z.string().trim().min(8).max(500),
+  startsAt: z.string().datetime().optional(),
+  endsAt: z.string().datetime().optional(),
+});
+
+export type FeePreviewInput = z.infer<typeof feePreviewSchema>;
+export type AssignSellerPlanInput = z.infer<typeof assignSellerPlanSchema>;
 
 export type SellerOnboardingInput = z.infer<typeof sellerOnboardingSchema>;
 export type CreateAddressInput = z.infer<typeof createAddressSchema>;

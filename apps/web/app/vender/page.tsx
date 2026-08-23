@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { CARD_CONDITION_LABELS, CARD_CONDITIONS, formatClp } from "@tcg/config";
-import type { CardDetailView, ListingView, PriceSuggestionView, SearchCardView, VariantDetailView } from "@tcg/types";
+import type { CardDetailView, ListingView, PriceSuggestionView, SearchCardView, VariantDetailView, FeePreviewView } from "@tcg/types";
 import { ApiError, api, fetchMe } from "../../lib/api";
+import { previewSellerFee } from "../../lib/seller-plans";
 import { uploadUserFile } from "../../lib/files";
 import { buttonClassName } from "../../components/ui/button-styles";
 import { controlClassName } from "../../components/ui/input";
@@ -35,6 +36,14 @@ function SellWizard() {
   const [description, setDescription] = useState("");
   const [imageFileIds, setImageFileIds] = useState<string[]>([]);
   const [message, setMessage] = useState<string | null>(null);
+  const [feePreview, setFeePreview] = useState<FeePreviewView | null>(null);
+
+  useEffect(() => {
+    if (priceClp < 1) return;
+    void previewSellerFee(priceClp * Math.max(1, quantity))
+      .then(setFeePreview)
+      .catch(() => setFeePreview(null));
+  }, [priceClp, quantity]);
 
   useEffect(() => {
     fetchMe()
@@ -115,6 +124,11 @@ function SellWizard() {
   return (
     <main id="contenido" className="mx-auto max-w-xl px-4 py-10 sm:px-6 sm:py-12">
       <h1 className="text-3xl font-medium tracking-tight">Vender</h1>
+      <p className="mt-2 text-sm">
+        <Link href="/planes" className="underline">
+          Ver planes
+        </Link>
+      </p>
       <ol className="mt-4 flex flex-wrap gap-2 text-xs">
         {["Carta", "Variante", "Condición", "Precio", "Fotos", "Revisar"].map((label, index) => (
           <li
@@ -240,6 +254,15 @@ function SellWizard() {
           <button type="button" className={buttonClassName("primary", "w-fit")} onClick={() => setStep(5)}>
             Continuar
           </button>
+          {feePreview ? (
+            <p className="text-sm text-text-muted">
+              Comisión estimada ({feePreview.plan}): {formatClp(feePreview.feeClp)}. Recibirías antes del costo del medio de
+              pago: {formatClp(feePreview.payableBeforeProcessorClp)}. El costo del medio de pago se calcula por separado.
+              {feePreview.promotionCode
+                ? ` Promoción ${feePreview.promotionCode}. Tarifa normal del plan: ${feePreview.normalFeeBps / 100}%.`
+                : null}
+            </p>
+          ) : null}
         </div>
       ) : null}
 
