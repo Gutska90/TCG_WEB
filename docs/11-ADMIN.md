@@ -169,3 +169,5 @@ Alertas extra en dashboard: refunds/payouts FAILED, recon CRITICAL, jobs FAILED 
 ## 10.7 — Feedback beta
 
 Ruta: `/admin/feedback`. API: `GET /v1/admin/feedback` (ADMIN/SUPER_ADMIN). Lista simple. No es helpdesk. No expone passwordHash ni versiones legales en el listado de usuarios.
+
+Checklist staff y Playwright: [release/ADMIN-BETA-QA.md](release/ADMIN-BETA-QA.md).

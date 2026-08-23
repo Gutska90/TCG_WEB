@@ -15,12 +15,16 @@
     "test": "turbo test",
     "test:integration": "pnpm --filter @tcg/api test:integration",
     "test:e2e": "pnpm --filter @tcg/api beta:seed && playwright test",
+    "test:maestro": "maestro test apps/mobile/.maestro/",
+    "test:load": "node scripts/load-test.mjs",
+    "audit:deps": "node scripts/audit-deps.mjs",
     "beta:seed": "pnpm --filter @tcg/api beta:seed",
     "db:up": "docker compose -f docker/compose.yml up -d",
     "db:down": "docker compose -f docker/compose.yml down",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:studio": "prisma studio",
+    "db:backup": "bash scripts/backup-postgres.sh",
     "catalog:seed": "pnpm --filter @tcg/api catalog:seed",
     "catalog:import-scryfall": "pnpm --filter @tcg/api run catalog:import-scryfall --",
     "ledger:backfill": "pnpm --filter @tcg/api ledger:backfill",
@@ -39,7 +43,8 @@
   "pnpm": {
     "overrides": {
       "react": "19.0.0",
-      "react-dom": "19.0.0"
+      "react-dom": "19.0.0",
+      "postcss": "8.5.26"
     },
     "onlyBuiltDependencies": [
       "@nestjs/core",

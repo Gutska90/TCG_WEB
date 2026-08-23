@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { FilesModule } from "../files/files.module";
 import { MarketService } from "../listings/market.service";
 import { PayoutsModule } from "../payouts/payouts.module";
 import { AdminTrustController } from "./admin-trust.controller";
@@ -11,7 +12,7 @@ import { ReportsController } from "./reports.controller";
 import { ReportsService } from "./reports.service";
 
 @Module({
-  imports: [PayoutsModule],
+  imports: [PayoutsModule, FilesModule],
   controllers: [DisputesController, ReportsController, AdminTrustController],
   providers: [
     MarketService,

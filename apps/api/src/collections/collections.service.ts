@@ -152,13 +152,15 @@ export class CollectionsService {
     orderId: string,
     sellerId: string,
     items: Array<{ listingId: string; quantity: number }>,
+    client?: Prisma.TransactionClient,
   ): Promise<void> {
     if (!this.flags.current().enableCollections) return;
-    const already = await this.prisma.auditLog.findFirst({
+    const db = client ?? this.prisma;
+    const already = await db.auditLog.findFirst({
       where: { action: "collection.sold", entityType: "Order", entityId: orderId },
     });
     if (already) return;
-    const listings = await this.prisma.listing.findMany({
+    const listings = await db.listing.findMany({
       where: { id: { in: items.map((item) => item.listingId) } },
       select: { id: true, sourceCollectionItemId: true },
     });
@@ -166,25 +168,29 @@ export class CollectionsService {
     for (const item of items) {
       const lotId = sourceByListing.get(item.listingId);
       if (!lotId) continue;
-      const lot = await this.prisma.collectionItem.findFirst({
+      await db.$queryRaw`SELECT id FROM collection_items WHERE id = ${lotId}::uuid FOR UPDATE`;
+      const lot = await db.collectionItem.findFirst({
         where: { id: lotId, collection: { userId: sellerId } },
       });
       if (!lot) continue;
       if (lot.quantity <= item.quantity) {
-        await this.prisma.collectionItem.delete({ where: { id: lot.id } });
+        await db.collectionItem.delete({ where: { id: lot.id } });
       } else {
-        await this.prisma.collectionItem.update({
+        await db.collectionItem.update({
           where: { id: lot.id },
           data: { quantity: lot.quantity - item.quantity },
         });
       }
     }
-    await this.audit.log({
-      actorId: sellerId,
-      action: "collection.sold",
-      entityType: "Order",
-      entityId: orderId,
-    });
+    await this.audit.log(
+      {
+        actorId: sellerId,
+        action: "collection.sold",
+        entityType: "Order",
+        entityId: orderId,
+      },
+      client,
+    );
   }
 
   async listItems(userId: string, query: ListCollectionItemsQuery): Promise<Paginated<CollectionItemView>> {
@@ -192,18 +198,15 @@ export class CollectionsService {
     const where = await this.itemWhere(collection.id, query);
 
     if (query.sort === "estimatedValue") {
-      const light = await this.prisma.collectionItem.findMany({
-        where,
-        select: { id: true, variantId: true, condition: true, quantity: true, createdAt: true },
-      });
-      const estimates = await this.estimatesFor(light);
-      const ranked = [...light].sort((a, b) => {
-        const av = lotEstimatedValueClp(a.quantity, estimates.get(priceKey(a.variantId, a.condition)) ?? null) ?? -1;
-        const bv = lotEstimatedValueClp(b.quantity, estimates.get(priceKey(b.variantId, b.condition)) ?? null) ?? -1;
-        if (bv !== av) return bv - av;
-        return b.createdAt.getTime() - a.createdAt.getTime();
-      });
-      const pageIds = ranked.slice((query.page - 1) * query.pageSize, query.page * query.pageSize).map((row) => row.id);
+      const [total, keys] = await Promise.all([
+        this.prisma.collectionItem.count({ where }),
+        this.prisma.collectionItem.groupBy({
+          by: ["variantId", "condition"],
+          where,
+        }),
+      ]);
+      const estimates = await this.estimatesFor(keys);
+      const pageIds = total === 0 ? [] : await this.estimatedValuePageIds(collection.id, query, estimates);
       const rows = pageIds.length
         ? await this.prisma.collectionItem.findMany({
             where: { id: { in: pageIds } },
@@ -218,7 +221,7 @@ export class CollectionsService {
         }),
         page: query.page,
         pageSize: query.pageSize,
-        total: light.length,
+        total,
       };
     }
 
@@ -487,6 +490,57 @@ export class CollectionsService {
     if (sort === "name") return [{ variant: { card: { name: "asc" } } }, { createdAt: "desc" }];
     if (sort === "quantity") return [{ quantity: "desc" }, { createdAt: "desc" }];
     return [{ createdAt: "desc" }];
+  }
+
+  private async estimatedValuePageIds(
+    collectionId: string,
+    query: ListCollectionItemsQuery,
+    estimates: Map<string, number>,
+  ): Promise<string[]> {
+    const estimateJoin =
+      estimates.size === 0
+        ? Prisma.sql`LEFT JOIN (SELECT NULL::uuid AS variant_id, NULL::"CardCondition" AS condition, NULL::int AS unit_clp WHERE false) AS est ON false`
+        : Prisma.sql`LEFT JOIN (
+            VALUES ${Prisma.join(
+              [...estimates.entries()].map(([key, unit]) => {
+                const cut = key.lastIndexOf(":");
+                return Prisma.sql`(${key.slice(0, cut)}::uuid, ${key.slice(cut + 1)}::"CardCondition", ${unit}::int)`;
+              }),
+            )}
+          ) AS est(variant_id, condition, unit_clp)
+            ON est.variant_id = ci.variant_id AND est.condition = ci.condition`;
+
+    const filters: Prisma.Sql[] = [Prisma.sql`ci.collection_id = ${collectionId}::uuid`];
+    if (query.condition) {
+      filters.push(Prisma.sql`ci.condition = ${query.condition}::"CardCondition"`);
+    }
+    const q = query.q?.trim();
+    if (q) {
+      const like = `%${q.replace(/[%_\\]/g, "\\$&")}%`;
+      filters.push(Prisma.sql`(c.name ILIKE ${like} ESCAPE chr(92) OR c.number ILIKE ${like} ESCAPE chr(92))`);
+    }
+    if (query.game) filters.push(Prisma.sql`g.slug = ${query.game}`);
+    if (query.set) filters.push(Prisma.sql`s.slug = ${query.set}`);
+    if (query.duplicates) {
+      const dupIds = await this.duplicateCardIds(collectionId);
+      if (dupIds.length === 0) return [];
+      filters.push(Prisma.sql`c.id IN (${Prisma.join(dupIds.map((id) => Prisma.sql`${id}::uuid`))})`);
+    }
+
+    const rows = await this.prisma.$queryRaw<Array<{ id: string }>>(Prisma.sql`
+      SELECT ci.id
+      FROM collection_items ci
+      INNER JOIN card_variants cv ON cv.id = ci.variant_id
+      INNER JOIN cards c ON c.id = cv.card_id
+      INNER JOIN sets s ON s.id = c.set_id
+      INNER JOIN tcg_games g ON g.id = s.game_id
+      ${estimateJoin}
+      WHERE ${Prisma.join(filters, " AND ")}
+      ORDER BY (CASE WHEN est.unit_clp IS NULL THEN -1 ELSE ci.quantity * est.unit_clp END) DESC,
+               ci.created_at DESC
+      LIMIT ${query.pageSize} OFFSET ${(query.page - 1) * query.pageSize}
+    `);
+    return rows.map((row) => row.id);
   }
 
   private async duplicateCardIds(collectionId: string): Promise<string[]> {

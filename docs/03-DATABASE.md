@@ -227,7 +227,7 @@ CardPrice
   variantId
   source               // LISTING_MIN | LISTING_AVG | SALE | IMPORT
   priceClp Int
-  capturedOn date      // un punto por (variante, source, día UTC)
+  capturedOn date      // un punto por (variante, source, día calendario America/Santiago)
   capturedAt
   unique(variantId, source, capturedOn)
   index(variantId, capturedAt)
@@ -245,7 +245,7 @@ Filtros de precio usan `Listing` (Fase 4).
 
 ```text
 Listing
-  sellerId
+  sellerId             // FK User ON DELETE RESTRICT (B2). Baja de cuenta: deletedAt, no DELETE.
   storeId nullable     // Fase 15; columna lista, sin FK a Store
   variantId nullable   // null solo si productType != SINGLE en el futuro
   productType default SINGLE
@@ -287,6 +287,7 @@ Order                      // una por vendedor por checkout
   shippingAddressId
   notes
   paidAt, shippedAt, deliveredAt, confirmedAt, completedAt
+  indexes (buyerId, createdAt), (sellerId, createdAt), checkoutId, (status, completedAt)
 
 OrderItem
   orderId, listingId, variantId
@@ -346,6 +347,7 @@ WishlistItem
   targetPriceClp
   notifyBelow Boolean default true
   unique(userId, variantId)
+  indexes (userId), (variantId), (notifyBelow, variantId)
 
 Collection
   userId unique            // MVP: una Default por usuario
@@ -362,9 +364,9 @@ CollectionItem             // lote de compra (no unique variant+condition)
   indexes (collectionId, createdAt), (collectionId, variantId, condition), variantId
   // Mismo printing con distinto costo = filas distintas. Ver COLLECTIONS.md.
 
-Listing.sourceCollectionItemId nullable  // trazabilidad vender-desde-colección; al COMPLETED descuenta el lote (idempotente)
+Listing.sourceCollectionItemId nullable  // vender-desde-colección; descuento del lote en el mismo tx que confirm (B2, idempotente)
 
-CollectionValueSnapshot    // Fase 13 — job diario
+CollectionValueSnapshot    // Fase 13 — job diario; capturedOn = día calendario Chile
   collectionId, capturedOn date, valueClp, breakdown Json
   unique(collectionId, capturedOn)
 

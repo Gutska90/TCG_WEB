@@ -7,6 +7,8 @@ import {
 } from "@tcg/config";
 import type { PriceHistoryView, PriceSuggestionView } from "@tcg/types";
 import { AppError } from "../common/errors/app-error";
+import { mapPool } from "../common/async-pool";
+import { chileCalendarDayRange, startOfChileDayForDate } from "../common/chile-time";
 import { FeatureFlagsService } from "../flags/feature-flags.service";
 import { MarketService } from "../listings/market.service";
 import { PrismaService } from "../prisma/prisma.service";
@@ -21,6 +23,8 @@ import {
 
 const SALE_LOOKBACK_DAYS = 30;
 const LISTING_AVG_LOOKBACK_DAYS = 7;
+const CAPTURE_CONCURRENCY = 8;
+const VARIANT_PAGE = 500;
 
 @Injectable()
 export class PricesService {
@@ -31,19 +35,15 @@ export class PricesService {
   ) {}
 
   async captureDay(now = new Date()): Promise<{ listings: number; sales: number }> {
-    const day = utcDateOnly(now);
-    const listingIds = await this.activeVariantIds();
+    const { day, from, to } = chileCalendarDayRange(now);
     let listings = 0;
-    for (const variantId of listingIds) {
-      await this.market.snapshotVariant(this.prisma, variantId, day);
-      listings += 1;
+    for await (const page of this.activeVariantIdPages()) {
+      await mapPool(page, CAPTURE_CONCURRENCY, (variantId) => this.market.snapshotVariant(this.prisma, variantId, day));
+      listings += page.length;
     }
-    const from = day;
-    const to = addUtcDays(day, 1);
     const sold = await this.prisma.orderItem.findMany({
       where: {
-        createdAt: { gte: from, lt: to },
-        order: { status: "COMPLETED" },
+        order: { status: "COMPLETED", completedAt: { gte: from, lt: to } },
       },
       select: { variantId: true, unitPriceClp: true },
     });
@@ -75,7 +75,7 @@ export class PricesService {
         orderBy: { capturedOn: "asc" },
       }),
       this.market.summarizeForVariant(variantId),
-      this.completedSales(variantId, addUtcDays(utcDateOnly(now), -SALE_LOOKBACK_DAYS)),
+      this.completedSales(variantId, startOfChileDayForDate(addUtcDays(utcDateOnly(now), -SALE_LOOKBACK_DAYS))),
     ]);
     const byDay = new Map<string, { min?: number; avg?: number; sale?: number }>();
     for (const row of rows) {
@@ -151,20 +151,30 @@ export class PricesService {
 
   private async completedSales(variantId: string, from: Date) {
     return this.prisma.orderItem.findMany({
-      where: { variantId, createdAt: { gte: from }, order: { status: "COMPLETED" } },
+      where: { variantId, order: { status: "COMPLETED", completedAt: { gte: from } } },
       select: { unitPriceClp: true, quantity: true, createdAt: true },
-      orderBy: { createdAt: "asc" },
+      orderBy: { order: { completedAt: "asc" } },
     });
   }
 
-  private async activeVariantIds(): Promise<string[]> {
-    const rows = await this.prisma.listing.findMany({
-      where: { status: "ACTIVE", quantity: { gt: 0 }, variantId: { not: null } },
-      distinct: ["variantId"],
-      select: { variantId: true },
-      take: 5_000,
-    });
-    return rows.map((row) => row.variantId).filter((id): id is string => Boolean(id));
+  private async *activeVariantIdPages(): AsyncGenerator<string[]> {
+    let offset = 0;
+    for (;;) {
+      const rows = await this.prisma.$queryRaw<Array<{ variant_id: string }>>(Prisma.sql`
+        SELECT variant_id
+        FROM listings
+        WHERE status = 'ACTIVE'::"ListingStatus"
+          AND quantity > 0
+          AND variant_id IS NOT NULL
+        GROUP BY variant_id
+        ORDER BY variant_id
+        LIMIT ${VARIANT_PAGE} OFFSET ${offset}
+      `);
+      if (rows.length === 0) return;
+      yield rows.map((row) => row.variant_id);
+      offset += rows.length;
+      if (rows.length < VARIANT_PAGE) return;
+    }
   }
 
   private async requireVariant(variantId: string) {

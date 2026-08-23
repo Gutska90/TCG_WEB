@@ -132,7 +132,7 @@ GET /v1/variants/:id/prices?range=3m
 → { currency: "CLP", current, min, avg, max, volumeSold, lastSaleClp, avg30dClp, median30dClp, minListingClp, confidence, points: [{ t, min, avg, sale }], disclaimer }
 ```
 
-Flag `ENABLE_PRICES`. Job `card-prices` (6 h) y `pnpm --filter @tcg/api prices:capture`. Un punto por `(variantId, source, capturedOn)`. `SALE` = mediana de `OrderItem.unitPriceClp` de órdenes `COMPLETED` ese día UTC.
+Flag `ENABLE_PRICES`. Job `card-prices` (6 h) y `pnpm --filter @tcg/api prices:capture`. Un punto por `(variantId, source, capturedOn)` (día calendario America/Santiago). `SALE` = mediana de `OrderItem.unitPriceClp` de órdenes `COMPLETED` ese día, imputado por `Order.completedAt`.
 
 ### Precio sugerido al vender
 
@@ -169,4 +169,4 @@ Notificación:
 | PUT | `/v1/me/wishlist/:variantId` | `{ targetPriceClp, notifyBelow? }` |
 | DELETE | `/v1/me/wishlist/:variantId` |
 
-Flag `ENABLE_WISHLIST`. Job `wishlist-scan` y ping al crear/editar/activar listing. Preferencias: `GET/PATCH /v1/me/notification-preferences` (`PRICE_DROP` opt-in).
+Flag `ENABLE_WISHLIST`. Job `wishlist-scan` pagina todas las variantes con `notifyBelow` (sin tope 5000) y ping al crear/editar/activar listing. Preferencias: `GET/PATCH /v1/me/notification-preferences` (`PRICE_DROP` opt-in).

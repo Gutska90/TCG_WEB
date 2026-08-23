@@ -36,7 +36,7 @@ Máximo `pageSize=100`.
 | GET | `/health` | no | liveness |
 | GET | `/ready` | no | postgres ok |
 | GET | `/v1/config` | no | currency, condiciones, finishes, `legal` (versiones), flags públicos; sin secretos |
-| GET | `/v1/disputes/:id/evidence/:evidenceId/file` | dueño o staff | metadata/stream privado; nunca bucket público |
+| GET | `/v1/disputes/:id/evidence/:evidenceId/file` | dueño o staff | stream de bytes (no bucket público). Sin objeto: `FILE_NOT_STORED` |
 
 ---
 
@@ -126,7 +126,7 @@ SEO web usa slugs; la API también expone las mismas fichas por id. `market.*` s
 
 ## Búsqueda — Fase 3
 
-`GET /v1/search/cards` (público, 60 req/min/IP):
+`GET /v1/search/cards` (público, 60 req/min/IP). Requisito: p95 < 300 ms en catálogo MVP (Postgres). Medición: [runbooks/PERFORMANCE.md](runbooks/PERFORMANCE.md).
 
 | Query | |
 |-------|--|
@@ -167,7 +167,7 @@ Privada. Detalle en [COLLECTIONS.md](COLLECTIONS.md). Flag `ENABLE_COLLECTIONS`.
 | GET | `/v1/me/collections/:id` | dueño | |
 | PATCH | `/v1/me/collections/:id` | dueño | rename |
 | GET | `/v1/me/collection/summary` | sí | KPIs + P/L |
-| GET | `/v1/me/collection/items` | sí | q, game, set, condition, duplicates, sort, page |
+| GET | `/v1/me/collection/items` | sí | q, game, set, condition, duplicates, sort (`recent`\|`name`\|`estimatedValue`\|`quantity`), page. `estimatedValue` pagina en SQL (no carga todos los lotes). |
 | POST | `/v1/me/collection/items` | sí | lote: variantId, condition, quantity, costo/fecha/notas opcionales |
 | GET | `/v1/me/collection/items/:id` | dueño | |
 | PATCH | `/v1/me/collection/items/:id` | dueño | |
@@ -185,9 +185,10 @@ Privada. Detalle en [COLLECTIONS.md](COLLECTIONS.md). Flag `ENABLE_COLLECTIONS`.
 | Método | Path | Auth |
 |--------|------|------|
 | POST | `/v1/files/uploads` | sí | `{ mime, size, purpose }` → `{ fileId, uploadUrl, storage }` |
-| POST | `/v1/files/:id/complete` | sí | marca READY |
+| POST | `/v1/files/:id/complete` | sí | marca READY solo si el objeto existe (o driver `deferred`) |
+| GET | `/v1/files/:id` | no | stream listing/avatar READY. Evidencia y otros: 404 |
 
-Sin R2 configurado, `storage: "deferred"` y `uploadUrl: null`. `complete` deja el File READY (metadatos). Object storage real no se inventa.
+`purpose` LISTING/AVATAR: MIME `image/jpeg`, `image/png`, `image/webp`. DISPUTE_EVIDENCE: allowlist en config. Sin R2/S3 (local/CI), `storage: "deferred"` y `uploadUrl: null`; `complete` no exige bytes. Con R2 o `S3_ENDPOINT`, `storage: "object"`, PUT prefirmado, `complete` hace HeadObject (`FILE_NOT_READY` si falta). Staging/prod fallan al boot si no hay storage. `GET` no usa bucket público. ListingView.images incluye `url: /v1/files/:id`.
 
 ---
 
@@ -221,7 +222,7 @@ Sin R2 configurado, `storage: "deferred"` y `uploadUrl: null`. `complete` deja e
 
 Sugerencia de precio: `GET /v1/variants/:id/price-suggestion` → `{ market, minListing, suggested }`. Con `ENABLE_PRICES`, `market` puede ser el `LISTING_AVG` de 7 días.
 
-Historial (Fase 13, pública, flag `ENABLE_PRICES`): `GET /v1/variants/:id/prices?range=1m|3m|6m|1a` (default `3m`) → `{ currency, range, current, min, avg, max, volumeSold, lastSaleClp, avg30dClp, median30dClp, minListingClp, confidence, points, disclaimer }`. `current` es el índice interno TCG Market Chile (mediana de ventas COMPLETED 30d, outliers 0.5×–2× fuera; si no hay ventas, avg de listings). Job `card-prices` cada 6 h: `LISTING_MIN` / `LISTING_AVG` / `SALE` uno por (variante, source, día UTC). CLI `pnpm --filter @tcg/api prices:capture`. Job `collection-value` diario persiste `CollectionValueSnapshot`. Resumen de colección incluye `change30dClp`.
+Historial (Fase 13, pública, flag `ENABLE_PRICES`): `GET /v1/variants/:id/prices?range=1m|3m|6m|1a` (default `3m`) → `{ currency, range, current, min, avg, max, volumeSold, lastSaleClp, avg30dClp, median30dClp, minListingClp, confidence, points, disclaimer }`. `current` es el índice interno TCG Market Chile (mediana de ventas COMPLETED 30d, outliers 0.5×–2× fuera; si no hay ventas, avg de listings). Job `card-prices` cada 6 h: `LISTING_MIN` / `LISTING_AVG` / `SALE` uno por (variante, source, día calendario America/Santiago). `SALE` imputa `Order.completedAt` (no `OrderItem.createdAt`). CLI `pnpm --filter @tcg/api prices:capture`. Job `collection-value` diario persiste `CollectionValueSnapshot`. Resumen de colección incluye `change30dClp`.
 
 Wishlist (Fase 14, flag `ENABLE_WISHLIST`): `GET /v1/me/wishlist`; `PUT /v1/me/wishlist/:variantId` `{ targetPriceClp, notifyBelow? }`; `DELETE` mismo path. Un ítem por `(userId, variantId)`. Job `wishlist-scan` (5 min) + ping al publicar/editar listing: si `min ACTIVE <= target` emite `WISHLIST_HIT` (in-app siempre; no spam del mismo listing+precio; si baja más, avisa de nuevo). `PRICE_DROP` (≥10% vs `LISTING_MIN` de hace 7 días) es opt-in (`GET/PATCH /v1/me/notification-preferences`). `GET /v1/me/notifications` lista in-app. Push tokens siguen reservados.
 

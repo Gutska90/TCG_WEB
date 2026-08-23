@@ -446,6 +446,12 @@ export const MODERATION_ACTION_TYPES = [
 ] as const;
 export type ModerationActionType = (typeof MODERATION_ACTION_TYPES)[number];
 
+export const LISTING_IMAGE_MIMES = ["image/jpeg", "image/png", "image/webp"] as const;
+export type ListingImageMime = (typeof LISTING_IMAGE_MIMES)[number];
+
+export const AVATAR_MIMES = LISTING_IMAGE_MIMES;
+export type AvatarMime = ListingImageMime;
+
 export const DISPUTE_EVIDENCE_MIMES = [
   "image/jpeg",
   "image/png",
@@ -526,6 +532,8 @@ export const ERROR_CODES = {
   SELLER_SUSPENDED: "SELLER_SUSPENDED",
   EVIDENCE_LIMIT: "EVIDENCE_LIMIT",
   FILE_NOT_ALLOWED: "FILE_NOT_ALLOWED",
+  FILE_NOT_READY: "FILE_NOT_READY",
+  FILE_NOT_STORED: "FILE_NOT_STORED",
   FEATURE_DISABLED: "FEATURE_DISABLED",
   SERVICE_TEMPORARILY_DISABLED: "SERVICE_TEMPORARILY_DISABLED",
   PAYOUT_DISPUTED: "PAYOUT_DISPUTED",
@@ -733,4 +741,74 @@ export function assertOauthRuntimeConfig(env: NodeJS.Dict<string> = process.env)
     throw new Error("ENABLE_APPLE_AUTH=true requires APPLE_CLIENT_ID");
   }
 }
+
+function envTrimmed(value: string | undefined): string {
+  return value?.trim() ?? "";
+}
+
+export function isStrictDeployEnv(env: NodeJS.Dict<string> = process.env): boolean {
+  const nodeEnv = env.NODE_ENV ?? "development";
+  const appEnv = env.APP_ENV ?? "";
+  return nodeEnv === "production" || nodeEnv === "staging" || appEnv === "staging" || appEnv === "production";
+}
+
+/** R2 (docs) o S3/Minio compatible. */
+export function objectStorageConfigured(env: NodeJS.Dict<string> = process.env): boolean {
+  const r2 =
+    Boolean(envTrimmed(env.R2_ACCOUNT_ID)) &&
+    Boolean(envTrimmed(env.R2_ACCESS_KEY_ID)) &&
+    Boolean(envTrimmed(env.R2_SECRET_ACCESS_KEY)) &&
+    Boolean(envTrimmed(env.R2_BUCKET));
+  const s3 =
+    Boolean(envTrimmed(env.S3_ENDPOINT)) &&
+    Boolean(envTrimmed(env.S3_ACCESS_KEY_ID)) &&
+    Boolean(envTrimmed(env.S3_SECRET_ACCESS_KEY)) &&
+    Boolean(envTrimmed(env.S3_BUCKET));
+  return r2 || s3;
+}
+
+export function mailDeliveryConfigured(env: NodeJS.Dict<string> = process.env): boolean {
+  return Boolean(envTrimmed(env.RESEND_API_KEY)) || Boolean(envTrimmed(env.SMTP_HOST));
+}
+
+/**
+ * B1: staging/production no arrancan sin storage y correo.
+ * Staging nunca habilita pagos reales.
+ */
+export function assertStagingRuntimeDeps(env: NodeJS.Dict<string> = process.env): void {
+  if (!isStrictDeployEnv(env)) return;
+  if (!objectStorageConfigured(env)) {
+    throw new Error(
+      "staging/production requires object storage: R2_ACCOUNT_ID+R2_ACCESS_KEY_ID+R2_SECRET_ACCESS_KEY+R2_BUCKET or S3_ENDPOINT+S3_ACCESS_KEY_ID+S3_SECRET_ACCESS_KEY+S3_BUCKET",
+    );
+  }
+  if (!mailDeliveryConfigured(env)) {
+    throw new Error("staging/production requires RESEND_API_KEY or SMTP_HOST");
+  }
+  const staging = (env.NODE_ENV ?? "") === "staging" || (env.APP_ENV ?? "") === "staging";
+  if (staging && envFlag(env.ENABLE_REAL_PAYMENTS, false)) {
+    throw new Error("ENABLE_REAL_PAYMENTS must be false in staging");
+  }
+}
+
+/** B5: the flag is not a no-op. Tracking on without DSN fails closed. */
+export function assertErrorTrackingConfig(env: NodeJS.Dict<string> = process.env): void {
+  if (!envFlag(env.ERROR_TRACKING_ENABLED, false)) return;
+  if (!envTrimmed(env.SENTRY_DSN)) {
+    throw new Error("ERROR_TRACKING_ENABLED=true requires SENTRY_DSN");
+  }
+}
+
+export {
+  apiHelmetOptions,
+  buildContentSecurityPolicy,
+  clientIpFromForwarded,
+  enableHstsFromEnv,
+  ipAllowlistAllows,
+  nextDocumentHeaders,
+  parseIpAllowlist,
+  safeInternalPath,
+} from "./http-security";
+export type { NextSecurityHeaderOptions } from "./http-security";
+
 

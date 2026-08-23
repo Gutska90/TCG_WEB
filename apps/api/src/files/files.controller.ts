@@ -1,6 +1,7 @@
-import { Body, Controller, Param, Post } from "@nestjs/common";
-import { createFileUploadSchema, type CreateFileUploadInput } from "@tcg/validation";
+import { Body, Controller, Get, Header, Param, Post, StreamableFile } from "@nestjs/common";
+import { createFileUploadSchema, uuidParamSchema, type CreateFileUploadInput } from "@tcg/validation";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
+import { Public } from "../common/decorators/public.decorator";
 import { ZodPipe } from "../common/pipes/zod-pipe";
 import type { RequestUser } from "../auth/request-user";
 import { FilesService } from "./files.service";
@@ -18,7 +19,23 @@ export class FilesController {
   }
 
   @Post(":id/complete")
-  complete(@CurrentUser() user: RequestUser, @Param("id") id: string) {
+  complete(
+    @CurrentUser() user: RequestUser,
+    @Param("id", new ZodPipe(uuidParamSchema)) id: string,
+  ) {
     return this.files.complete(user.id, id);
+  }
+
+  @Public()
+  @Get(":id")
+  @Header("Cache-Control", "public, max-age=300")
+  @Header("X-Content-Type-Options", "nosniff")
+  async getPublic(@Param("id", new ZodPipe(uuidParamSchema)) id: string): Promise<StreamableFile> {
+    const file = await this.files.openPublic(id);
+    return new StreamableFile(file.body, {
+      type: file.mime,
+      length: file.size,
+      disposition: "inline",
+    });
   }
 }

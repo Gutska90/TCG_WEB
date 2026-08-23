@@ -1,0 +1,17 @@
+.git
+**/.git
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+**/.expo
+**/coverage
+playwright-report
+test-results
+blob-report
+apps/mobile/ios
+apps/mobile/android
+.env
+.env.*
+!.env.example
+!.env.staging.example

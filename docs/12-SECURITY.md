@@ -35,7 +35,12 @@ Ver [05-AUTH](05-AUTH.md). Toda ruta no pública: JWT + roles + ownership. Tests
 - Trust 10.5: ownership 404; notas internas ocultas; files de evidencia con MIME/tamaño/cantidad; rate limit de reports; texto sanitizado; parties no ven emails ajenos ni AuditLog completo; resolver disputa solo staff. MODERATOR no hereda endpoints financieros.
 - 10.6 evidencia: `GET /v1/disputes/:id/evidence/:evidenceId/file` solo party o staff (IDOR → 404). Nunca bucket público.
 - Helmet, CORS allowlist (nunca `*`), body 256 KiB, timeout 30s, shutdown hooks. Production/staging fail-fast si falta `DATABASE_URL`, CORS `*`, JWT inválido, o un provider OAuth habilitado sin client IDs.
-- Logs JSON con `X-Request-Id`; redaction de password/JWT/MP tokens/Authorization/idToken/identityToken/refresh. `ERROR_TRACKING_ENABLED=false` por defecto.
+- Next web/admin: CSP + `X-Frame-Options: DENY` + Referrer-Policy + HSTS en staging/prod. API Helmet con CSP `default-src 'none'` explícito (no cubre el HTML de Next). GIS en web: `accounts.google.com` en script/connect/frame/style.
+- Admin: `ADMIN_IP_ALLOWLIST` (vacío = sin filtro, local). Staging público debe setear IPs o no exponer el host.
+- `loginHref` / `?next=` solo paths internos (`safeInternalPath`); rechaza `//`, `://` y `\`.
+- `Order.confirm` descuenta lotes de colección en la misma transacción (`SELECT … FOR UPDATE` del lote).
+- `Listing.seller` `onDelete: Restrict`. Baja de cuenta es `deletedAt`, no DELETE físico.
+- Logs JSON con `X-Request-Id`; redaction de password/JWT/MP tokens/Authorization/idToken/identityToken/refresh. `ERROR_TRACKING_ENABLED=false` por defecto; `true` exige `SENTRY_DSN` y no envía cookies/Authorization.
 - `ADJUSTMENT` del ledger: solo `SUPER_ADMIN`. Nunca PATCH/DELETE `/ledger`.
 - Body de payout: no se acepta `amountClp` ni `commissionClp` calculados en UI.
 - Mutaciones admin 10B/10C: 20 req/min. Run de conciliación: 5 req/min.
@@ -53,7 +58,8 @@ Ver [05-AUTH](05-AUTH.md). Toda ruta no pública: JWT + roles + ownership. Tests
 
 ## Headers y API
 
-- Helmet en Nest.
+- Helmet en Nest (CSP explícito `default-src 'none'`).
+- Next web/admin: CSP, HSTS (staging/prod), Referrer-Policy, `X-Frame-Options`.
 - CORS allowlist de web, admin, esquema Expo.
 - Payload máximo limitado.
 - No `any` para saltear validación.
@@ -61,7 +67,7 @@ Ver [05-AUTH](05-AUTH.md). Toda ruta no pública: JWT + roles + ownership. Tests
 ## Dependencias
 
 - Lockfile committed.
-- `pnpm audit` en CI.
+- `pnpm audit` en CI (`pnpm audit:deps`). High/critical nuevos fallan; allowlist en [security/audit-allowlist.json](security/audit-allowlist.json) solo para deps sin parche usable.
 - No commitear `.env`, credenciales, dumps.
 
 ## Catálogo y copyright

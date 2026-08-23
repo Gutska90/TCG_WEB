@@ -9,8 +9,11 @@ import {
   PAYMENT_STATUSES,
   PAYOUT_STATUSES,
   DISPUTE_REASONS,
+  DISPUTE_EVIDENCE_MIMES,
   DISPUTE_EVIDENCE_TYPES,
   DISPUTE_STATUSES,
+  LISTING_IMAGE_MIMES,
+  AVATAR_MIMES,
   FEEDBACK_CATEGORIES,
   PLATFORM,
   PRICE_RANGES,
@@ -194,6 +197,15 @@ export const createFileUploadSchema = z.object({
   size: z.number().int().positive().max(PLATFORM.listingMaxImageBytes),
   purpose: z.enum(["LISTING", "AVATAR", "DISPUTE_EVIDENCE"]),
 }).superRefine((value, ctx) => {
+  const allowed =
+    value.purpose === "DISPUTE_EVIDENCE"
+      ? DISPUTE_EVIDENCE_MIMES
+      : value.purpose === "AVATAR"
+        ? AVATAR_MIMES
+        : LISTING_IMAGE_MIMES;
+  if (!(allowed as readonly string[]).includes(value.mime)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Tipo de archivo no permitido", path: ["mime"] });
+  }
   if (value.purpose === "DISPUTE_EVIDENCE" && value.size > PLATFORM.disputeEvidenceMaxBytes) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Archivo demasiado grande", path: ["size"] });
   }

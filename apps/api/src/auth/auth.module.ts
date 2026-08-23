@@ -16,6 +16,10 @@ import { PasswordService } from "./password.service";
 @Module({
   imports: [
     ThrottlerModule.forRoot({
+      skipIf: () => {
+        const env = process.env.NODE_ENV ?? process.env.APP_ENV ?? "";
+        return process.env.E2E_RELAX_THROTTLE === "true" || env === "development" || env === "test";
+      },
       throttlers: [{ name: "default", ttl: 60_000, limit: 120 }],
     }),
     JwtModule.registerAsync({

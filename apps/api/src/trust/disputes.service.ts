@@ -27,6 +27,7 @@ import type {
 import { AuditService } from "../audit/audit.service";
 import type { RequestUser } from "../auth/request-user";
 import { AppError } from "../common/errors/app-error";
+import { FilesService } from "../files/files.service";
 import { MetricsService } from "../observability/metrics.service";
 import { PayoutsService } from "../payouts/payouts.service";
 import { PrismaService } from "../prisma/prisma.service";
@@ -67,6 +68,7 @@ export class DisputesService {
     private readonly moderation: ModerationLogService,
     private readonly payouts: PayoutsService,
     private readonly metrics: MetricsService,
+    private readonly files: FilesService,
   ) {}
 
   async open(actor: RequestUser, orderId: string, input: OpenDisputeInput): Promise<DisputeDetailView> {
@@ -298,11 +300,7 @@ export class DisputesService {
     };
   }
 
-  async streamEvidenceFile(
-    actor: RequestUser,
-    disputeId: string,
-    evidenceId: string,
-  ): Promise<{ mime: string; size: number; fileId: string; storage: string; key: string }> {
+  async streamEvidenceFile(actor: RequestUser, disputeId: string, evidenceId: string) {
     const dispute = await this.prisma.dispute.findUnique({ where: { id: disputeId } });
     if (!dispute) {
       throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Disputa no encontrada");
@@ -315,13 +313,7 @@ export class DisputesService {
     if (!evidence) {
       throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Evidencia no encontrada");
     }
-    return {
-      mime: evidence.file.mime,
-      size: evidence.file.size,
-      fileId: evidence.fileId,
-      storage: evidence.file.bucket,
-      key: evidence.file.key,
-    };
+    return this.files.openStored(evidence.file);
   }
 
   async assign(actor: RequestUser, id: string): Promise<DisputeDetailView> {

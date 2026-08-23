@@ -7,7 +7,9 @@ import { PrismaService } from "../../src/prisma/prisma.service";
 import { CollectionsService } from "../../src/collections/collections.service";
 import { AuditService } from "../../src/audit/audit.service";
 import { flagsForTest } from "../../src/flags/feature-flags.service";
-import { createBuyer } from "./helpers/market-fixture";
+import { createBuyer, cleanupSale, createPendingSale } from "./helpers/market-fixture";
+import { FakePaymentProvider } from "./helpers/fake-payment-provider";
+import { createMoneyServices } from "./helpers/money-stack";
 
 loadEnv({ path: resolve(__dirname, "../../../../.env") });
 
@@ -310,6 +312,91 @@ describe("Fase 12 collections (postgres)", () => {
       await collections.applySaleDeduction(orderId, fx.owner.id, [{ listingId: listing.id, quantity: 1 }]);
       const again = await collections.getItem(fx.owner.id, lot.id);
       expect(again.quantity).toBe(2);
+    } finally {
+      await cleanup({ userIds: [fx.owner.id, fx.stranger.id], gameId: fx.game.id, listingIds });
+    }
+  });
+
+  it("deducts source collection lots inside order.confirm", async () => {
+    const money = createMoneyServices(prisma, new FakePaymentProvider());
+    const sale = await createPendingSale(prisma);
+    try {
+      const lot = await collections.addItem(sale.sellerId, {
+        variantId: sale.variantId,
+        condition: "NM",
+        quantity: 2,
+      });
+      await prisma.listing.update({
+        where: { id: sale.listingId },
+        data: { sourceCollectionItemId: lot.id },
+      });
+      await money.orders.applyApproved(sale.checkoutId, `mp-${randomUUID()}`, { status: "approved" });
+      await prisma.order.update({
+        where: { id: sale.orderId },
+        data: { status: "DELIVERED", deliveredAt: new Date() },
+      });
+      await money.orders.confirm(
+        {
+          id: sale.buyerId,
+          email: "buyer@test.local",
+          roles: ["USER"],
+          sessionId: "it-col-confirm",
+          emailVerified: true,
+          tokenVersion: 0,
+        },
+        sale.orderId,
+      );
+      const after = await collections.getItem(sale.sellerId, lot.id);
+      expect(after.quantity).toBe(1);
+      const order = await prisma.order.findUniqueOrThrow({ where: { id: sale.orderId } });
+      expect(order.status).toBe("COMPLETED");
+    } finally {
+      await cleanupSale(prisma, sale);
+    }
+  });
+
+  it("pages estimatedValue without loading every lot into the page query", async () => {
+    const fx = await catalog(2);
+    const listingIds: string[] = [];
+    try {
+      await collections.addItem(fx.owner.id, {
+        variantId: fx.createdCards[0]!.variant.id,
+        condition: "NM",
+        quantity: 1,
+      });
+      await collections.addItem(fx.owner.id, {
+        variantId: fx.createdCards[1]!.variant.id,
+        condition: "NM",
+        quantity: 1,
+      });
+      for (const [index, card] of fx.createdCards.entries()) {
+        const listing = await prisma.listing.create({
+          data: {
+            sellerId: fx.owner.id,
+            variantId: card.variant.id,
+            productType: "SINGLE",
+            title: `Val ${index}`,
+            condition: "NM",
+            quantity: 1,
+            priceClp: index === 0 ? 10_000 : 50_000,
+            status: "ACTIVE",
+            allowsMeetup: true,
+            allowsShipping: true,
+            publishedAt: new Date(),
+          },
+        });
+        listingIds.push(listing.id);
+      }
+      const page = await collections.listItems(fx.owner.id, {
+        page: 1,
+        pageSize: 1,
+        sort: "estimatedValue",
+        duplicates: false,
+      });
+      expect(page.total).toBe(2);
+      expect(page.items).toHaveLength(1);
+      expect(page.items[0]?.variantId).toBe(fx.createdCards[1]!.variant.id);
+      expect(page.items[0]?.estimatedValueClp).toBe(50_000);
     } finally {
       await cleanup({ userIds: [fx.owner.id, fx.stranger.id], gameId: fx.game.id, listingIds });
     }

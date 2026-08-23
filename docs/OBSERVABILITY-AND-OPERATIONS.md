@@ -16,7 +16,7 @@ Header `X-Request-Id`: UUID válido del reverse proxy, o UUID generado. Se echoa
 
 ## Error tracking
 
-`ErrorTrackingService`. `ERROR_TRACKING_ENABLED=false` por defecto. Captura 5xx, excepciones, jobs FAILED. Sin PII financiera. Sentry no está cableado; el puerto existe.
+`ErrorTrackingService`. `ERROR_TRACKING_ENABLED=false` por defecto. Captura 5xx, excepciones, jobs FAILED. Sin PII financiera. Si el flag es `true`, exige `SENTRY_DSN` (fail-fast) y envía a Sentry (`beforeSend` redacta cookies/Authorization; `tracesSampleRate: 0`). Ver [runbooks/PRODUCTION.md](runbooks/PRODUCTION.md).
 
 ## Métricas
 
@@ -64,7 +64,7 @@ Son env. Admin `/admin/system` es **read-only**. Cambiar exige redeploy.
 
 ## Jobs
 
-Sin BullMQ. `JobRunner` inserta `JobRun RUNNING` con unique parcial un RUNNING por `jobName` (igual espíritu que recon). Segunda ejecución concurrente → `SKIPPED`.
+Sin BullMQ. `JobRunner` inserta `JobRun RUNNING` con unique parcial un RUNNING por `jobName` (igual espíritu que recon). Segunda ejecución concurrente → `SKIPPED`. Si hay `REDIS_URL`, un solo proceso arma los `setInterval` (lock `tcg:jobs:leader`). Sin Redis, todos los procesos con `JOBS_ENABLED` intentan; el unique evita el doble trabajo.
 
 Jobs: `expire-checkouts`, `housekeeping` (RUNNING stale → FAILED), `reconciliation`, `refund-retry`, `card-prices` (6 h), `collection-value` (diario), `wishlist-scan` (5 min).
 
@@ -81,8 +81,8 @@ Visibles en dashboard y `/admin/system`. Sin paging. Incluyen refund/payout FAIL
 ## Riesgos pendientes para 10.7
 
 - Bytes reales de evidencia (hoy storage `deferred`).
-- Sentry/APM y export Prometheus.
-- BullMQ si el scheduler in-process no basta en multi-instancia (lock DB ya evita doble job).
+- APM / export Prometheus / Grafana.
+- BullMQ si hace falta cola real (emails, webhooks, import); el líder Redis + lock DB cubren el scheduler in-process en multi-réplica.
 - Payouts automáticos / MP live (production gate).
 - Corrección automática de conciliación.
 - Store mutable de flags (hoy env).

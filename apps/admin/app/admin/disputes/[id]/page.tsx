@@ -7,7 +7,7 @@ import { DISPUTE_REASON_LABELS, formatClp } from "@tcg/config";
 import type { AdminDisputeDetailView } from "@tcg/types";
 import { ConfirmAction, Meta } from "@/components/confirm-action";
 import { DisputeBadge } from "@/components/status-badge";
-import { api } from "@/lib/api";
+import { api, openAuthenticatedFile } from "@/lib/api";
 
 export default function AdminDisputeDetailPage() {
   const params = useParams<{ id: string }>();
@@ -106,7 +106,18 @@ export default function AdminDisputeDetailPage() {
           {data.evidence.map((row) => (
             <li key={row.id}>
               {row.evidenceType} · {row.mime} · {row.size} bytes
-              {row.description ? ` · ${row.description}` : ""}
+              {row.description ? ` · ${row.description}` : ""}{" "}
+              <button
+                type="button"
+                className="underline"
+                onClick={() =>
+                  void openAuthenticatedFile(`/v1/disputes/${id}/evidence/${row.id}/file`).catch((err: unknown) =>
+                    setError(err instanceof Error ? err.message : "No se pudo abrir"),
+                  )
+                }
+              >
+                Ver
+              </button>
             </li>
           ))}
           {data.evidence.length === 0 ? <li className="text-neutral-500">Sin archivos</li> : null}

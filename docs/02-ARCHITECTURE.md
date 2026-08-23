@@ -63,7 +63,7 @@ tcg-platform/
 - Prisma
 - Passport / estrategias JWT
 - Throttling
-- Queue (BullMQ + Redis) para emails, webhooks, importaciones — **no en 10.6**. Beta usa `JobRunner` in-process + `JobRun` (advisory uniqueness por `RUNNING`). Ver [OBSERVABILITY-AND-OPERATIONS.md](OBSERVABILITY-AND-OPERATIONS.md).
+- Queue (BullMQ + Redis) para emails, webhooks, importaciones — **no en beta**. Jobs: `JobRunner` in-process + `JobRun` (un `RUNNING` por nombre). Redis opcional: lock de líder del `JobScheduler` (B5). Ver [OBSERVABILITY-AND-OPERATIONS.md](OBSERVABILITY-AND-OPERATIONS.md) y [runbooks/PRODUCTION.md](runbooks/PRODUCTION.md).
 
 Módulos NestJS (carpeta = bounded context):
 
@@ -116,9 +116,12 @@ Detalle en [05-AUTH](05-AUTH.md).
 ## Archivos
 
 1. Cliente pide URL prefirmada `POST /v1/files/uploads`.
-2. Sube a R2.
-3. Confirma `POST /v1/files/:id/complete`.
-4. Listings y avatares referencian `File` por id.
+2. Si `storage: "object"`, sube con PUT a R2/Minio. Si `deferred` (local/CI sin credenciales), no hay URL.
+3. Confirma `POST /v1/files/:id/complete` (HeadObject cuando hay storage).
+4. Listings y avatares referencian `File` por id; `GET /v1/files/:id` streamea listing/avatar.
+5. Evidencia de disputa: `GET /v1/disputes/:id/evidence/:evidenceId/file` (parte o staff).
+
+Staging/producción no arrancan sin R2 o S3 y sin Resend o SMTP. Ver [runbooks/STAGING.md](runbooks/STAGING.md).
 
 ## Tiempo real
 

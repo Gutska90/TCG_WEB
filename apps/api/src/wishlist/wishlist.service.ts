@@ -1,8 +1,10 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
 import { ERROR_CODES, PLATFORM, formatClp } from "@tcg/config";
 import type { Paginated, WishlistItemView } from "@tcg/types";
 import type { UpsertWishlistItemInput } from "@tcg/validation";
 import { AppError } from "../common/errors/app-error";
+import { mapPool } from "../common/async-pool";
 import { FeatureFlagsService } from "../flags/feature-flags.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import { PrismaService } from "../prisma/prisma.service";
@@ -36,6 +38,9 @@ type Row = {
     };
   };
 };
+
+const SCAN_CONCURRENCY = 8;
+const SCAN_PAGE = 500;
 
 @Injectable()
 export class WishlistService {
@@ -111,26 +116,18 @@ export class WishlistService {
     if (!this.flags.current().enableWishlist) {
       return { variants: 0, hits: 0, drops: 0 };
     }
-    const variantIds = [
-      ...new Set(
-        (
-          await this.prisma.wishlistItem.findMany({
-            where: { notifyBelow: true },
-            select: { variantId: true },
-            distinct: ["variantId"],
-            take: 5_000,
-          })
-        ).map((row) => row.variantId),
-      ),
-    ];
+    let variants = 0;
     let hits = 0;
     let drops = 0;
-    for (const variantId of variantIds) {
-      const result = await this.checkVariant(variantId);
-      hits += result.hits;
-      drops += result.drops;
+    for await (const page of this.notifyVariantIdPages()) {
+      const results = await mapPool(page, SCAN_CONCURRENCY, (variantId) => this.checkVariant(variantId));
+      variants += page.length;
+      for (const result of results) {
+        hits += result.hits;
+        drops += result.drops;
+      }
     }
-    return { variants: variantIds.length, hits, drops };
+    return { variants, hits, drops };
   }
 
   async checkVariant(variantId: string): Promise<{ hits: number; drops: number }> {
@@ -237,6 +234,24 @@ export class WishlistService {
       this.prisma.favorite.findMany({ where: { variantId }, select: { userId: true } }),
     ]);
     return [...new Set([...wish, ...favs].map((row) => row.userId))];
+  }
+
+  private async *notifyVariantIdPages(): AsyncGenerator<string[]> {
+    let offset = 0;
+    for (;;) {
+      const rows = await this.prisma.$queryRaw<Array<{ variant_id: string }>>(Prisma.sql`
+        SELECT variant_id
+        FROM wishlist_items
+        WHERE notify_below = true
+        GROUP BY variant_id
+        ORDER BY variant_id
+        LIMIT ${SCAN_PAGE} OFFSET ${offset}
+      `);
+      if (rows.length === 0) return;
+      yield rows.map((row) => row.variant_id);
+      offset += rows.length;
+      if (rows.length < SCAN_PAGE) return;
+    }
   }
 }
 

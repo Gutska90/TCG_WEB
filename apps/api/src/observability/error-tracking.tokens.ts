@@ -1,0 +1,1 @@
+export const ERROR_TRACKING_SINK = Symbol("ERROR_TRACKING_SINK");

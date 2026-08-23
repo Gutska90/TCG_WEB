@@ -26,8 +26,8 @@ describe("price index", () => {
     expect(saleConfidence(10)).toBe("HIGH");
   });
 
-  it("normalizes capturedOn to UTC date", () => {
-    const d = utcDateOnly(new Date("2026-08-21T23:15:00.000Z"));
-    expect(d.toISOString().slice(0, 10)).toBe("2026-08-21");
+  it("normalizes capturedOn to the Chile calendar date", () => {
+    const d = utcDateOnly(new Date("2026-08-21T03:30:00.000Z"));
+    expect(d.toISOString().slice(0, 10)).toBe("2026-08-20");
   });
 });

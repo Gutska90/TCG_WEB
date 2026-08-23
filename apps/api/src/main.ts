@@ -3,7 +3,7 @@ import { json, urlencoded, type NextFunction, type Request, type Response } from
 import { NestFactory } from "@nestjs/core";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
-import { PLATFORM, assertOauthRuntimeConfig, assertRealPaymentsLegalGate } from "@tcg/config";
+import { PLATFORM, apiHelmetOptions, assertErrorTrackingConfig, assertOauthRuntimeConfig, assertRealPaymentsLegalGate, assertStagingRuntimeDeps, enableHstsFromEnv } from "@tcg/config";
 import { AppModule } from "./app.module";
 import { JsonLogger } from "./observability/json-logger";
 import { resolveJwtAccessSecret } from "./auth/jwt-secret";
@@ -22,6 +22,8 @@ function assertRuntimeConfig(): void {
   }
   assertOauthRuntimeConfig(process.env);
   assertRealPaymentsLegalGate(process.env);
+  assertStagingRuntimeDeps(process.env);
+  assertErrorTrackingConfig(process.env);
 }
 
 async function bootstrap() {
@@ -32,7 +34,7 @@ async function bootstrap() {
     .map((origin) => origin.trim())
     .filter(Boolean);
 
-  app.use(helmet());
+  app.use(helmet(apiHelmetOptions(enableHstsFromEnv(process.env))));
   app.use(json({ limit: PLATFORM.jsonBodyLimitBytes }));
   app.use(urlencoded({ extended: false, limit: PLATFORM.jsonBodyLimitBytes }));
   app.use(cookieParser());

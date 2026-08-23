@@ -107,4 +107,30 @@ describe("graceful shutdown", () => {
     scheduler.stop();
     expect(() => scheduler.stop()).not.toThrow();
   });
+
+  it("does not arm job intervals when this replica is not leader", async () => {
+    const scheduler = new JobScheduler(
+      flagsForTest({ jobsEnabled: true }),
+      { expireCheckouts: async () => undefined } as never,
+      { failStale: async () => 0 } as never,
+      { hold: async () => false, release: async () => undefined },
+    );
+    scheduler.onModuleInit();
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    expect(scheduler.isScheduling()).toBe(false);
+    scheduler.stop();
+  });
+
+  it("arms job intervals when this replica is leader", async () => {
+    const scheduler = new JobScheduler(
+      flagsForTest({ jobsEnabled: true }),
+      { expireCheckouts: async () => undefined } as never,
+      { failStale: async () => 0 } as never,
+      { hold: async () => true, release: async () => undefined },
+    );
+    scheduler.onModuleInit();
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    expect(scheduler.isScheduling()).toBe(true);
+    scheduler.stop();
+  });
 });

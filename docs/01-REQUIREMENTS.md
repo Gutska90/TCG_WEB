@@ -78,7 +78,7 @@ Estas capacidades se **modelan** cuando afecta el esquema (p. ej. `Auction`, `Of
 |------|-----------|
 | Clientes | Web + PWA + iOS + Android contra la misma API |
 | Rendimiento búsqueda | p95 < 300 ms en catálogo MVP (Postgres) |
-| Imágenes | Subida directa a object storage; API no sirve blobs |
+| Imágenes | PUT directo a R2/S3/Minio (URL prefirmada); GET listing/avatar y evidencia autenticada pasan por la API (no bucket público) |
 | Auditoría | Toda mutación financiera en `AuditLog` |
 | Tipos | TypeScript estricto; tipos compartidos en `packages/types` |
 | Validación | Zod (o class-validator en Nest) en el borde de la API |

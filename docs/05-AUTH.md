@@ -123,7 +123,7 @@ El panel admin usa los mismos endpoints `/v1/admin` con cookie de dominio admin.
 | login / register / OAuth / linking | 10 / 15 min / IP |
 | forgot-password / resend-verification | 5 / hora / email+IP |
 | API autenticada | 120 / min / user |
-| search | 60 / min / IP |
+Los límites aplican en **staging y production**. En `development`/`test` (y si `E2E_RELAX_THROTTLE=true`) el guard no cuenta: si no, Playwright supera el tope de login 10/15 min. No usar ese flag en staging/producción.
 
 ## Correos transaccionales (auth)
 

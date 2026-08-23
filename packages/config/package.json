@@ -7,6 +7,10 @@
     ".": {
       "types": "./src/index.ts",
       "default": "./src/index.ts"
+    },
+    "./http-security": {
+      "types": "./src/http-security.ts",
+      "default": "./src/http-security.ts"
     }
   },
   "scripts": {

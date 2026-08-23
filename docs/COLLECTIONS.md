@@ -34,7 +34,9 @@ No se trata un faltante de mercado como $0.
 
 Copy: *Valor estimado basado en publicaciones activas, no necesariamente precio de venta.*
 
-`CollectionValueSnapshot` (job `collection-value`, un valor por colección y día UTC) alimenta **variación 30 días** (`change30dClp`). Si no hay snapshot ~30d atrás: “Sin historial suficiente”. El estimado live de la colección sigue siendo mediana de listings ACTIVE (Fase 12); el gráfico de carta usa `CardPrice`.
+`GET /v1/me/collection/items?sort=estimatedValue` pagina en SQL (join de medianas live); no ordena todos los lotes en memoria.
+
+`CollectionValueSnapshot` (job `collection-value`, un valor por colección y día calendario America/Santiago) alimenta **variación 30 días** (`change30dClp`). Si no hay snapshot ~30d atrás: “Sin historial suficiente”. El estimado live de la colección sigue siendo mediana de listings ACTIVE (Fase 12); el gráfico de carta usa `CardPrice`.
 
 ## Costo y P/L
 

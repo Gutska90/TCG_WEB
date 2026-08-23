@@ -13,6 +13,7 @@ coverage/
 .env
 .env.*
 !.env.example
+!.env.staging.example
 
 # OS / IDE
 .idea/
@@ -22,6 +23,8 @@ coverage/
 playwright-report/
 test-results/
 blob-report/
+load-report.json
+backups/
 
 apps/mobile/ios/
 apps/mobile/android/

@@ -33,7 +33,18 @@ const config: ExpoConfig = {
       backgroundColor: "#171717",
     },
   },
-  plugins: ["expo-router", "expo-secure-store", "expo-web-browser", "expo-apple-authentication"],
+  plugins: [
+    "expo-router",
+    "expo-secure-store",
+    "expo-web-browser",
+    "expo-apple-authentication",
+    [
+      "expo-image-picker",
+      {
+        photosPermission: "Usamos tus fotos para publicaciones y evidencia de reclamos.",
+      },
+    ],
+  ],
   experiments: {
     typedRoutes: false,
   },

@@ -11,6 +11,8 @@ import { JobsService } from "../../src/jobs/jobs.service";
 import { ErrorTrackingService } from "../../src/observability/error-tracking.service";
 import { PrismaService } from "../../src/prisma/prisma.service";
 import { DisputesService } from "../../src/trust/disputes.service";
+import { FilesService } from "../../src/files/files.service";
+import { DeferredObjectStore } from "../../src/files/object-store";
 import { ListingRevisionService } from "../../src/trust/listing-revision.service";
 import { ModerationLogService } from "../../src/trust/moderation-log.service";
 import { ModerationService } from "../../src/trust/moderation.service";
@@ -53,7 +55,8 @@ describe("Fase 10.6 ops safety (postgres)", () => {
   );
   const revisions = new ListingRevisionService(prisma);
   const log = new ModerationLogService(prisma, audit);
-  const disputes = new DisputesService(prisma, audit, revisions, log, payouts, metrics);
+  const files = new FilesService(prisma, new DeferredObjectStore());
+  const disputes = new DisputesService(prisma, audit, revisions, log, payouts, metrics, files);
   const moderation = new ModerationService(prisma, revisions, log, new MarketService(prisma), flags);
   const ops = new AdminOpsService(prisma, flags);
 
@@ -235,12 +238,15 @@ describe("Fase 10.6 ops safety (postgres)", () => {
         fileId: file.id,
         evidenceType: "PHOTO",
       });
-      const asBuyer = await disputes.streamEvidenceFile(actor(sale.buyerId), opened.id, evidence.id);
-      expect(asBuyer.fileId).toBe(file.id);
-      const asSeller = await disputes.streamEvidenceFile(actor(sale.sellerId, ["SELLER"]), opened.id, evidence.id);
-      expect(asSeller.storage).toBe("deferred");
-      const asAdmin = await disputes.streamEvidenceFile(actor(admin.id, ["ADMIN"]), opened.id, evidence.id);
-      expect(asAdmin.mime).toBe("image/jpeg");
+      await expect(
+        disputes.streamEvidenceFile(actor(sale.buyerId), opened.id, evidence.id),
+      ).rejects.toMatchObject({ code: ERROR_CODES.FILE_NOT_STORED });
+      await expect(
+        disputes.streamEvidenceFile(actor(sale.sellerId, ["SELLER"]), opened.id, evidence.id),
+      ).rejects.toMatchObject({ code: ERROR_CODES.FILE_NOT_STORED });
+      await expect(
+        disputes.streamEvidenceFile(actor(admin.id, ["ADMIN"]), opened.id, evidence.id),
+      ).rejects.toMatchObject({ code: ERROR_CODES.FILE_NOT_STORED });
       const stranger = await prisma.user.create({
         data: {
           email: `str-${randomUUID().slice(0, 8)}@test.local`,

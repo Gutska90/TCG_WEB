@@ -7,6 +7,8 @@ import type { RequestUser } from "../../src/auth/request-user";
 import { AuditService } from "../../src/audit/audit.service";
 import { PrismaService } from "../../src/prisma/prisma.service";
 import { DisputesService } from "../../src/trust/disputes.service";
+import { FilesService } from "../../src/files/files.service";
+import { DeferredObjectStore } from "../../src/files/object-store";
 import { ListingRevisionService } from "../../src/trust/listing-revision.service";
 import { ModerationLogService } from "../../src/trust/moderation-log.service";
 import { ModerationService } from "../../src/trust/moderation.service";
@@ -39,7 +41,8 @@ describe("Fase 10.5 trust (postgres)", () => {
   const audit = new AuditService(prisma);
   const revisions = new ListingRevisionService(prisma);
   const log = new ModerationLogService(prisma, audit);
-  const disputes = new DisputesService(prisma, audit, revisions, log, payouts, metrics);
+  const files = new FilesService(prisma, new DeferredObjectStore());
+  const disputes = new DisputesService(prisma, audit, revisions, log, payouts, metrics, files);
   const reports = new ReportsService(prisma, audit, log, metrics);
   const market = new MarketService(prisma);
   const flags = flagsForTest();

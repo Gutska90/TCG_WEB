@@ -216,7 +216,7 @@ export type ListingView = {
   createdAt: string;
   seller: ListingSellerView;
   variant: VariantView & { card: CardSummaryView };
-  images: Array<{ fileId: string; sortOrder: number }>;
+  images: Array<{ fileId: string; sortOrder: number; url: string }>;
 };
 
 export type PriceSuggestionView = {

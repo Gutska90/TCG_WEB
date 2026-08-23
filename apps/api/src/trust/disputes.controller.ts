@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
+import { Body, Controller, Get, Header, Param, Post, Query, StreamableFile } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
 import {
   disputeEvidenceSchema,
@@ -44,12 +44,19 @@ export class DisputesController {
   }
 
   @Get("disputes/:id/evidence/:evidenceId/file")
-  evidenceFile(
+  @Header("Cache-Control", "private, no-store")
+  @Header("X-Content-Type-Options", "nosniff")
+  async evidenceFile(
     @CurrentUser() user: RequestUser,
     @Param("id", new ZodPipe(uuidParamSchema)) id: string,
     @Param("evidenceId", new ZodPipe(uuidParamSchema)) evidenceId: string,
-  ) {
-    return this.disputes.streamEvidenceFile(user, id, evidenceId);
+  ): Promise<StreamableFile> {
+    const file = await this.disputes.streamEvidenceFile(user, id, evidenceId);
+    return new StreamableFile(file.body, {
+      type: file.mime,
+      length: file.size,
+      disposition: "inline",
+    });
   }
 
   @Throttle({ default: { limit: 30, ttl: 60_000 } })

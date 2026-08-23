@@ -55,6 +55,7 @@ describe("CollectionsService", () => {
       delete: vi.fn(),
       deleteMany: vi.fn(),
       count: vi.fn(),
+      groupBy: vi.fn(),
     },
     collectionValueSnapshot: { findUnique: vi.fn(), findFirst: vi.fn(), upsert: vi.fn() },
     cardVariant: { findUnique: vi.fn() },
@@ -63,6 +64,7 @@ describe("CollectionsService", () => {
     tcgSet: { findUnique: vi.fn(), findMany: vi.fn() },
     card: { count: vi.fn(), findMany: vi.fn() },
     $transaction: vi.fn(),
+    $queryRaw: vi.fn(),
   };
   const service = new CollectionsService(prisma as never, flagsForTest({ enableCollections: true }), {
     log: vi.fn(),

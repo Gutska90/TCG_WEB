@@ -6,8 +6,8 @@
 |------|-------|-----|
 | Unit | `apps/api` services | stock, comisión, transiciones de orden, price suggestion |
 | Integration | `apps/api/test/integration` + Postgres real (`DATABASE_URL`) | checkout concurrency, webhook idempotencia, reservas |
-| E2E web | `e2e/` Playwright | 11.0 happy paths + 11.5 auth + 12 `collection-happy-path` + 13 `price-history` + 14 `wishlist-happy-path` |
-| E2E mobile | Maestro `apps/mobile/.maestro/` (simulador + API + seed). No corre en CI |
+| E2E web | `e2e/` Playwright | 11.0–14 happy paths + B4 admin (`admin-ops-path`, `admin-refund-retry`, `admin-payout-path`) |
+| E2E mobile | Maestro `apps/mobile/.maestro/` (simulador + API + seed). No corre en el job `check`; `workflow_dispatch` opcional |
 | Contract | `packages/validation` | schemas usados por web y api |
 
 Los tests de dinero **P0-1/P0-2/P0-3** no se cubren solo con Prisma mockeado: las carreras necesitan locks reales; el refund necesita Postgres + `FakePaymentProvider` (nunca `MercadoPagoPaymentProvider` fingiendo `approved`).
@@ -105,13 +105,16 @@ Postgres debe estar arriba (`DATABASE_URL`). CI corre migrate + ambos.
 - 12: unit `collection-value` + `CollectionsService`; integración Postgres `collections.integration.spec.ts`; E2E `collection-happy-path.spec.ts`; Maestro `07-collection.yaml`.
 - 13: unit `price-index`; integración Postgres `prices.integration.spec.ts`; E2E `price-history.spec.ts`.
 - 14: unit `wishlist-rules`; integración Postgres `wishlist.integration.spec.ts` + descuento de lote en collections; E2E `wishlist-happy-path.spec.ts`; Maestro `08-wishlist.yaml`.
+- B3: unit `chile-time` / `async-pool`; SALE por `completedAt`; sort `estimatedValue` paginado; `pnpm test:load` (API arriba). No 50 rps en CI (throttle + ruido).
+- B4: Playwright admin (refund retry + payout manual); checklists F12–14 + notificaciones in-app; `pnpm beta:seed` expira checkouts vencidos y restockea si available < 8. Maestro no es gate de CI. Throttle HTTP off en development/test (`E2E_RELAX_THROTTLE`).
+- B5: unit `ErrorTrackingService` / `RedisSchedulerLock`; `assertErrorTrackingConfig`; Redis no se exige en CI. Dump `pnpm db:backup` no corre en CI.
 
 ## Datos de test
 
 - Seed catálogo: `pnpm catalog:seed` (juegos, cartas Test Mon, tarifas).
-- Seed beta QA: `pnpm beta:seed` — buyer/seller/admin sintéticos + listing. Ver [release/WEB-BETA-QA.md](release/WEB-BETA-QA.md).
+- Seed beta QA: `pnpm beta:seed` — buyer/seller/admin sintéticos + listing Test Mon #1 + fixture refund FAILED (Test Mon #2). Ver [release/B4-QA.md](release/B4-QA.md).
 - Nunca apuntar tests a producción.
 
 ## CI
 
-GitHub Actions (`.github/workflows/ci.yml`): Postgres 16 → `prisma migrate deploy` → lint → typecheck → `pnpm test` → `pnpm test:integration` → `pnpm build` → `pnpm test:e2e`. El PR falla si algún gate falla. El smoke de dinero vive en integración API. Playwright no usa Mercado Pago live.
+GitHub Actions (`.github/workflows/ci.yml`): Postgres 16 → `prisma migrate deploy` → `pnpm audit:deps` → lint → typecheck → `pnpm test` → `pnpm test:integration` → `pnpm build` → `pnpm test:e2e`. El PR falla si algún gate falla. El smoke de dinero vive en integración API. Playwright no usa Mercado Pago live. Maestro: `.github/workflows/maestro.yml` (`workflow_dispatch` only).

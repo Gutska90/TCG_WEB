@@ -116,4 +116,32 @@ describe("Fase 14 wishlist (postgres)", () => {
       });
     }
   });
+
+  it("scans every notifyBelow variant (no 5000 cap)", async () => {
+    const a = await createOpenListing(prisma);
+    const b = await createOpenListing(prisma);
+    const user = await createBuyer(prisma);
+    try {
+      await wishlist.upsert(user.id, a.variantId, { targetPriceClp: 90_000 });
+      await wishlist.upsert(user.id, b.variantId, { targetPriceClp: 90_000 });
+      const scanned = await wishlist.scanAll();
+      expect(scanned.variants).toBeGreaterThanOrEqual(2);
+      expect(scanned.hits).toBeGreaterThanOrEqual(2);
+    } finally {
+      await prisma.notification.deleteMany({ where: { userId: user.id } });
+      await prisma.wishlistItem.deleteMany({ where: { userId: user.id } });
+      await cleanupUsersAndCatalog(prisma, {
+        userIds: [a.sellerId, user.id],
+        listingId: a.listingId,
+        variantId: a.variantId,
+        gameId: a.gameId,
+      });
+      await cleanupUsersAndCatalog(prisma, {
+        userIds: [b.sellerId],
+        listingId: b.listingId,
+        variantId: b.variantId,
+        gameId: b.gameId,
+      });
+    }
+  });
 });

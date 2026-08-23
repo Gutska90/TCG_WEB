@@ -21,6 +21,7 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
+    # B5: JobScheduler leader lock (REDIS_URL). Not a job queue.
 
   inbucket:
     image: inbucket/inbucket:latest
@@ -30,5 +31,39 @@ services:
       - "2500:2500"
       - "1100:1100"
 
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    restart: unless-stopped
+    command: server /data --console-address ":9101"
+    environment:
+      MINIO_ROOT_USER: tcg
+      MINIO_ROOT_PASSWORD: tcgminio12
+    ports:
+      - "9100:9000"
+      - "9101:9101"
+    volumes:
+      - tcg_minio:/data
+
+  minio-init:
+    image: minio/mc:RELEASE.2025-04-16T18-13-26Z
+    depends_on:
+      minio:
+        condition: service_started
+    volumes:
+      - ./minio-cors.json:/cors.json:ro
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        i=0
+        until mc alias set local http://minio:9000 tcg tcgminio12; do
+          i=$$((i+1))
+          if [ "$$i" -gt 30 ]; then exit 1; fi
+          sleep 1
+        done
+        mc mb -p local/tcg-files || true
+        mc cors set local/tcg-files /cors.json || true
+
 volumes:
   tcg_postgres:
+  tcg_minio:

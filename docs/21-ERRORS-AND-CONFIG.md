@@ -41,6 +41,9 @@ El cliente ramifica por `error.code`, no por el texto.
 | `IDEMPOTENCY_REPLAY` | 200 | misma respuesta (no error) |
 | `FEATURE_DISABLED` | 403 | flag de producto off (`ENABLE_PAYOUTS=false`, etc.) |
 | `SERVICE_TEMPORARILY_DISABLED` | 503 | kill switch (`DISABLE_*`) |
+| `FILE_NOT_ALLOWED` | 400 | MIME/tamaño de archivo |
+| `FILE_NOT_READY` | 409 | `complete` sin objeto en storage |
+| `FILE_NOT_STORED` | 409 | GET/stream sin bytes (deferred o objeto ausente) |
 | `LEGAL_CONSENT_REQUIRED` | 400 | alta de cuenta sin aceptar términos |
 
 ## Config de negocio (`packages/config` + tabla `PlatformConfig` en Fase 10)
@@ -71,12 +74,14 @@ Cambios de comisión **no** recalculan órdenes ya creadas.
 ```text
 NODE_ENV
 DATABASE_URL
-REDIS_URL                 # desde colas
+REDIS_URL                 # opcional; líder JobScheduler (B5). Fail-fast en staging/prod si está set y Redis cae
+SENTRY_DSN / SENTRY_ENVIRONMENT  # si ERROR_TRACKING_ENABLED=true
 JWT_ACCESS_SECRET         # obligatorio, ≥32 chars, sin placeholders
 JWT_ISSUER
 APP_WEB_URL
 APP_ADMIN_URL
 CORS_ORIGINS
+ADMIN_IP_ALLOWLIST        # admin Next; vacío = sin filtro. Staging público: IPs del staff.
 
 GOOGLE_CLIENT_ID / GOOGLE_CLIENT_ID_WEB / GOOGLE_CLIENT_ID_IOS / GOOGLE_CLIENT_ID_ANDROID
 GOOGLE_CLIENT_SECRET          # no requerido para ID tokens
@@ -95,9 +100,12 @@ R2_ACCESS_KEY_ID
 R2_SECRET_ACCESS_KEY
 R2_BUCKET
 R2_PUBLIC_BASE_URL
+S3_ENDPOINT / S3_PUBLIC_ENDPOINT / S3_REGION / S3_ACCESS_KEY_ID / S3_SECRET_ACCESS_KEY / S3_BUCKET / S3_FORCE_PATH_STYLE
+APP_ENV                      # staging|production fuerza el mismo fail-fast que NODE_ENV
 
 RESEND_API_KEY
 EMAIL_FROM
+SMTP_HOST / SMTP_PORT / SMTP_SECURE / SMTP_USER / SMTP_PASS
 
 EXPO_ACCESS_TOKEN         # push, fase 11
 
@@ -105,6 +113,7 @@ ENABLE_REAL_PAYMENTS / ENABLE_PAYOUTS / ENABLE_* (features futuras)
 REAL_PAYMENTS_LEGAL_APPROVED   # solo true fuera del repo, tras revisión legal
 DISABLE_CHECKOUT / DISABLE_NEW_LISTINGS / DISABLE_PAYOUTS / DISABLE_REFUNDS_AUTOMATION
 JOBS_ENABLED / ENABLE_REFUND_RETRY_JOB / ERROR_TRACKING_ENABLED
+E2E_RELAX_THROTTLE           # solo Playwright/local; nunca staging/production
 ```
 
 Ninguna de estas en el repo. `.env.example` con claves vacías en Fase 0.

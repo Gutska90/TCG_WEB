@@ -70,6 +70,38 @@ describe("Fase 13 prices (postgres)", () => {
     }
   });
 
+  it("imputes SALE on completedAt, not orderItem.createdAt", async () => {
+    const sale = await createPendingSale(prisma);
+    try {
+      const old = addUtcDays(utcDateOnly(), -3);
+      await prisma.order.update({
+        where: { id: sale.orderId },
+        data: { status: "COMPLETED", completedAt: new Date(), createdAt: old },
+      });
+      await prisma.orderItem.updateMany({
+        where: { orderId: sale.orderId },
+        data: { createdAt: old },
+      });
+      const captured = await prices.captureDay();
+      expect(captured.sales).toBeGreaterThanOrEqual(1);
+      const today = utcDateOnly();
+      const salePoint = await prisma.cardPrice.findUnique({
+        where: {
+          variantId_source_capturedOn: { variantId: sale.variantId, source: "SALE", capturedOn: today },
+        },
+      });
+      expect(salePoint?.priceClp).toBe(80_000);
+      const oldPoint = await prisma.cardPrice.findUnique({
+        where: {
+          variantId_source_capturedOn: { variantId: sale.variantId, source: "SALE", capturedOn: old },
+        },
+      });
+      expect(oldPoint).toBeNull();
+    } finally {
+      await cleanupSale(prisma, sale);
+    }
+  });
+
   it("records collection value snapshots and 30-day change", async () => {
     const listing = await createOpenListing(prisma);
     const buyer = await prisma.user.create({

@@ -38,6 +38,9 @@ export default defineConfig({
         ENABLE_COLLECTIONS: "true",
         ENABLE_PRICES: "true",
         ENABLE_WISHLIST: "true",
+        ENABLE_PAYOUTS: "true",
+        DISABLE_PAYOUTS: "false",
+        E2E_RELAX_THROTTLE: "true",
       },
     },
     {

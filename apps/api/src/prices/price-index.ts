@@ -1,13 +1,13 @@
 import { PLATFORM, type PriceConfidence } from "@tcg/config";
+import { addCalendarDays, calendarDateOnly } from "../common/chile-time";
 
+/** Día calendario Chile (DATE). Nombre histórico; no es medianoche UTC del instante. */
 export function utcDateOnly(value: Date = new Date()): Date {
-  return new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()));
+  return calendarDateOnly(value);
 }
 
 export function addUtcDays(value: Date, days: number): Date {
-  const next = utcDateOnly(value);
-  next.setUTCDate(next.getUTCDate() + days);
-  return next;
+  return addCalendarDays(value, days);
 }
 
 export function medianInt(values: number[]): number | null {

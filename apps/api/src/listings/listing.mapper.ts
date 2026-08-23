@@ -88,6 +88,10 @@ export function toListingView(row: ListingRow): ListingView {
         setSlug: row.variant.card.set.slug,
       },
     },
-    images: row.images,
+    images: row.images.map((image) => ({
+      fileId: image.fileId,
+      sortOrder: image.sortOrder,
+      url: `/v1/files/${image.fileId}`,
+    })),
   };
 }

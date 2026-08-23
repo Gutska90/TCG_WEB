@@ -404,6 +404,12 @@ export class OrdersService {
         totalClp: locked.totalClp,
         commissionClp: locked.commissionClp,
       });
+      await this.collections.applySaleDeduction(
+        id,
+        locked.seller.id,
+        locked.items.map((item) => ({ listingId: item.listingId, quantity: item.quantity })),
+        tx,
+      );
       return completed;
     }, MONEY_TX);
     await this.audit.log({
@@ -419,11 +425,6 @@ export class OrdersService {
       entityType: "Payment",
       entityId: payment.id,
     });
-    await this.collections.applySaleDeduction(
-      id,
-      updated.sellerId,
-      updated.items.map((item) => ({ listingId: item.listingId, quantity: item.quantity })),
-    );
     return toOrderView(updated);
   }
 
