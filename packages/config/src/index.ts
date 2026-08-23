@@ -901,6 +901,16 @@ export function collectStagingOperatorReport(env: NodeJS.Dict<string> = process.
     warnings.push("Google/Apple auth flags are off — testers will use email/password (OK for B1)");
   }
 
+  if (isStrictDeployEnv(env)) {
+    const contact = envTrimmed(env.LEGAL_CONTACT_EMAIL) || "soporte@localhost";
+    const privacy = envTrimmed(env.LEGAL_PRIVACY_EMAIL) || "privacidad@localhost";
+    if (contact.includes("localhost") || privacy.includes("localhost")) {
+      warnings.push(
+        "LEGAL_CONTACT_EMAIL / LEGAL_PRIVACY_EMAIL still look like localhost — set them on API, web and admin",
+      );
+    }
+  }
+
   return { blockers: [...new Set(blockers)], warnings: [...new Set(warnings)] };
 }
 

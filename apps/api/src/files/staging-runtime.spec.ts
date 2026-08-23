@@ -103,6 +103,8 @@ describe("collectStagingOperatorReport", () => {
       ENABLE_REAL_PAYMENTS: "false",
       AUTH_STUB_OAUTH: "false",
       ENABLE_SCANNER: "false",
+      LEGAL_CONTACT_EMAIL: "soporte@staging.tcg.cl",
+      LEGAL_PRIVACY_EMAIL: "privacidad@staging.tcg.cl",
     });
     expect(report.blockers).toEqual([]);
   });

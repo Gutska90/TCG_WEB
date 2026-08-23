@@ -105,6 +105,7 @@ APP_ENV                      # staging|production fuerza el mismo fail-fast que 
 
 RESEND_API_KEY
 EMAIL_FROM
+LEGAL_CONTACT_EMAIL / LEGAL_PRIVACY_EMAIL   # web, admin y API; default localhost
 SMTP_HOST / SMTP_PORT / SMTP_SECURE / SMTP_USER / SMTP_PASS
 
 EXPO_ACCESS_TOKEN         # push, fase 11

@@ -2,7 +2,7 @@
 
 Sin secretos. `ENABLE_REAL_PAYMENTS` permanece `false`. No pagos live ni payouts automáticos.
 
-El código es 12-factor; **este documento no crea la cuenta de hosting**. Un operador debe provisionar DNS/TLS/Postgres y pegar secretos fuera de git.
+El código es 12-factor; **este documento no crea la cuenta de hosting**. Lista exacta de cuentas y secretos: [OPERATOR-KICKOFF.md](../release/OPERATOR-KICKOFF.md).
 
 ## Qué queda listo en el repo
 

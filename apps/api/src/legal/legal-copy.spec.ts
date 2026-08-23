@@ -96,6 +96,19 @@ describe("Fase 10.7 legal copy and consent", () => {
     ).toBe(true);
   });
 
+  it("overrides contact emails from env", () => {
+    const prevC = process.env.LEGAL_CONTACT_EMAIL;
+    const prevP = process.env.LEGAL_PRIVACY_EMAIL;
+    process.env.LEGAL_CONTACT_EMAIL = "soporte@staging.example";
+    process.env.LEGAL_PRIVACY_EMAIL = "privacidad@staging.example";
+    expect(LEGAL.contactEmail).toBe("soporte@staging.example");
+    expect(LEGAL.privacyEmail).toBe("privacidad@staging.example");
+    if (prevC == null) delete process.env.LEGAL_CONTACT_EMAIL;
+    else process.env.LEGAL_CONTACT_EMAIL = prevC;
+    if (prevP == null) delete process.env.LEGAL_PRIVACY_EMAIL;
+    else process.env.LEGAL_PRIVACY_EMAIL = prevP;
+  });
+
   it("does not use forbidden payment wording in principal user copy", () => {
     const copy = allUserCopy();
     expect(containsForbiddenPaymentCopy(copy)).toBe(false);

@@ -3,7 +3,7 @@
 **Nombre de trabajo:** TCG Market Chile  
 **Nombre interno:** `tcg-platform`  
 **Fecha:** 21 agosto 2026  
-**Estado:** Fase **14** lista. **UI.1** Visual Refresh ✓. **Feature freeze:** Fases 15–20 congeladas. **B0–B7** ✓ en repo. **B1** hosting cloud y **B8** invitaciones = operador. No adelantar Scanner ni pagos live. Auditoría: [audits/BETA-RELEASE-AUDIT-2026-08.md](audits/BETA-RELEASE-AUDIT-2026-08.md). Staging: [runbooks/STAGING.md](runbooks/STAGING.md). Android: [release/B6-ANDROID-BETA.md](release/B6-ANDROID-BETA.md). iOS: [release/B7-IOS-TESTFLIGHT.md](release/B7-IOS-TESTFLIGHT.md). Closed beta: [release/B8-CLOSED-BETA.md](release/B8-CLOSED-BETA.md). Design: [design/DESIGN-SYSTEM.md](design/DESIGN-SYSTEM.md).
+**Estado:** Fase **14** lista. **UI.1** ✓. Feature freeze 15–20. **B0–B7** ✓ repo. **B1/B8** = operador: [OPERATOR-KICKOFF](release/OPERATOR-KICKOFF.md). No Scanner ni pagos live.
 
 Este repositorio no es una copia de TCGMatch. TCGMatch es **referencia funcional** de un marketplace chileno de cartas. El producto objetivo es una **plataforma TCG integral** para coleccionistas, jugadores y tiendas, con web, PWA y apps móviles sobre **un solo backend y una sola base de datos**.
 
@@ -47,7 +47,7 @@ Este repositorio no es una copia de TCGMatch. TCGMatch es **referencia funcional
 | — | [OBSERVABILITY-AND-OPERATIONS](OBSERVABILITY-AND-OPERATIONS.md) | Logs, jobs, flags, kill switches 10.6 |
 | — | [LEGAL-BETA](LEGAL-BETA.md) | Términos, privacidad, copy, gates de pagos live 10.7 |
 | — | [COLLECTIONS](COLLECTIONS.md) | Colección personal, lotes, valor estimado, set progress 12 |
-| — | [STAGING](runbooks/STAGING.md) | B1: contrato staging, R2/Minio, correo, fail-fast |
+| — | [OPERATOR-KICKOFF](release/OPERATOR-KICKOFF.md) | Cuentas, secretos y orden para abrir staging/beta |
 | — | [PERFORMANCE](runbooks/PERFORMANCE.md) | B3: load HTTP, p95 search, jobs |
 | — | [PRODUCTION](runbooks/PRODUCTION.md) | B5: Sentry, Redis líder, backups/incidentes |
 | — | [audit-allowlist](security/audit-allowlist.json) | B2: GHSA high/critical aceptados con motivo |

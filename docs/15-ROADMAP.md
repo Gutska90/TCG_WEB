@@ -311,7 +311,7 @@ Auditoría canónica: [audits/BETA-RELEASE-AUDIT-2026-08.md](audits/BETA-RELEASE
 | Fase | Qué | Estado |
 |------|-----|--------|
 | **B0** Release Audit | Inventario real post-F14; P0/P1; GO/NO-GO | [BETA-RELEASE-AUDIT-2026-08](audits/BETA-RELEASE-AUDIT-2026-08.md) ✓ |
-| **B1** Staging | Contrato 12-factor, R2/Minio, Resend/SMTP, fail-fast, `ENABLE_REAL_PAYMENTS=false`. Hosting/DNS/TLS/Postgres managed: operador (ver [STAGING.md](runbooks/STAGING.md)) | 🟡 código listo; entorno cloud no provisionado en el repo |
+| **B1** Staging | Contrato 12-factor, R2/Minio, Resend/SMTP, fail-fast, `ENABLE_REAL_PAYMENTS=false`. Hosting: operador | 🟡 [OPERATOR-KICKOFF](release/OPERATOR-KICKOFF.md) |
 | **B2** Security | CSP/HSTS Next + Helmet API, `pnpm audit:deps`, `applySaleDeduction` en el tx de confirm, `loginHref` seguro, `ADMIN_IP_ALLOWLIST`, Listing.seller Restrict | ✓ |
 | **B3** Performance | Load test search/card/collection/prices/wishlist/checkout/admin; SALE=`completedAt`; calendario Chile; captura/wishlist paginadas; sort estimado SQL | ✓ |
 | **B4** QA | Checklists web/mobile/admin (F12–14 + in-app); Playwright admin refund/payout; Maestro opcional. Staging cloud = operador B1 | ✓ [B4-QA](release/B4-QA.md) |

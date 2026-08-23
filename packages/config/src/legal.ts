@@ -3,9 +3,13 @@ export const LEGAL = {
   privacyVersion: "2026-08-21.beta.1",
   betaNotice: "Documento de beta / sujeto a revisión legal antes de producción real.",
   betaProductNotice: "Esta versión está en prueba. Algunas funciones pueden cambiar.",
-  contactEmail: "soporte@localhost",
-  privacyEmail: "privacidad@localhost",
-} as const;
+  get contactEmail(): string {
+    return process.env.LEGAL_CONTACT_EMAIL?.trim() || "soporte@localhost";
+  },
+  get privacyEmail(): string {
+    return process.env.LEGAL_PRIVACY_EMAIL?.trim() || "privacidad@localhost";
+  },
+};
 
 export const PUBLIC_LEGAL_LINKS = [
   { href: "/terminos", label: "Términos" },
