@@ -5,7 +5,9 @@
     "declaration": false,
     "declarationMap": false,
     "jsx": "react-jsx",
-    "lib": ["ES2022", "DOM"]
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "bundler"
   },
   "include": ["src"]
 }

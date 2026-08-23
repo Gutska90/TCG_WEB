@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CatalogPager } from "../../../components/catalog-pager";
+import { ProductCard } from "../../../components/ui/product-card";
 import { CatalogRequestError, getSet, getSetCards } from "../../../lib/catalog";
 
 export default async function SetPage({
@@ -17,28 +18,27 @@ export default async function SetPage({
     const setView = await getSet(game, set);
     const cards = await getSetCards(setView.id, current);
     return (
-      <main className="mx-auto max-w-5xl px-6 py-12">
-        <p className="text-sm text-neutral-500">
-          <Link href={`/${game}`} className="underline">
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+        <p className="text-sm text-text-muted">
+          <Link href={`/${game}`} className="underline underline-offset-2">
             {setView.game.name}
           </Link>
         </p>
-        <h1 className="mt-2 text-3xl font-semibold">{setView.name}</h1>
-        <p className="text-neutral-600">
+        <h1 className="mt-2 text-3xl font-medium tracking-tight">{setView.name}</h1>
+        <p className="text-text-muted">
           {setView.code} · {setView.cardCount} cartas
         </p>
-        <ul className="mt-8 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+        <ul className="mt-8 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {cards.items.map((card) => (
             <li key={card.id}>
-              <Link
+              <ProductCard
                 href={`/${game}/${set}/${card.slug}`}
-                className="block rounded-lg border p-4 hover:border-neutral-400"
-              >
-                <p className="font-medium">{card.name}</p>
-                <p className="text-sm text-neutral-500">
-                  {card.number} · {card.rarity}
-                </p>
-              </Link>
+                name={card.name}
+                number={card.number}
+                imageUrl={card.imageUrl}
+                gameSlug={card.gameSlug}
+                meta={card.rarity}
+              />
             </li>
           ))}
         </ul>

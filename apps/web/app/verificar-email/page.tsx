@@ -35,11 +35,11 @@ function VerifyForm() {
   return (
     <PageMain>
       <h1 className="text-2xl font-semibold">Verificar email</h1>
-      <p className="mt-2 text-sm text-neutral-600">Pega el token del correo de verificación. En beta local también puedes pedirlo de nuevo desde tu perfil.</p>
+      <p className="mt-2 text-sm text-text-muted">Pega el token del correo de verificación. En beta local también puedes pedirlo de nuevo desde tu perfil.</p>
       <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4">
         <label className="flex flex-col gap-1 text-sm">
           Token
-          <input name="token" required defaultValue={preset} autoComplete="off" className="rounded border border-neutral-300 px-3 py-2" />
+          <input name="token" required defaultValue={preset} autoComplete="off" className="rounded border border-border px-3 py-2" />
         </label>
         <FormError message={error} />
         <SuccessNote message={message} />

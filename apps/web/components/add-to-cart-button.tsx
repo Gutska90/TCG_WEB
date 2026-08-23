@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ApiError } from "../lib/api";
 import { getCart, putCartItem } from "../lib/cart";
+import { Button } from "./ui/button";
 
 export function AddToCartButton({
   listingId,
@@ -36,21 +37,16 @@ export function AddToCartButton({
   }
 
   if (available <= 0) {
-    return <p className="text-sm text-neutral-500">Sin stock</p>;
+    return <p className="text-sm text-text-muted">Sin stock</p>;
   }
 
   return (
     <div className="flex flex-col gap-2">
-      <button
-        type="button"
-        onClick={() => void add()}
-        disabled={pending}
-        className="w-fit rounded bg-black px-4 py-2 text-sm text-white disabled:opacity-50"
-      >
+      <Button onClick={() => void add()} disabled={pending} className="w-fit">
         {pending ? "Agregando…" : "Agregar al carrito"}
-      </button>
+      </Button>
       {message ? (
-        <p className="text-sm text-neutral-600">
+        <p className="text-sm text-text-muted">
           {message}{" "}
           {message === "Agregada al carrito." ? (
             <Link href="/carrito" className="underline">

@@ -2,9 +2,10 @@ import { HELP_FAQS, LEGAL_DOCUMENTS } from "@tcg/config";
 import { useLocalSearchParams } from "expo-router";
 import { Text, View } from "react-native";
 import { Screen } from "../../src/ui/screen";
-import { colors } from "../../src/ui/theme";
+import { useColors } from "../../src/ui/theme-provider";
 
 export default function LegalScreen() {
+  const colors = useColors();
   const { slug } = useLocalSearchParams<{ slug: string }>();
   if (slug === "ayuda") {
     return (

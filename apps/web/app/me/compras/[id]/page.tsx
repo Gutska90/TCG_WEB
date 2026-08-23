@@ -81,10 +81,10 @@ export default function PurchaseDetailPage() {
         </Link>
       </p>
       <h1 className="mt-2 text-2xl font-semibold">{order.orderNumber}</h1>
-      <p className="mt-1 text-neutral-600">
+      <p className="mt-1 text-text-muted">
         {ORDER_STATUS_LABELS[order.status]} · {order.seller.displayName} · {formatClp(order.totalClp)}
       </p>
-      <p className="mt-2 text-sm text-neutral-600">
+      <p className="mt-2 text-sm text-text-muted">
         Pago: {order.payment?.status ? PAYMENT_STATUS_USER_LABELS[order.payment.status] : "pendiente"}
       </p>
       <ul className="mt-6 grid gap-2 text-sm">
@@ -106,7 +106,7 @@ export default function PurchaseDetailPage() {
           </li>
         ))}
       </ul>
-      <p className="mt-3 text-sm text-neutral-600">
+      <p className="mt-3 text-sm text-text-muted">
         Productos {formatClp(order.subtotalClp)} · Envío {formatClp(order.shippingClp)} · Total {formatClp(order.totalClp)}
       </p>
       <ShipmentSummary order={order} />
@@ -141,7 +141,7 @@ export default function PurchaseDetailPage() {
       ) : null}
       {order.status === "COMPLETED" && !order.rating ? (
         <form
-          className="mt-8 grid gap-3 rounded border p-4"
+          className="mt-8 grid gap-3 rounded-[16px] border border-border bg-surface p-4"
           onSubmit={(event) => {
             event.preventDefault();
             setPending(true);
@@ -157,7 +157,7 @@ export default function PurchaseDetailPage() {
           <label className="text-sm">
             Estrellas
             <select
-              className="mt-1 w-full rounded border px-3 py-2"
+              className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2"
               value={stars}
               onChange={(event) => setStars(Number(event.target.value))}
             >
@@ -171,7 +171,7 @@ export default function PurchaseDetailPage() {
           <label className="text-sm">
             Comentario (opcional)
             <textarea
-              className="mt-1 w-full rounded border px-3 py-2"
+              className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2"
               value={comment}
               onChange={(event) => setComment(event.target.value)}
               maxLength={500}
@@ -183,7 +183,7 @@ export default function PurchaseDetailPage() {
         </form>
       ) : null}
       {order.rating ? (
-        <p className="mt-6 text-sm text-neutral-600">
+        <p className="mt-6 text-sm text-text-muted">
           Tu valoración: {order.rating.stars} ★
           {order.rating.comment ? ` · ${order.rating.comment}` : ""}
         </p>

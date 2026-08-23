@@ -5,6 +5,8 @@ import { formatClp } from "@tcg/config";
 import type { WishlistItemView } from "@tcg/types";
 import { ApiError, api } from "../lib/api";
 import { track } from "../lib/analytics";
+import { buttonClassName } from "./ui/button-styles";
+import { controlClassName } from "./ui/input";
 
 export function AddToWishlistButton({ variantId }: { variantId: string }) {
   const [open, setOpen] = useState(false);
@@ -40,36 +42,36 @@ export function AddToWishlistButton({ variantId }: { variantId: string }) {
 
   return (
     <div>
-      <button type="button" className="w-fit rounded border px-4 py-2 text-sm" onClick={() => setOpen(true)}>
+      <button type="button" className={buttonClassName("secondary")} onClick={() => setOpen(true)}>
         Añadir a wishlist
       </button>
-      {message ? <p className="mt-2 text-sm text-neutral-600">{message}</p> : null}
+      {message ? <p className="mt-2 text-sm text-text-muted">{message}</p> : null}
       {open ? (
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/40 p-4 sm:items-center">
-          <div role="dialog" aria-labelledby="wishlist-title" className="w-full max-w-md rounded-lg bg-white p-4 shadow-lg">
-            <h2 id="wishlist-title" className="text-lg font-semibold">
+          <div role="dialog" aria-labelledby="wishlist-title" className="w-full max-w-md rounded-[16px] border border-border bg-surface p-4 shadow-[var(--shadow)]">
+            <h2 id="wishlist-title" className="text-lg font-medium">
               Precio objetivo
             </h2>
-            <p className="mt-1 text-sm text-neutral-600">
+            <p className="mt-1 text-sm text-text-muted">
               Te avisamos si aparece un listing activo a ese precio o menos. No es un pedido ni una reserva.
             </p>
             <label className="mt-4 block text-sm">
               Precio máximo (CLP)
               <input
-                className="mt-1 w-full rounded border px-3 py-2"
+                className={`mt-1 ${controlClassName}`}
                 inputMode="numeric"
                 value={target}
                 onChange={(event) => setTarget(event.target.value.replace(/\D/g, ""))}
               />
             </label>
-            <p className="mt-1 text-xs text-neutral-500">{target ? formatClp(Number(target)) : " "}</p>
+            <p className="mt-1 text-xs text-text-muted">{target ? formatClp(Number(target)) : " "}</p>
             <div className="mt-4 flex justify-end gap-2">
-              <button type="button" className="rounded border px-3 py-2 text-sm" onClick={() => setOpen(false)}>
+              <button type="button" className={buttonClassName("secondary")} onClick={() => setOpen(false)}>
                 Cancelar
               </button>
               <button
                 type="button"
-                className="rounded bg-neutral-900 px-3 py-2 text-sm text-white disabled:opacity-50"
+                className={buttonClassName("primary")}
                 disabled={pending || Number(target) < 1}
                 onClick={() => void submit()}
               >

@@ -13,6 +13,8 @@
     "@tcg/config": "workspace:*",
     "@tcg/types": "workspace:*",
     "@tcg/ui": "workspace:*",
+    "geist": "^1.7.2",
+    "lucide-react": "^1.33.0",
     "next": "^15.5.2",
     "react": "19.0.0",
     "react-dom": "19.0.0"

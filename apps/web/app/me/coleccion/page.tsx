@@ -9,6 +9,11 @@ import { ApiError, api } from "../../../lib/api";
 import { track } from "../../../lib/analytics";
 import { loginHref, userFacingError } from "../../../lib/errors";
 import { FormError, LoadingBlock, PageMain, SuccessNote } from "../../../components/ui-feedback";
+import { buttonClassName } from "../../../components/ui/button-styles";
+import { CardImage } from "../../../components/ui/product-card";
+import { controlClassName } from "../../../components/ui/input";
+import { EmptyState } from "../../../components/ui/empty-state";
+import { ProgressBar, StatCard } from "../../../components/ui/stat-card";
 
 function money(value: number | null, empty = "Sin precio suficiente") {
   return value == null ? empty : formatClp(value);
@@ -24,6 +29,7 @@ function CollectionHome() {
   const [notice, setNotice] = useState<string | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [pending, setPending] = useState(false);
+  const [view, setView] = useState<"grid" | "list">("grid");
 
   const query = useMemo(() => {
     const params = new URLSearchParams();
@@ -115,15 +121,20 @@ function CollectionHome() {
 
   return (
     <PageMain width="lg">
-      <h1 className="text-2xl font-semibold">Mi colección</h1>
-      <p className="mt-2 text-sm text-neutral-600">{summary.disclaimer}</p>
+      <h1 className="text-3xl font-medium tracking-tight">Mi colección</h1>
+      <p className="mt-2 text-sm text-text-muted">{summary.disclaimer}</p>
       <FormError message={error} />
       <SuccessNote message={notice} />
-      <dl className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <Kpi label="Total de cartas" value={String(summary.totalCards)} />
-        <Kpi label="Cartas únicas" value={String(summary.uniqueCards)} />
-        <Kpi label="Valor estimado" value={money(summary.estimatedValueClp)} />
-        <Kpi
+      <dl className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard label="Valor estimado" value={money(summary.estimatedValueClp)} />
+        <StatCard label="Total cartas" value={String(summary.totalCards)} />
+        <StatCard label="Cartas únicas" value={String(summary.uniqueCards)} />
+        <StatCard
+          label="Duplicadas"
+          value={`${summary.duplicateCards}`}
+          hint={`${summary.extraCopies} copias extra`}
+        />
+        <StatCard
           label="Variación 30 días"
           value={
             summary.change30dClp == null
@@ -131,53 +142,60 @@ function CollectionHome() {
               : `${summary.change30dClp >= 0 ? "+" : ""}${formatClp(summary.change30dClp)}`
           }
         />
-        <Kpi
+        <StatCard
           label="Costo registrado"
-          value={`${money(summary.registeredCostClp, "Sin costo registrado")}${
-            summary.itemsWithoutCost ? ` · ${summary.itemsWithoutCost} sin costo` : ""
-          }`}
+          value={money(summary.registeredCostClp, "Sin costo registrado")}
+          hint={summary.itemsWithoutCost ? `${summary.itemsWithoutCost} sin costo` : undefined}
         />
-        <Kpi label="P/L estimado" value={money(summary.estimatedPlClp, "Sin precio suficiente")} />
-        <Kpi
-          label="Duplicados"
-          value={`${summary.duplicateCards} cartas / ${summary.extraCopies} copias extra`}
-        />
+        <StatCard label="P/L estimado" value={money(summary.estimatedPlClp, "Sin precio suficiente")} />
       </dl>
 
       {summary.totalCards === 0 ? (
-        <div className="mt-8 rounded border p-6">
-          <p className="font-medium">Aún no tienes cartas en tu colección.</p>
-          <p className="mt-2 text-sm text-neutral-600">
-            Agrega tus cartas para llevar registro de cantidad, costo y valor estimado.
-          </p>
-          <Link href="/buscar" className="mt-4 inline-block underline">
-            Buscar cartas
-          </Link>
+        <div className="mt-8">
+          <EmptyState
+            title="Aún no tienes cartas."
+            body="Agrega tus cartas para llevar registro de cantidad, costo y valor estimado."
+            action={
+              <Link href="/buscar" className="underline">
+                Buscar cartas
+              </Link>
+            }
+          />
         </div>
       ) : (
         <>
-          <form className="mt-8 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-5" onSubmit={(event) => event.preventDefault()}>
+          <div className="mt-8 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className={buttonClassName(!searchParams.get("game") ? "primary" : "secondary", "min-h-9 py-1")}
+              onClick={() => updateFilter("game", "")}
+            >
+              Todas
+            </button>
+            {[...new Map(sets.map((row) => [row.gameSlug, row.gameName])).entries()].map(([slug, name]) => (
+              <button
+                key={slug}
+                type="button"
+                className={buttonClassName(searchParams.get("game") === slug ? "primary" : "secondary", "min-h-9 py-1")}
+                onClick={() => updateFilter("game", slug)}
+              >
+                {name}
+              </button>
+            ))}
+          </div>
+          <form className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-5" onSubmit={(event) => event.preventDefault()}>
             <label>
               Buscar
               <input
-                className="mt-1 w-full rounded border px-3 py-2"
+                className={`mt-1 ${controlClassName}`}
                 defaultValue={searchParams.get("q") ?? ""}
                 onBlur={(event) => updateFilter("q", event.target.value.trim())}
               />
             </label>
             <label>
-              Juego
-              <input
-                className="mt-1 w-full rounded border px-3 py-2"
-                defaultValue={searchParams.get("game") ?? ""}
-                placeholder="slug"
-                onBlur={(event) => updateFilter("game", event.target.value.trim())}
-              />
-            </label>
-            <label>
               Set
               <input
-                className="mt-1 w-full rounded border px-3 py-2"
+                className={`mt-1 ${controlClassName}`}
                 defaultValue={searchParams.get("set") ?? ""}
                 placeholder="slug"
                 onBlur={(event) => updateFilter("set", event.target.value.trim())}
@@ -186,7 +204,7 @@ function CollectionHome() {
             <label>
               Condición
               <select
-                className="mt-1 w-full rounded border px-3 py-2"
+                className={`mt-1 ${controlClassName}`}
                 value={searchParams.get("condition") ?? ""}
                 onChange={(event) => updateFilter("condition", event.target.value)}
               >
@@ -201,7 +219,7 @@ function CollectionHome() {
             <label>
               Orden
               <select
-                className="mt-1 w-full rounded border px-3 py-2"
+                className={`mt-1 ${controlClassName}`}
                 value={searchParams.get("sort") ?? "recent"}
                 onChange={(event) => updateFilter("sort", event.target.value)}
               >
@@ -211,6 +229,22 @@ function CollectionHome() {
                 <option value="quantity">Cantidad</option>
               </select>
             </label>
+            <div className="flex items-end gap-2">
+              <button
+                type="button"
+                className={buttonClassName(view === "grid" ? "primary" : "secondary", "min-h-11")}
+                onClick={() => setView("grid")}
+              >
+                Grid
+              </button>
+              <button
+                type="button"
+                className={buttonClassName(view === "list" ? "primary" : "secondary", "min-h-11")}
+                onClick={() => setView("list")}
+              >
+                List
+              </button>
+            </div>
           </form>
           <label className="mt-3 flex items-center gap-2 text-sm">
             <input
@@ -224,7 +258,7 @@ function CollectionHome() {
           {selected.length > 0 ? (
             <button
               type="button"
-              className="mt-4 rounded border px-3 py-2 text-sm"
+              className={buttonClassName("danger", "mt-4")}
               disabled={pending}
               onClick={() => void bulkDelete()}
             >
@@ -232,46 +266,54 @@ function CollectionHome() {
             </button>
           ) : null}
 
-          <ul className="mt-6 grid gap-3">
-            {page.items.map((item) => (
-              <li key={item.id} className="flex gap-3 rounded border p-3">
-                <input
-                  type="checkbox"
-                  aria-label={`Seleccionar ${item.variant.card.name}`}
-                  checked={selected.includes(item.id)}
-                  onChange={(event) => {
-                    setSelected((current) =>
-                      event.target.checked ? [...current, item.id] : current.filter((id) => id !== item.id),
-                    );
-                  }}
-                />
-                <Link href={`/me/coleccion/${item.id}`} className="flex min-w-0 flex-1 gap-3">
-                  {item.variant.card.imageUrl ? (
-                    // Catalog source URL; we do not host publisher art.
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={item.variant.card.imageUrl}
-                      alt=""
-                      className="h-16 w-12 rounded object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-16 w-12 items-center justify-center rounded bg-neutral-100 text-[10px] text-neutral-400">
-                      Sin imagen
-                    </div>
-                  )}
-                  <span className="min-w-0">
-                    <span className="block font-medium">{item.variant.card.name}</span>
-                    <span className="block text-sm text-neutral-600">
-                      {item.variant.card.setSlug} · {item.variant.card.number} · {item.condition} · ×{item.quantity}
+          <ul className={view === "grid" ? "mt-6 grid gap-3 sm:grid-cols-2" : "mt-6 grid gap-3"}>
+            {page.items.map((item) => {
+              const comparable = item.registeredCostClp != null && item.estimatedValueClp != null;
+              const pct =
+                comparable && item.registeredCostClp
+                  ? Math.round(((item.estimatedValueClp! - item.registeredCostClp) / item.registeredCostClp) * 100)
+                  : null;
+              return (
+                <li key={item.id} className="flex gap-3 rounded-[16px] border border-border bg-surface p-3">
+                  <input
+                    type="checkbox"
+                    aria-label={`Seleccionar ${item.variant.card.name}`}
+                    checked={selected.includes(item.id)}
+                    onChange={(event) => {
+                      setSelected((current) =>
+                        event.target.checked ? [...current, item.id] : current.filter((id) => id !== item.id),
+                      );
+                    }}
+                  />
+                  <Link href={`/me/coleccion/${item.id}`} className="flex min-w-0 flex-1 gap-3">
+                    <CardImage src={item.variant.card.imageUrl} alt="" className="h-24 w-[68px] shrink-0" />
+                    <span className="min-w-0">
+                      <span className="block font-medium">{item.variant.card.name}</span>
+                      <span className="block text-sm text-text-muted">
+                        {item.variant.card.setSlug} · {item.variant.card.number} · ×{item.quantity}
+                      </span>
+                      <span className="mt-1 block text-xs text-text-muted">
+                        {item.condition} · {item.variant.language} · {item.variant.finish}
+                      </span>
+                      <span className="mt-2 block text-sm">
+                        Costo: {item.registeredCostClp != null ? formatClp(item.registeredCostClp) : "—"}
+                      </span>
+                      <span className="block text-sm">
+                        Valor estimado: {money(item.estimatedValueClp)}
+                      </span>
+                      {pct != null ? (
+                        <span className={pct >= 0 ? "text-sm text-success" : "text-sm text-danger"}>
+                          P/L: {pct >= 0 ? "+" : ""}
+                          {pct}%
+                        </span>
+                      ) : (
+                        <span className="text-sm text-text-muted">P/L: no comparable</span>
+                      )}
                     </span>
-                    <span className="block text-sm">
-                      Est. {money(item.estimatedValueClp)}
-                      {item.registeredCostClp != null ? ` · Costo ${formatClp(item.registeredCostClp)}` : ""}
-                    </span>
-                  </span>
-                </Link>
-              </li>
-            ))}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
           {page.total > page.pageSize ? (
             <p className="mt-4 text-sm">
@@ -283,15 +325,18 @@ function CollectionHome() {
 
       {sets.length > 0 ? (
         <section className="mt-10">
-          <h2 className="text-lg font-medium">Progreso por set</h2>
-          <ul className="mt-3 grid gap-2">
+          <h2 className="text-xl font-medium tracking-tight">Progreso por set</h2>
+          <ul className="mt-3 grid gap-3">
             {sets.map((row) => (
               <li key={row.setId}>
-                <Link href={`/me/coleccion/sets/${row.setId}`} className="block rounded border p-3 text-sm">
-                  <span className="font-medium">{row.gameName} {row.setName}</span>
-                  <span className="mt-1 block text-neutral-600">
-                    {row.ownedUnique} / {row.total} · {row.percentage}% · duplicados {row.extraCopies}
+                <Link href={`/me/coleccion/sets/${row.setId}`} className="block rounded-[16px] border border-border bg-surface p-4">
+                  <span className="font-medium">
+                    {row.gameName} {row.setName}
                   </span>
+                  <span className="mt-1 block text-sm text-text-muted">
+                    {row.ownedUnique} / {row.total} · {row.percentage}% · {row.missing} faltantes · {row.extraCopies} duplicadas
+                  </span>
+                  <ProgressBar className="mt-2" value={row.percentage} label={`Progreso ${row.setName}`} />
                 </Link>
               </li>
             ))}
@@ -299,15 +344,6 @@ function CollectionHome() {
         </section>
       ) : null}
     </PageMain>
-  );
-}
-
-function Kpi({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded border p-3">
-      <dt className="text-xs text-neutral-500">{label}</dt>
-      <dd className="mt-1 font-medium">{value}</dd>
-    </div>
   );
 }
 

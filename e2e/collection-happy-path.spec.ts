@@ -25,6 +25,6 @@ test("collection-happy-path: add, list, edit, set progress, sell click", async (
 
   await page.goto("/me/coleccion");
   await page.getByText(SEARCH_CARD).first().click();
-  await page.getByRole("link", { name: "Vender" }).click();
+  await page.getByRole("main").getByRole("link", { name: "Vender" }).click();
   await expect(page).toHaveURL(/\/vender|\/me\/vendedor/);
 });

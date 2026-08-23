@@ -9,7 +9,7 @@ import { userFacingError } from "../../src/lib/errors";
 import { EmptyState, ErrorText, Screen } from "../../src/ui/screen";
 import { Field } from "../../src/ui/field";
 import { ListRow } from "../../src/ui/list-row";
-import { colors } from "../../src/ui/theme";
+import { useColors } from "../../src/ui/theme-provider";
 
 function useDebounce(value: string, ms: number) {
   const [debounced, setDebounced] = useState(value);
@@ -21,6 +21,7 @@ function useDebounce(value: string, ms: number) {
 }
 
 export default function SearchScreen() {
+  const colors = useColors();
   const router = useRouter();
   const params = useLocalSearchParams<{ q?: string; game?: string }>();
   const [q, setQ] = useState(params.q ?? "");

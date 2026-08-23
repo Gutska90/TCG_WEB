@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CatalogPager } from "../../../components/catalog-pager";
+import { ProductCard } from "../../../components/ui/product-card";
 import { CatalogRequestError, getGame, getGameCards } from "../../../lib/catalog";
 
 export default async function GameCardsPage({
@@ -16,20 +17,22 @@ export default async function GameCardsPage({
   try {
     const [game, cards] = await Promise.all([getGame(slug), getGameCards(slug, current)]);
     return (
-      <main className="mx-auto max-w-5xl px-6 py-12">
-        <Link href={`/${game.slug}`} className="text-sm underline">
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+        <Link href={`/${game.slug}`} className="text-sm underline underline-offset-2">
           {game.name}
         </Link>
-        <h1 className="mt-2 text-3xl font-semibold">Cartas</h1>
-        <ul className="mt-8 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+        <h1 className="mt-2 text-3xl font-medium tracking-tight">Cartas</h1>
+        <ul className="mt-8 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {cards.items.map((card) => (
             <li key={card.id}>
-              <Link href={`/${card.gameSlug}/${card.setSlug}/${card.slug}`} className="block rounded-lg border p-4">
-                <p className="font-medium">{card.name}</p>
-                <p className="text-sm text-neutral-500">
-                  {card.number} · {card.rarity}
-                </p>
-              </Link>
+              <ProductCard
+                href={`/${card.gameSlug}/${card.setSlug}/${card.slug}`}
+                name={card.name}
+                number={card.number}
+                imageUrl={card.imageUrl}
+                gameSlug={card.gameSlug}
+                meta={card.rarity}
+              />
             </li>
           ))}
         </ul>

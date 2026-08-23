@@ -3,13 +3,14 @@ import { useRouter } from "expo-router";
 import { Alert, Text } from "react-native";
 import { api } from "../../src/lib/api";
 import { useAuth } from "../../src/lib/auth";
-import { Button, EmptyState, Screen, SuccessText } from "../../src/ui/screen";
+import { Button, EmptyState, Screen, SuccessText, ThemeToggleRow } from "../../src/ui/screen";
 import { TextLink } from "../../src/ui/nav";
-import { colors } from "../../src/ui/theme";
+import { useColors } from "../../src/ui/theme-provider";
 import { useState } from "react";
 import { userFacingError } from "../../src/lib/errors";
 
 export default function ProfileScreen() {
+  const colors = useColors();
   const { me, signOut, reloadMe } = useAuth();
   const router = useRouter();
   const [notice, setNotice] = useState<string | null>(null);
@@ -71,6 +72,7 @@ export default function ProfileScreen() {
       <TextLink href="/legal/refunds" label="Reembolsos" />
       <TextLink href="/legal/ayuda" label="Ayuda" />
       <Text style={{ color: colors.muted, fontSize: 13 }}>{LEGAL.betaProductNotice}</Text>
+      <ThemeToggleRow />
       <Button
         variant="secondary"
         label="Cerrar sesión"

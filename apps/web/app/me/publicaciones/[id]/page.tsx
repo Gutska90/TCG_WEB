@@ -77,13 +77,13 @@ export default function EditListingPage() {
         </Link>
       </p>
       <h1 className="mt-2 text-2xl font-semibold">Editar publicación</h1>
-      <p className="mt-1 text-sm text-neutral-600">
+      <p className="mt-1 text-sm text-text-muted">
         {listing.title} · stock disponible {listing.available} · {formatClp(listing.priceClp)}
       </p>
       <form onSubmit={(event) => void onSubmit(event)} className="mt-6 grid gap-3">
         <label className="text-sm">
           Condición
-          <select name="condition" defaultValue={listing.condition} className="mt-1 w-full rounded border px-3 py-2">
+          <select name="condition" defaultValue={listing.condition} className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2">
             {CARD_CONDITIONS.map((value) => (
               <option key={value} value={value}>
                 {value} · {CARD_CONDITION_LABELS[value]}
@@ -93,11 +93,11 @@ export default function EditListingPage() {
         </label>
         <label className="text-sm">
           Cantidad
-          <input name="quantity" type="number" min={1} defaultValue={listing.quantity} className="mt-1 w-full rounded border px-3 py-2" />
+          <input name="quantity" type="number" min={1} defaultValue={listing.quantity} className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2" />
         </label>
         <label className="text-sm">
           Precio CLP
-          <input name="priceClp" type="number" min={1} defaultValue={listing.priceClp} className="mt-1 w-full rounded border px-3 py-2" />
+          <input name="priceClp" type="number" min={1} defaultValue={listing.priceClp} className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2" />
         </label>
         <label className="flex items-center gap-2 text-sm">
           <input name="allowsMeetup" type="checkbox" defaultChecked={listing.allowsMeetup} />
@@ -109,7 +109,7 @@ export default function EditListingPage() {
         </label>
         <label className="text-sm">
           Descripción
-          <textarea name="description" defaultValue={listing.description} maxLength={2000} className="mt-1 w-full rounded border px-3 py-2" />
+          <textarea name="description" defaultValue={listing.description} maxLength={2000} className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2" />
         </label>
         <FormError message={error} />
         <SuccessNote message={notice} />

@@ -36,15 +36,15 @@ export default function AddressesPage() {
     setRows(next);
   }
 
-  if (error) return <main className="px-6 py-12 text-red-700">{error}</main>;
-  if (!rows) return <main className="px-6 py-12 text-neutral-500">Cargando…</main>;
+  if (error) return <main className="px-6 py-12 text-danger">{error}</main>;
+  if (!rows) return <main className="px-6 py-12 text-text-muted">Cargando…</main>;
 
   return (
     <main className="mx-auto max-w-md px-6 py-12">
       <h1 className="text-2xl font-semibold">Direcciones</h1>
       <ul className="mt-6 grid gap-3 text-sm">
         {rows.map((row) => (
-          <li key={row.id} className="rounded border p-3">
+          <li key={row.id} className="rounded-[16px] border border-border bg-surface p-3">
             {row.label}: {row.line1}, {row.comuna}
             <button
               type="button"
@@ -61,12 +61,12 @@ export default function AddressesPage() {
         ))}
       </ul>
       <form action={onSubmit} className="mt-8 grid gap-3">
-        <input name="label" placeholder="Etiqueta" className="rounded border px-3 py-2" defaultValue="Principal" />
-        <input name="recipientName" placeholder="Nombre" required className="rounded border px-3 py-2" />
-        <input name="phone" placeholder="Teléfono" required className="rounded border px-3 py-2" />
-        <input name="line1" placeholder="Dirección" required className="rounded border px-3 py-2" />
+        <input name="label" placeholder="Etiqueta" className="rounded-[12px] border border-border bg-surface px-3 py-2" defaultValue="Principal" />
+        <input name="recipientName" placeholder="Nombre" required className="rounded-[12px] border border-border bg-surface px-3 py-2" />
+        <input name="phone" placeholder="Teléfono" required className="rounded-[12px] border border-border bg-surface px-3 py-2" />
+        <input name="line1" placeholder="Dirección" required className="rounded-[12px] border border-border bg-surface px-3 py-2" />
         <ChilePlaceFields />
-        <button type="submit" className="rounded border px-4 py-2 text-sm">
+        <button type="submit" className="inline-flex min-h-11 items-center rounded-[12px] border border-border bg-surface px-4 py-2 text-sm">
           Agregar
         </button>
       </form>

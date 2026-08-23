@@ -39,17 +39,17 @@ export default function RegisterPage() {
     <PageMain>
       <h1 className="text-2xl font-semibold">Crear cuenta</h1>
       <form onSubmit={onSubmit} className="mt-8 flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex flex-col gap-1 text-sm" htmlFor="displayName">
           Nombre
-          <input name="displayName" type="text" required minLength={2} autoComplete="name" className="rounded border border-neutral-300 px-3 py-2" />
+          <input id="displayName" name="displayName" type="text" required minLength={2} autoComplete="name" className="rounded-[12px] border border-border bg-surface px-3 py-2" />
         </label>
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex flex-col gap-1 text-sm" htmlFor="email">
           Email
-          <input name="email" type="email" required autoComplete="email" className="rounded border border-neutral-300 px-3 py-2" />
+          <input id="email" name="email" type="email" required autoComplete="email" className="rounded-[12px] border border-border bg-surface px-3 py-2" />
         </label>
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex flex-col gap-1 text-sm" htmlFor="password">
           Contraseña (mínimo 10 caracteres)
-          <input name="password" type="password" required minLength={10} autoComplete="new-password" className="rounded border border-neutral-300 px-3 py-2" />
+          <input id="password" name="password" type="password" required minLength={10} autoComplete="new-password" className="rounded-[12px] border border-border bg-surface px-3 py-2" />
         </label>
         <label className="flex items-start gap-2 text-sm">
           <input
@@ -71,7 +71,7 @@ export default function RegisterPage() {
             .
           </span>
         </label>
-        <label className="flex items-start gap-2 text-sm text-neutral-700">
+        <label className="flex items-start gap-2 text-sm text-text-muted">
           <input
             name={MARKETING_CONSENT_CHECKBOX.name}
             type="checkbox"
@@ -86,7 +86,7 @@ export default function RegisterPage() {
         </button>
       </form>
       <OauthButtons onSuccess={() => router.push("/me")} />
-      <p className="mt-6 text-sm text-neutral-600">
+      <p className="mt-6 text-sm text-text-muted">
         ¿Ya tienes cuenta?{" "}
         <Link href="/ingresar" className="underline">
           Ingresar

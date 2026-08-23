@@ -11,9 +11,10 @@ import { userFacingError } from "../src/lib/errors";
 import { Button, ErrorText, Screen } from "../src/ui/screen";
 import { Field } from "../src/ui/field";
 import { TextLink } from "../src/ui/nav";
-import { colors } from "../src/ui/theme";
+import { useColors } from "../src/ui/theme-provider";
 
 export default function RegisterScreen() {
+  const colors = useColors();
   const { signIn } = useAuth();
   const router = useRouter();
   const [displayName, setDisplayName] = useState("");

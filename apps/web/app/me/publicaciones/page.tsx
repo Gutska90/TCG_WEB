@@ -92,15 +92,15 @@ export default function MyListingsPage() {
       ) : (
         <ul className="mt-8 grid gap-3">
           {data.items.map((item) => (
-            <li key={item.id} className="rounded border p-4">
+            <li key={item.id} className="rounded-[16px] border border-border bg-surface p-4">
               <Link href={`/listings/${item.id}`} className="font-medium underline">
                 {item.title}
               </Link>
-              <p className="mt-1 text-sm text-neutral-600">
+              <p className="mt-1 text-sm text-text-muted">
                 {LISTING_STATUS_LABELS[item.status]} · {item.condition} · {CARD_CONDITION_LABELS[item.condition]} ·{" "}
                 {formatClp(item.priceClp)}
               </p>
-              <p className="text-sm text-neutral-600">
+              <p className="text-sm text-text-muted">
                 Stock {item.available} disponible / {item.quantity} total (reservadas {item.quantityReserved}) ·{" "}
                 {item.allowsMeetup ? "encuentro" : ""} {item.allowsShipping ? "envío" : ""}
               </p>

@@ -32,6 +32,26 @@ async function parseError(res: Response): Promise<ApiError> {
   }
 }
 
+export async function openAuthenticatedFile(path: string): Promise<void> {
+  const headers = new Headers();
+  const access = getAccessToken();
+  if (access) headers.set("Authorization", `Bearer ${access}`);
+  let res = await fetch(path, { headers, credentials: "include" });
+  if (res.status === 401) {
+    const refreshed = await refreshSession();
+    if (refreshed) {
+      const retryHeaders = new Headers();
+      const token = getAccessToken();
+      if (token) retryHeaders.set("Authorization", `Bearer ${token}`);
+      res = await fetch(path, { headers: retryHeaders, credentials: "include" });
+    }
+  }
+  if (!res.ok) throw await parseError(res);
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  window.open(url, "_blank", "noopener,noreferrer");
+}
+
 export async function api<T>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
   const headers = new Headers(init.headers);
   const access = getAccessToken();

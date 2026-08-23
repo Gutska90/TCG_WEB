@@ -9,13 +9,14 @@ import * as Google from "expo-auth-session/providers/google";
 import { useEffect, useState } from "react";
 import { Platform, Switch, Text, View } from "react-native";
 import { Button, ErrorText } from "../src/ui/screen";
-import { colors } from "../src/ui/theme";
+import { useColors } from "../src/ui/theme-provider";
 
 type Props = {
   onSuccess: (tokens: AuthTokens) => Promise<void>;
 };
 
 export function OauthButtons({ onSuccess }: Props) {
+  const colors = useColors();
   const [config, setConfig] = useState<PublicPlatformConfig | null>(null);
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [error, setError] = useState<string | null>(null);

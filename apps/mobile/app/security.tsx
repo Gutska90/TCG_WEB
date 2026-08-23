@@ -7,9 +7,10 @@ import { useAuth } from "../src/lib/auth";
 import { userFacingError } from "../src/lib/errors";
 import { Button, ErrorText, Screen, SuccessText } from "../src/ui/screen";
 import { Field } from "../src/ui/field";
-import { colors } from "../src/ui/theme";
+import { useColors } from "../src/ui/theme-provider";
 
 export default function SecurityScreen() {
+  const colors = useColors();
   const { me, signOut } = useAuth();
   const router = useRouter();
   const [methods, setMethods] = useState<AuthMethodsView | null>(null);

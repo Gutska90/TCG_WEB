@@ -30,12 +30,26 @@ FASE 11.5 Auth consistency Web + Mobile  ✓
 FASE 12   Colecciones                    ✓
 FASE 13   Historial de precios           ✓
 FASE 14   Wishlist + alertas             ✓
-FASE 15   Scanner
-FASE 16   Tiendas
-FASE 17   Subastas
-FASE 18   Intercambios
-FASE 19   Deck builder
-FASE 20   Optimización de compras
+
+UI.1      Visual Refresh                 ✓
+
+--- BETA RELEASE PROGRAM (feature freeze) ---
+B0        Release Audit                  ✓
+B1        Staging                        🟡 contrato + storage/email (hosting operador)
+B2        Security                       ✓
+B3        Performance                    ✓
+B4        QA                             ✓
+B5        Production Infrastructure      ✓
+B6        Android Beta
+B7        iOS TestFlight
+B8        Closed Beta
+
+FASE 15   Scanner                        ⏸ congelada
+FASE 16   Tiendas                        ⏸ congelada
+FASE 17   Subastas                       ⏸ congelada
+FASE 18   Intercambios                   ⏸ congelada
+FASE 19   Deck builder                   ⏸ congelada
+FASE 20   Optimización de compras        ⏸ congelada
 ```
 
 Núcleo diferencial post-transaccional (no adelantar hasta que 9.6–10.5 estén resueltos):
@@ -278,7 +292,33 @@ Wishlist privada (no favoritos ni colección). Precio objetivo CLP, alerta `WISH
 
 **No incluido (Fase 15+):** scanner, push tokens, tiendas, subastas.
 
-**Estado: listo.** Siguiente: Fase 15 Scanner — no empezar hasta pedirlo.
+**Estado: listo.** Siguiente: **UI.1 Visual Refresh** (hecho). Luego B0–B8. Fases 15–20 congeladas hasta cerrar B8.
+
+## UI.1 — Visual Refresh ✓
+
+Refresh visual marketplace (web + mobile) entre Fase 14 y el Beta Release Program. Tokens, Light/Dark/System, header TCG MARKET, home, search, ficha, colección, wishlist, carrito/checkout, perfil. **Sin** cambios de API, Prisma, pagos, ledger, jobs ni flags. **No** inicia Scanner ni B6.
+
+Doc: [design/DESIGN-SYSTEM.md](design/DESIGN-SYSTEM.md).
+
+**Estado: listo.** Siguiente producto: **B6 Android Beta**. No Scanner. B0–B5 ya cerrados.
+
+## Feature freeze (B0–B8)
+
+Durante el Beta Release Program **no** se implementa Scanner, Stores, Auctions, Trades, Deck Builder, Cart Optimizer, pagos live ni payouts automáticos. El orden de Fases 15–20 no cambia; solo se pospone hasta B8.
+
+Auditoría canónica: [audits/BETA-RELEASE-AUDIT-2026-08.md](audits/BETA-RELEASE-AUDIT-2026-08.md).
+
+| Fase | Qué | Estado |
+|------|-----|--------|
+| **B0** Release Audit | Inventario real post-F14; P0/P1; GO/NO-GO | [BETA-RELEASE-AUDIT-2026-08](audits/BETA-RELEASE-AUDIT-2026-08.md) ✓ |
+| **B1** Staging | Contrato 12-factor, R2/Minio, Resend/SMTP, fail-fast, `ENABLE_REAL_PAYMENTS=false`. Hosting/DNS/TLS/Postgres managed: operador (ver [STAGING.md](runbooks/STAGING.md)) | 🟡 código listo; entorno cloud no provisionado en el repo |
+| **B2** Security | CSP/HSTS Next + Helmet API, `pnpm audit:deps`, `applySaleDeduction` en el tx de confirm, `loginHref` seguro, `ADMIN_IP_ALLOWLIST`, Listing.seller Restrict | ✓ |
+| **B3** Performance | Load test search/card/collection/prices/wishlist/checkout/admin; SALE=`completedAt`; calendario Chile; captura/wishlist paginadas; sort estimado SQL | ✓ |
+| **B4** QA | Checklists web/mobile/admin (F12–14 + in-app); Playwright admin refund/payout; Maestro opcional. Staging cloud = operador B1 | ✓ [B4-QA](release/B4-QA.md) |
+| **B5** Production infrastructure | Sentry (`SENTRY_DSN`), backups/restore, Redis líder de jobs (sin BullMQ) | ✓ [PRODUCTION](runbooks/PRODUCTION.md) |
+| **B6** Android Beta | EAS preview interno (no Play submit) | |
+| **B7** iOS TestFlight | EAS + Apple (no App Store submit) | |
+| **B8** Closed Beta | Testers invitados, sandbox, sin plata real | |
 
 ## Fases 13–17
 

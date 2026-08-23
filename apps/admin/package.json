@@ -9,9 +9,10 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": {
+    "dependencies": {
     "@tcg/config": "workspace:*",
     "@tcg/types": "workspace:*",
+    "@tcg/ui": "workspace:*",
     "next": "^15.5.2",
     "react": "19.0.0",
     "react-dom": "19.0.0"

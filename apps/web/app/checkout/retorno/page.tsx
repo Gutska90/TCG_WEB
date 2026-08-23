@@ -127,9 +127,9 @@ function ReturnInner() {
     <PageMain>
       <h1 className="text-2xl font-semibold">{title}</h1>
       {checkout.mercadopago.mock ? <div className="mt-4"><SandboxNotice /></div> : null}
-      <p className="mt-3 text-neutral-700">{body}</p>
+      <p className="mt-3 text-text-muted">{body}</p>
       <p className="mt-4 font-medium">Total {formatClp(checkout.totalClp)}</p>
-      <p className="mt-1 text-sm text-neutral-600">Estado del checkout: {checkout.status}</p>
+      <p className="mt-1 text-sm text-text-muted">Estado del checkout: {checkout.status}</p>
       <ul className="mt-6 grid gap-2 text-sm">
         {checkout.orders.map((order) => (
           <li key={order.id}>
@@ -149,7 +149,7 @@ function ReturnInner() {
         </button>
       ) : null}
       <p className="mt-8">
-        <Link href="/me/compras" className="rounded bg-neutral-900 px-4 py-2 text-sm text-white">
+        <Link href="/me/compras" className="inline-flex min-h-11 items-center rounded-[12px] bg-primary px-4 py-2 text-sm font-medium text-white">
           Ver mis compras
         </Link>
       </p>

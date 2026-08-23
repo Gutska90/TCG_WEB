@@ -6,9 +6,15 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "../src/lib/auth";
 import { QueryProvider } from "../src/lib/query";
 import { track } from "../src/lib/analytics";
+import { ThemeProvider, useColors } from "../src/ui/theme-provider";
 import * as WebBrowser from "expo-web-browser";
 
 WebBrowser.maybeCompleteAuthSession();
+
+function ThemedStatusBar() {
+  const colors = useColors();
+  return <StatusBar style={colors.bg === "#0B1020" ? "light" : "dark"} />;
+}
 
 export default function RootLayout() {
   useEffect(() => {
@@ -20,8 +26,9 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryProvider>
           <AuthProvider>
-            <StatusBar style="dark" />
-            <Stack screenOptions={{ headerBackTitle: "Volver" }}>
+            <ThemeProvider>
+              <ThemedStatusBar />
+              <Stack screenOptions={{ headerBackTitle: "Volver" }}>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="login" options={{ title: "Ingresar" }} />
               <Stack.Screen name="oauth" options={{ title: "Autenticando" }} />
@@ -49,6 +56,7 @@ export default function RootLayout() {
               <Stack.Screen name="legal/[slug]" options={{ title: "Legal" }} />
               <Stack.Screen name="seller-onboarding" options={{ title: "Onboarding vendedor" }} />
             </Stack>
+            </ThemeProvider>
           </AuthProvider>
         </QueryProvider>
       </SafeAreaProvider>

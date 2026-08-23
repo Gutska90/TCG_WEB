@@ -1,15 +1,19 @@
-# Mobile beta QA — Fase 11
+# Mobile beta QA — B4
 
 Checklist para tester externo en **Android y iOS**. API sandbox. `ENABLE_REAL_PAYMENTS=false`. Seed: `pnpm beta:seed`.
 
-Cuentas (solo entorno local/staging, nunca producción):
+Cuentas (solo local/staging, nunca producción):
 
 - Comprador: `buyer.beta@example.test` / `BetaPassw0rd!`
 - Vendedor: `seller.beta@example.test` / `BetaPassw0rd!`
 
 Scheme: `tcgplatform://checkout-return?checkoutId=`. El estado del deep link **no** prueba el pago; debe verse polling al servidor.
 
+`EXPO_PUBLIC_API_BASE_URL` en dispositivo físico = API HTTPS de staging (B1 operador) o IP LAN en local.
+
 Probar al menos: Android teléfono pequeño, Android grande, iPhone estándar, iPhone grande. Tablet no es bloqueo si el layout no se rompe.
+
+Notificaciones **in-app** existen (Fase 14, `/notifications`). **Push tokens siguen diferidos** (no es un fallo de esta beta). Email de alerta depende de Resend/SMTP en staging.
 
 ## AUTH
 
@@ -18,7 +22,7 @@ Probar al menos: Android teléfono pequeño, Android grande, iPhone estándar, i
 - [ ] Verificar email (token)
 - [ ] Forgot / reset password
 - [ ] Logout borra sesión (vuelve a pedir login)
-- [ ] No hay botones Google/Apple rotos
+- [ ] No hay botones Google/Apple rotos (flags off hasta IDs de staging)
 - [ ] Cuenta baneada muestra mensaje claro
 
 ## SEARCH
@@ -32,9 +36,9 @@ Probar al menos: Android teléfono pequeño, Android grande, iPhone estándar, i
 ## CARD
 
 - [ ] Imagen, set, número, rareza, variante
-- [ ] Precio orientativo existente (sin gráfico)
+- [ ] Precio orientativo + historial si `ENABLE_PRICES`
 - [ ] Listings y CTA ver publicaciones
-- [ ] Favorito (si hay sesión)
+- [ ] Favorito / wishlist (si hay sesión)
 
 ## LISTING
 
@@ -70,8 +74,29 @@ Probar al menos: Android teléfono pequeño, Android grande, iPhone estándar, i
 ## SALE
 
 - [ ] Solo vendedor
-- [ ] Prepare / ship según estado (transición ilegal = error 409)
+- [ ] Prepare / ship / entregar según estado (transición ilegal = error 409)
 - [ ] Comprador: display name mínimo
+
+## COLLECTION (Fase 12)
+
+- [ ] Agregar lote desde carta
+- [ ] Listar, editar cantidad, progreso de set
+- [ ] CTA vender desde un lote
+
+## PRICES (Fase 13)
+
+- [ ] Historial en ficha (rangos). Índice TCG Market Chile, no terceros.
+
+## WISHLIST (Fase 14)
+
+- [ ] Añadir con precio máximo, listar, quitar
+- [ ] Alerta in-app `WISHLIST_HIT` si hay listing ≤ objetivo (no spam del mismo listing)
+
+## NOTIFICATIONS (in-app)
+
+- [ ] Perfil → Notificaciones: listado, vacío, marcar leídas
+- [ ] Preferencias in-app / email (email no llega sin correo de staging)
+- [ ] Copy: push aún no activo
 
 ## DISPUTE
 
@@ -88,6 +113,13 @@ Probar al menos: Android teléfono pequeño, Android grande, iPhone estándar, i
 - [ ] displayName, email, seller, direcciones, legal, feedback, logout
 - [ ] Solicitar desactivación
 - [ ] Si seller: publicaciones + saldo
+- [ ] Tema Claro / Oscuro / Sistema (sin login)
+
+## UI.1
+
+- [ ] Tabs: Inicio, Buscar, Colección, Wishlist, Perfil (iconos Ionicons). Carrito en header con badge; `Carrito` sigue siendo el label accesible.
+- [ ] Home: search, atajos de juego, publicaciones, CTA colección/wishlist (sin feed infinito).
+- [ ] Tema Claro / Oscuro / Sistema en Perfil (sin login). Misma paleta primary/surfaces que web. Imágenes de carta `contain`.
 
 ## NETWORK ERROR
 
@@ -107,8 +139,18 @@ Probar al menos: Android teléfono pequeño, Android grande, iPhone estándar, i
 | SEARCH/CARD/LISTING | | |
 | CART/CHECKOUT | | |
 | PURCHASE/SALE | | |
+| COLLECTION/PRICES/WISHLIST | | |
+| NOTIFICATIONS (in-app) | | |
 | DISPUTE/REPORT | | |
 | PROFILE | | |
 | NETWORK/SESSION | | |
 
-Maestro (opcional, simulador): `maestro test apps/mobile/.maestro/`.
+## Maestro (opcional, no es gate de CI)
+
+CI de GitHub no tiene emulador. Correr en simulador local o nightly `workflow_dispatch`:
+
+```bash
+pnpm test:maestro
+```
+
+Flujos en `apps/mobile/.maestro/` (login, búsqueda, checkout sandbox, venta, disputa, colección, wishlist, notificaciones).

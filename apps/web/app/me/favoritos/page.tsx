@@ -32,7 +32,7 @@ export default function FavoritesPage() {
     );
   }
   if (!data) {
-    return <main className="px-6 py-12 text-neutral-500">Cargando…</main>;
+    return <main className="px-6 py-12 text-text-muted">Cargando…</main>;
   }
 
   return (
@@ -50,7 +50,7 @@ export default function FavoritesPage() {
           </li>
         ))}
       </ul>
-      {data.items.length === 0 ? <p className="mt-6 text-neutral-500">Aún no hay favoritos.</p> : null}
+      {data.items.length === 0 ? <p className="mt-6 text-text-muted">Aún no hay favoritos.</p> : null}
     </main>
   );
 }

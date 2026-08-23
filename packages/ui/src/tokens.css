@@ -1,0 +1,47 @@
+:root {
+  color-scheme: light;
+  --background: #f8fafc;
+  --surface: #ffffff;
+  --surface-elevated: #f1f5f9;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --text-muted: #64748b;
+  --primary: #7c3aed;
+  --primary-hover: #8b5cf6;
+  --accent: #22d3ee;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --shadow: 0 8px 24px rgb(15 23 42 / 0.06);
+  --game-accent: var(--primary);
+}
+
+.dark {
+  color-scheme: dark;
+  --background: #0b1020;
+  --surface: #121a2b;
+  --surface-elevated: #182236;
+  --border: #263246;
+  --text: #f8fafc;
+  --text-muted: #94a3b8;
+  --primary: #7c3aed;
+  --primary-hover: #8b5cf6;
+  --accent: #22d3ee;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --shadow: 0 12px 32px rgb(0 0 0 / 0.35);
+}
+
+.game-accent-pokemon {
+  --game-accent: #eab308;
+}
+.game-accent-magic {
+  --game-accent: #f97316;
+}
+.game-accent-one-piece {
+  --game-accent: #ef4444;
+}
+.game-accent-yugioh {
+  --game-accent: #8b5cf6;
+}

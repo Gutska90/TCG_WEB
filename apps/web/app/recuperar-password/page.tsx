@@ -47,12 +47,12 @@ function RecoverForm() {
         {resetToken ? (
           <label className="flex flex-col gap-1 text-sm">
             Contraseña nueva (mínimo 10)
-            <input name="password" type="password" required minLength={10} autoComplete="new-password" className="rounded border border-neutral-300 px-3 py-2" />
+            <input name="password" type="password" required minLength={10} autoComplete="new-password" className="rounded border border-border px-3 py-2" />
           </label>
         ) : (
           <label className="flex flex-col gap-1 text-sm">
             Email
-            <input name="email" type="email" required autoComplete="email" className="rounded border border-neutral-300 px-3 py-2" />
+            <input name="email" type="email" required autoComplete="email" className="rounded border border-border px-3 py-2" />
           </label>
         )}
         <FormError message={error} />

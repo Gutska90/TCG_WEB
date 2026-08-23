@@ -2,7 +2,7 @@ import { Link, Redirect, usePathname, type Href } from "expo-router";
 import type { ReactNode } from "react";
 import { Text } from "react-native";
 import { useAuth } from "../lib/auth";
-import { colors } from "./theme";
+import { useColors } from "./theme-provider";
 
 export function RequireAuth({ children }: { children: ReactNode }) {
   const { ready, me } = useAuth();
@@ -13,9 +13,10 @@ export function RequireAuth({ children }: { children: ReactNode }) {
 }
 
 export function TextLink({ href, label }: { href: string; label: string }) {
+  const colors = useColors();
   return (
     <Link href={href as Href} accessibilityRole="link" accessibilityLabel={label}>
-      <Text style={{ color: colors.text, textDecorationLine: "underline", fontSize: 15 }}>{label}</Text>
+      <Text style={{ color: colors.text, textDecorationLine: "underline", fontSize: 15, minHeight: 44 }}>{label}</Text>
     </Link>
   );
 }

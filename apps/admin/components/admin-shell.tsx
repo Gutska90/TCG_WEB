@@ -57,7 +57,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   }, [router]);
 
   if (!me) {
-    return <p className="px-6 py-16 text-sm text-neutral-400">Cargando…</p>;
+    return <p className="px-6 py-16 text-sm text-text-muted">Cargando…</p>;
   }
 
   const nav = [
@@ -66,8 +66,8 @@ export function AdminShell({ children }: { children: ReactNode }) {
   ];
 
   return (
-    <div className="min-h-screen bg-neutral-950 text-neutral-100">
-      <header className="border-b border-neutral-800">
+    <div className="min-h-screen bg-background text-text">
+      <header className="border-b border-border">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-3">
           <p className="text-sm font-semibold tracking-tight">TCG Admin</p>
           <nav className="flex flex-wrap gap-3 text-sm">
@@ -76,14 +76,14 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={
-                  pathname === item.href ? "text-white" : "text-neutral-400 hover:text-white"
+                  pathname === item.href ? "text-text" : "text-text-muted hover:text-text"
                 }
               >
                 {item.label}
               </Link>
             ))}
           </nav>
-          <div className="flex items-center gap-3 text-xs text-neutral-400">
+          <div className="flex items-center gap-3 text-xs text-text-muted">
             <span>{me.email}</span>
             <button
               type="button"

@@ -8,9 +8,10 @@ import { userFacingError } from "../../../src/lib/errors";
 import { EmptyState, ErrorText, LoadingState, Screen } from "../../../src/ui/screen";
 import { ListRow } from "../../../src/ui/list-row";
 import { TextLink } from "../../../src/ui/nav";
-import { colors } from "../../../src/ui/theme";
+import { useColors } from "../../../src/ui/theme-provider";
 
 export default function CollectionHomeScreen() {
+  const colors = useColors();
   const { me } = useAuth();
   const router = useRouter();
   const summary = useQuery({

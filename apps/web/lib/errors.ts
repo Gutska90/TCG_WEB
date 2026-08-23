@@ -1,4 +1,5 @@
 import { ApiError } from "./api";
+import { safeInternalPath } from "@tcg/config";
 
 export function userFacingError(err: unknown): string {
   if (!(err instanceof ApiError)) {
@@ -17,6 +18,7 @@ export function userFacingError(err: unknown): string {
 }
 
 export function loginHref(next?: string): string {
-  if (!next || next.startsWith("http") || !next.startsWith("/")) return "/ingresar";
-  return `/ingresar?next=${encodeURIComponent(next)}`;
+  const path = safeInternalPath(next);
+  if (!path) return "/ingresar";
+  return `/ingresar?next=${encodeURIComponent(path)}`;
 }

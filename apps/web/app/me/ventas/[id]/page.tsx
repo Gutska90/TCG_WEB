@@ -72,14 +72,14 @@ export default function SaleDetailPage() {
         </Link>
       </p>
       <h1 className="mt-2 text-2xl font-semibold">{order.orderNumber}</h1>
-      <p className="mt-1 text-neutral-600">
+      <p className="mt-1 text-text-muted">
         {ORDER_STATUS_LABELS[order.status]} · Comprador {order.buyer.displayName} · {formatClp(order.totalClp)}
       </p>
-      <p className="mt-2 text-sm text-neutral-600">
+      <p className="mt-2 text-sm text-text-muted">
         Comisión {formatClp(order.commissionClp)} · pago{" "}
         {order.payment?.status ? PAYMENT_STATUS_USER_LABELS[order.payment.status] : "pendiente"}
       </p>
-      <p className="mt-1 text-sm text-neutral-600">Entrega: {SHIPPING_METHOD_LABELS[order.shippingMethod]}</p>
+      <p className="mt-1 text-sm text-text-muted">Entrega: {SHIPPING_METHOD_LABELS[order.shippingMethod]}</p>
       <ul className="mt-6 grid gap-2 text-sm">
         {order.items.map((item) => (
           <li key={item.listingId}>
@@ -90,7 +90,7 @@ export default function SaleDetailPage() {
       <ShipmentSummary order={order} />
       <OrderTimeline order={order} />
       {balance ? (
-        <p className="mt-4 text-sm text-neutral-600">
+        <p className="mt-4 text-sm text-text-muted">
           Saldo estimado: pendiente {formatClp(balance.pendingClp)} · disponible {formatClp(balance.availableClp)}.{" "}
           <Link href="/me/balance" className="underline">
             Ver saldo
@@ -119,7 +119,7 @@ export default function SaleDetailPage() {
                 value={meetupPlace}
                 onChange={(event) => setMeetupPlace(event.target.value)}
                 required
-                className="mt-1 w-full rounded border px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2 text-sm"
               />
             </label>
             <button type="submit" disabled={pending} className={buttonSecondaryClass}>
@@ -140,7 +140,7 @@ export default function SaleDetailPage() {
               <input
                 value={tracking}
                 onChange={(event) => setTracking(event.target.value)}
-                className="mt-1 w-full rounded border px-3 py-2 text-sm"
+                className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2 text-sm"
               />
             </label>
             <button type="submit" disabled={pending} className={`${buttonSecondaryClass} sm:self-end`}>

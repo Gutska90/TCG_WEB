@@ -38,35 +38,35 @@ export default function SellerOnboardingPage() {
   return (
     <main className="mx-auto max-w-md px-6 py-12">
       <h1 className="text-2xl font-semibold">Onboarding vendedor</h1>
-      <p className="mt-2 text-sm text-neutral-600">Dirección de despacho y términos para publicar.</p>
-      {error ? <p className="mt-4 text-sm text-red-700">{error}</p> : null}
+      <p className="mt-2 text-sm text-text-muted">Dirección de despacho y términos para publicar.</p>
+      {error ? <p className="mt-4 text-sm text-danger">{error}</p> : null}
       <form action={onSubmit} className="mt-6 grid gap-3">
         <label className="text-sm">
           Nombre destinatario
-          <input name="recipientName" required className="mt-1 w-full rounded border px-3 py-2" />
+          <input name="recipientName" required className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2" />
         </label>
         <label className="text-sm">
           Teléfono
-          <input name="phone" required className="mt-1 w-full rounded border px-3 py-2" />
+          <input name="phone" required className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2" />
         </label>
         <label className="text-sm">
           Dirección
-          <input name="line1" required className="mt-1 w-full rounded border px-3 py-2" />
+          <input name="line1" required className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2" />
         </label>
         <label className="text-sm">
           Depto / extra
-          <input name="line2" className="mt-1 w-full rounded border px-3 py-2" />
+          <input name="line2" className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2" />
         </label>
         <ChilePlaceFields />
         <label className="text-sm">
           Código postal
-          <input name="postalCode" className="mt-1 w-full rounded border px-3 py-2" />
+          <input name="postalCode" className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2" />
         </label>
         <label className="flex items-center gap-2 text-sm">
           <input name="acceptTerms" type="checkbox" required />
           Acepto los términos de vendedor
         </label>
-        <button type="submit" className="rounded border px-4 py-2 text-sm">
+        <button type="submit" className="inline-flex min-h-11 items-center rounded-[12px] border border-border bg-surface px-4 py-2 text-sm">
           Activar cuenta vendedor
         </button>
       </form>

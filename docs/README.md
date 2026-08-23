@@ -3,7 +3,7 @@
 **Nombre de trabajo:** TCG Market Chile  
 **Nombre interno:** `tcg-platform`  
 **Fecha:** 21 agosto 2026  
-**Estado:** Fase **14** lista (Wishlist + alertas). Siguiente: Fase **15** Scanner — no adelantar. Especificación v1.1.
+**Estado:** Fase **14** lista. **UI.1** Visual Refresh ✓. **Feature freeze:** Fases 15–20 congeladas. **B0** ✓. **B1** contrato staging. **B2** ✓. **B3** ✓. **B4** ✓. **B5** ✓. Siguiente **B6** Android Beta. No adelantar Scanner ni pagos live. Auditoría: [audits/BETA-RELEASE-AUDIT-2026-08.md](audits/BETA-RELEASE-AUDIT-2026-08.md). Staging: [runbooks/STAGING.md](runbooks/STAGING.md). QA: [release/B4-QA.md](release/B4-QA.md). Infra: [runbooks/PRODUCTION.md](runbooks/PRODUCTION.md). Design: [design/DESIGN-SYSTEM.md](design/DESIGN-SYSTEM.md).
 
 Este repositorio no es una copia de TCGMatch. TCGMatch es **referencia funcional** de un marketplace chileno de cartas. El producto objetivo es una **plataforma TCG integral** para coleccionistas, jugadores y tiendas, con web, PWA y apps móviles sobre **un solo backend y una sola base de datos**.
 
@@ -47,10 +47,15 @@ Este repositorio no es una copia de TCGMatch. TCGMatch es **referencia funcional
 | — | [OBSERVABILITY-AND-OPERATIONS](OBSERVABILITY-AND-OPERATIONS.md) | Logs, jobs, flags, kill switches 10.6 |
 | — | [LEGAL-BETA](LEGAL-BETA.md) | Términos, privacidad, copy, gates de pagos live 10.7 |
 | — | [COLLECTIONS](COLLECTIONS.md) | Colección personal, lotes, valor estimado, set progress 12 |
-| — | [STORE-READINESS](release/STORE-READINESS.md) | Checklist App Store / Play (sin submit) |
-| — | [WEB-BETA-QA](release/WEB-BETA-QA.md) | Checklist tester web 11.0 |
-| — | [MOBILE-BETA-QA](release/MOBILE-BETA-QA.md) | Checklist tester mobile 11 |
-| — | [CURSOR](CURSOR.md) | Reglas del agente + prompt inicial |
+| — | [STAGING](runbooks/STAGING.md) | B1: contrato staging, R2/Minio, correo, fail-fast |
+| — | [PERFORMANCE](runbooks/PERFORMANCE.md) | B3: load HTTP, p95 search, jobs |
+| — | [PRODUCTION](runbooks/PRODUCTION.md) | B5: Sentry, Redis líder, backups/incidentes |
+| — | [audit-allowlist](security/audit-allowlist.json) | B2: GHSA high/critical aceptados con motivo |
+| — | [WEB-BETA-QA](release/WEB-BETA-QA.md) | Checklist tester web B4 |
+| — | [MOBILE-BETA-QA](release/MOBILE-BETA-QA.md) | Checklist tester mobile B4 |
+| — | [ADMIN-BETA-QA](release/ADMIN-BETA-QA.md) | Checklist staff B4 |
+| — | [B4-QA](release/B4-QA.md) | Índice QA beta (Playwright + Maestro opcional) |
+| — | [DESIGN-SYSTEM](design/DESIGN-SYSTEM.md) | UI.1 tokens, tema, componentes |
 
 ## Cobertura del Documento Maestro
 

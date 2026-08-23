@@ -1,5 +1,6 @@
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { colors, space } from "./theme";
+import { Image, Pressable, Text, View } from "react-native";
+import { space } from "./theme";
+import { useColors } from "./theme-provider";
 
 export function ListRow({
   title,
@@ -14,35 +15,38 @@ export function ListRow({
   right?: string;
   imageUrl?: string | null;
 }) {
+  const colors = useColors();
   const inner = (
-    <View style={styles.row}>
+    <View style={{ flexDirection: "row", gap: space.sm, padding: space.sm, alignItems: "center" }}>
       {imageUrl ? (
-        <Image source={{ uri: imageUrl }} style={styles.img} accessibilityLabel={title} />
+        <Image
+          source={{ uri: imageUrl }}
+          style={{ width: 48, height: 68, borderRadius: 8, backgroundColor: colors.fill }}
+          resizeMode="contain"
+          accessibilityLabel={title}
+        />
       ) : (
-        <View style={styles.ph} accessibilityLabel={`${title}, sin imagen`} />
+        <View
+          style={{ width: 48, height: 68, borderRadius: 8, backgroundColor: colors.fill }}
+          accessibilityLabel={`${title}, sin imagen`}
+        />
       )}
-      <View style={styles.body}>
-        <Text style={styles.title}>{title}</Text>
-        {subtitle ? <Text style={styles.sub}>{subtitle}</Text> : null}
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text style={{ fontSize: 16, fontWeight: "600", color: colors.text }}>{title}</Text>
+        {subtitle ? <Text style={{ fontSize: 13, color: colors.muted }}>{subtitle}</Text> : null}
       </View>
-      {right ? <Text style={styles.right}>{right}</Text> : null}
+      {right ? <Text style={{ fontSize: 14, fontWeight: "600", color: colors.text }}>{right}</Text> : null}
     </View>
   );
   if (!onPress) return inner;
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={title} onPress={onPress} style={styles.press}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      onPress={onPress}
+      style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 16, marginBottom: space.sm, backgroundColor: colors.surface }}
+    >
       {inner}
     </Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  press: { borderWidth: 1, borderColor: colors.border, borderRadius: 10, marginBottom: space.sm },
-  row: { flexDirection: "row", gap: space.sm, padding: space.sm, alignItems: "center" },
-  img: { width: 48, height: 64, borderRadius: 4, backgroundColor: colors.fill },
-  ph: { width: 48, height: 64, borderRadius: 4, backgroundColor: colors.fill },
-  body: { flex: 1, gap: 2 },
-  title: { fontSize: 16, fontWeight: "600", color: colors.text },
-  sub: { fontSize: 13, color: colors.muted },
-  right: { fontSize: 14, fontWeight: "600", color: colors.text },
-});

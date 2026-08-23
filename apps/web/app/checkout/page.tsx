@@ -11,7 +11,9 @@ import { getCart } from "../../lib/cart";
 import { userFacingError, loginHref } from "../../lib/errors";
 import { createCheckout } from "../../lib/orders";
 import { quoteShipping } from "../../lib/shipping";
-import { FormError, LoadingBlock, PageMain, SandboxNotice, buttonClass } from "../../components/ui-feedback";
+import { FormError, LoadingBlock, PageMain, SandboxNotice } from "../../components/ui-feedback";
+import { buttonClassName } from "../../components/ui/button-styles";
+import { controlClassName } from "../../components/ui/input";
 
 const METHODS: ShippingMethod[] = ["MEETUP", "CHILEXPRESS", "BLUE_EXPRESS", "COORDINATED"];
 
@@ -151,32 +153,33 @@ export default function CheckoutPage() {
   }
 
   return (
-    <PageMain>
-      <h1 className="text-2xl font-semibold">Pagar</h1>
-      <p className="mt-2 text-sm text-neutral-600">{LEGAL.betaProductNotice}</p>
+    <PageMain width="xl">
+      <h1 className="text-3xl font-medium tracking-tight">Pagar</h1>
+      <p className="mt-2 text-sm text-text-muted">{LEGAL.betaProductNotice}</p>
       <div className="mt-4">{sandbox ? <SandboxNotice /> : null}</div>
-      <form onSubmit={(event) => void onSubmit(event)} className="mt-8 grid gap-6">
+      <form onSubmit={(event) => void onSubmit(event)} className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start">
+        <div className="grid gap-6">
         {cart.groups.map((group) => {
           const quote = quotes[group.seller.id];
           const method = methods[group.seller.id] ?? "MEETUP";
           return (
-            <fieldset key={group.seller.id} className="rounded border p-4">
-              <legend className="font-medium">Vendedor: {group.seller.displayName}</legend>
+            <fieldset key={group.seller.id} className="rounded-[16px] border border-border bg-surface p-4">
+              <legend className="px-1 font-medium">Vendedor: {group.seller.displayName}</legend>
               <ul className="mt-3 grid gap-2 text-sm">
                 {group.items.map((item) => (
                   <li key={item.listingId} className="flex justify-between gap-3">
                     <span>
                       {item.listing.title} · {CARD_CONDITION_LABELS[item.listing.condition]} · x{item.quantity}
                     </span>
-                    <span>{formatClp(item.lineTotalClp)}</span>
+                    <span className="tabular-nums">{formatClp(item.lineTotalClp)}</span>
                   </li>
                 ))}
               </ul>
-              <p className="mt-2 text-sm text-neutral-600">Subtotal productos {formatClp(group.subtotalClp)}</p>
+              <p className="mt-2 text-sm text-text-muted">Subtotal productos {formatClp(group.subtotalClp)}</p>
               <label className="mt-3 block text-sm">
                 Entrega
                 <select
-                  className="mt-1 w-full rounded border px-3 py-2"
+                  className={`mt-1 ${controlClassName}`}
                   value={method}
                   onChange={(event) =>
                     setMethods((current) => ({
@@ -196,7 +199,7 @@ export default function CheckoutPage() {
                   ))}
                 </select>
               </label>
-              <p className="mt-2 text-sm text-neutral-600">
+              <p className="mt-2 text-sm text-text-muted">
                 Envío: {quote ? formatClp(quote.priceClp) : "Sin tarifa para este destino"}
               </p>
             </fieldset>
@@ -214,7 +217,7 @@ export default function CheckoutPage() {
               </p>
             ) : (
               <select
-                className="mt-1 w-full rounded border px-3 py-2"
+                className={`mt-1 ${controlClassName}`}
                 value={addressId}
                 onChange={(event) => setAddressId(event.target.value)}
                 required
@@ -228,43 +231,49 @@ export default function CheckoutPage() {
             )}
           </label>
         ) : null}
-        <dl className="grid max-w-sm gap-1 text-sm">
-          <div className="flex justify-between">
-            <dt>Productos</dt>
-            <dd>{formatClp(cart.productTotalClp)}</dd>
+        </div>
+        <aside className="lg:sticky lg:top-28">
+          <div className="rounded-[16px] border border-border bg-surface p-4">
+            <h2 className="font-medium">Resumen</h2>
+            <dl className="mt-3 grid gap-1 text-sm">
+              <div className="flex justify-between">
+                <dt>Productos</dt>
+                <dd className="tabular-nums">{formatClp(cart.productTotalClp)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt>Envío</dt>
+                <dd className="tabular-nums">{formatClp(shippingTotalClp)}</dd>
+              </div>
+              <div className="mt-2 flex justify-between font-medium">
+                <dt>Total</dt>
+                <dd className="tabular-nums">{formatClp(cart.productTotalClp + shippingTotalClp)}</dd>
+              </div>
+            </dl>
+            <FormError message={error} />
+            <p className="mt-3 text-sm text-text-muted">
+              Al continuar aceptas los{" "}
+              <Link href="/terminos" className="underline">
+                Términos
+              </Link>
+              , las{" "}
+              <Link href="/marketplace" className="underline">
+                reglas del marketplace
+              </Link>{" "}
+              y{" "}
+              <Link href="/refunds" className="underline">
+                reembolsos
+              </Link>
+              .
+            </p>
+            <button
+              type="submit"
+              disabled={pending || (needsAddress && !addressId)}
+              className={buttonClassName("primary", "mt-4 w-full")}
+            >
+              {pending ? "Creando pedido…" : sandbox ? "Confirmar pago de prueba" : "Confirmar y pagar"}
+            </button>
           </div>
-          <div className="flex justify-between">
-            <dt>Envío</dt>
-            <dd>{formatClp(shippingTotalClp)}</dd>
-          </div>
-          <div className="flex justify-between font-semibold">
-            <dt>Total</dt>
-            <dd>{formatClp(cart.productTotalClp + shippingTotalClp)}</dd>
-          </div>
-        </dl>
-        <FormError message={error} />
-        <p className="text-sm text-neutral-600">
-          Al continuar aceptas los{" "}
-          <Link href="/terminos" className="underline">
-            Términos
-          </Link>
-          , las{" "}
-          <Link href="/marketplace" className="underline">
-            reglas del marketplace
-          </Link>{" "}
-          y{" "}
-          <Link href="/refunds" className="underline">
-            reembolsos
-          </Link>
-          .
-        </p>
-        <button
-          type="submit"
-          disabled={pending || (needsAddress && !addressId)}
-          className={buttonClass}
-        >
-          {pending ? "Creando pedido…" : sandbox ? "Confirmar pago de prueba" : "Confirmar y pagar"}
-        </button>
+        </aside>
       </form>
     </PageMain>
   );

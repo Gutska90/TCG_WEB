@@ -9,14 +9,15 @@ import type { ListingView, SearchCardView } from "@tcg/types";
 import { track } from "../../src/lib/analytics";
 import { api } from "../../src/lib/api";
 import { fetchCard, searchCards } from "../../src/lib/endpoints";
-import { createDeferredFile } from "../../src/lib/files";
+import { pickAndUploadImage } from "../../src/lib/files";
 import { userFacingError } from "../../src/lib/errors";
 import { Button, ErrorText, Screen, SuccessText } from "../../src/ui/screen";
 import { Field } from "../../src/ui/field";
 import { RequireAuth } from "../../src/ui/nav";
-import { colors } from "../../src/ui/theme";
+import { useColors } from "../../src/ui/theme-provider";
 
 function Inner() {
+  const colors = useColors();
   const router = useRouter();
   const params = useLocalSearchParams<{
     variantId?: string;
@@ -47,7 +48,7 @@ function Inner() {
   });
   const create = useMutation({
     mutationFn: async () => {
-      const fileId = await createDeferredFile("LISTING");
+      const fileId = await pickAndUploadImage("LISTING");
       const parsed = createListingSchema.safeParse({
         variantId,
         condition,
@@ -99,9 +100,19 @@ function Inner() {
       </Pressable>
       <Field label="Descripción" value={description} onChangeText={setDescription} multiline />
       <Text style={{ color: colors.muted, fontSize: 13 }}>
-        Foto: en esta beta se registra un archivo diferido (sin R2). {LEGAL.betaNotice}
+        Al publicar se pide una foto (JPEG, PNG o WebP). {LEGAL.betaNotice}
       </Text>
-      <ErrorText message={create.error ? (create.error instanceof Error && create.error.message === "invalid" ? "Revisa cantidad, precio y variante." : userFacingError(create.error)) : null} />
+      <ErrorText
+        message={
+          create.error
+            ? create.error instanceof Error && create.error.message === "invalid"
+              ? "Revisa cantidad, precio y variante."
+              : create.error instanceof Error && create.error.message === "cancel"
+                ? "Elige una foto para publicar."
+                : userFacingError(create.error)
+            : null
+        }
+      />
       <Button label="Publicar" pending={create.isPending} disabled={!variantId} onPress={() => create.mutate()} />
       <SuccessText message={null} />
     </Screen>

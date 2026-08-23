@@ -17,7 +17,7 @@ export function ReportListingButton({ listingId }: { listingId: string }) {
   const [pending, setPending] = useState(false);
 
   if (done) {
-    return <p className="mt-4 text-sm text-neutral-600">Reporte enviado. Lo revisará el equipo.</p>;
+    return <p className="mt-4 text-sm text-text-muted">Reporte enviado. Lo revisará el equipo.</p>;
   }
 
   return (
@@ -27,7 +27,7 @@ export function ReportListingButton({ listingId }: { listingId: string }) {
       </button>
       {open ? (
         <form
-          className="mt-3 grid gap-3 rounded border p-4"
+          className="mt-3 grid gap-3 rounded-[16px] border border-border bg-surface p-4"
           onSubmit={(event) => {
             event.preventDefault();
             setPending(true);
@@ -55,7 +55,7 @@ export function ReportListingButton({ listingId }: { listingId: string }) {
           <label className="text-sm">
             Motivo
             <select
-              className="mt-1 w-full rounded border px-3 py-2"
+              className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2"
               value={reason}
               onChange={(event) => setReason(event.target.value as ReportReason)}
             >
@@ -69,18 +69,18 @@ export function ReportListingButton({ listingId }: { listingId: string }) {
           <label className="text-sm">
             Detalle (opcional)
             <textarea
-              className="mt-1 w-full rounded border px-3 py-2"
+              className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2"
               value={description}
               maxLength={2000}
               onChange={(event) => setDescription(event.target.value)}
             />
           </label>
-          {error ? <p className="text-sm text-red-700">{error}</p> : null}
+          {error ? <p className="text-sm text-danger">{error}</p> : null}
           <div className="flex gap-2">
-            <button type="submit" disabled={pending} className="rounded bg-black px-4 py-2 text-sm text-white">
+            <button type="submit" disabled={pending} className="inline-flex min-h-11 items-center rounded-[12px] bg-primary px-4 py-2 text-sm font-medium text-white">
               {pending ? "Enviando…" : "Enviar reporte"}
             </button>
-            <button type="button" className="rounded border px-4 py-2 text-sm" onClick={() => setOpen(false)}>
+            <button type="button" className="inline-flex min-h-11 items-center rounded-[12px] border border-border bg-surface px-4 py-2 text-sm" onClick={() => setOpen(false)}>
               Cancelar
             </button>
           </div>

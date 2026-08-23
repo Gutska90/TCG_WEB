@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { CatalogPager } from "../../components/catalog-pager";
-import { SearchForm } from "../../components/search-form";
+import { SearchLayout } from "../../components/search-layout";
+import { EmptyState } from "../../components/ui/empty-state";
+import { ProductCard } from "../../components/ui/product-card";
 import { CatalogRequestError, getGames } from "../../lib/catalog";
 import { searchCards, searchCardsHref, type SearchCardsInput } from "../../lib/search";
 
@@ -63,52 +65,57 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   }
 
   return (
-    <main id="contenido" className="mx-auto max-w-5xl px-4 py-10 sm:px-6 sm:py-12">
-      <h1 className="text-2xl font-semibold">Buscar cartas</h1>
-      <p className="mt-2 text-sm text-neutral-600">
-        Nombre, número, set o juego. Los precios de marketplace llegan en una etapa posterior.
-      </p>
-      <div className="mt-8">
-        <SearchForm games={games} values={values} />
-      </div>
-      {error ? <p className="mt-8 text-sm text-red-700">{error}</p> : null}
-      {!hasQuery ? (
-        <p className="mt-8 text-neutral-500">Escribe un nombre, número o set para buscar.</p>
-      ) : null}
-      {results ? (
-        <>
-          <p className="mt-8 text-sm text-neutral-500">{results.total} resultados</p>
-          <ul className="mt-4 grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-            {results.items.map((card) => (
-              <li key={card.id}>
-                <Link
-                  href={`/${card.gameSlug}/${card.setSlug}/${card.slug}`}
-                  className="block rounded-lg border p-4 hover:border-neutral-400"
-                >
-                  <p className="font-medium">{card.name}</p>
-                  <p className="text-sm text-neutral-500">
-                    {card.gameName} · {card.setName} · {card.number} · {card.rarity}
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ul>
-          {results.items.length === 0 ? (
-            <p className="mt-6 text-neutral-600">
-              No hay cartas que coincidan.{" "}
-              <Link href="/ayuda" className="underline">
-                Reportar o pedir ayuda
-              </Link>
-            </p>
+    <main id="contenido" className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+      <h1 className="text-3xl font-medium tracking-tight">Buscar cartas</h1>
+      <p className="mt-2 text-sm text-text-muted">Nombre, número, set o juego.</p>
+      <div className="mt-6">
+        <SearchLayout games={games} values={values}>
+          {error ? <p className="text-sm text-danger">{error}</p> : null}
+          {!hasQuery ? (
+            <EmptyState
+              title="Empieza a buscar"
+              body="Escribe un nombre, número o set para buscar."
+            />
           ) : null}
-          <CatalogPager
-            page={results.page}
-            pageSize={results.pageSize}
-            total={results.total}
-            hrefForPage={(page) => searchCardsHref({ ...values, page })}
-          />
-        </>
-      ) : null}
+          {results ? (
+            <>
+              <p className="text-sm text-text-muted">{results.total} resultados</p>
+              <ul className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {results.items.map((card) => (
+                  <li key={card.id}>
+                    <ProductCard
+                      href={`/${card.gameSlug}/${card.setSlug}/${card.slug}`}
+                      name={card.name}
+                      setName={card.setName}
+                      number={card.number}
+                      gameName={card.gameName}
+                      imageUrl={card.imageUrl}
+                      gameSlug={card.gameSlug}
+                      meta={card.rarity}
+                    />
+                  </li>
+                ))}
+              </ul>
+              {results.items.length === 0 ? (
+                <EmptyState
+                  title="No hay cartas que coincidan."
+                  action={
+                    <Link href="/ayuda" className="underline">
+                      Reportar o pedir ayuda
+                    </Link>
+                  }
+                />
+              ) : null}
+              <CatalogPager
+                page={results.page}
+                pageSize={results.pageSize}
+                total={results.total}
+                hrefForPage={(page) => searchCardsHref({ ...values, page })}
+              />
+            </>
+          ) : null}
+        </SearchLayout>
+      </div>
     </main>
   );
 }

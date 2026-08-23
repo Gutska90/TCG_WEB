@@ -1,8 +1,9 @@
 import { CARD_FINISHES, CARD_LANGUAGES } from "@tcg/config";
 import type { GameView } from "@tcg/types";
 import type { SearchCardsInput } from "../lib/search";
-
-const inputClass = "mt-1 w-full rounded border px-3 py-2 text-sm";
+import { controlClassName } from "./ui/input";
+import { SearchInput } from "./ui/search-input";
+import { buttonClassName } from "./ui/button-styles";
 
 export function SearchForm({
   games,
@@ -19,27 +20,25 @@ export function SearchForm({
         <label className="sr-only" htmlFor="header-q">
           Buscar cartas
         </label>
-        <input
+        <SearchInput
           id="header-q"
           name="q"
-          type="search"
           defaultValue={values?.q ?? ""}
-          placeholder="Buscar cartas"
-          className="w-full max-w-56 rounded border px-3 py-1.5 text-sm"
+          placeholder="Buscar cartas..."
         />
       </form>
     );
   }
 
   return (
-    <form action="/buscar" method="get" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <form action="/buscar" method="get" className="grid gap-4">
       <label className="text-sm">
         Nombre o número
-        <input id="q" name="q" type="search" defaultValue={values?.q ?? ""} className={inputClass} />
+        <SearchInput id="q" name="q" defaultValue={values?.q ?? ""} className="mt-1" placeholder="Nombre, número o set" />
       </label>
       <label className="text-sm">
         Juego
-        <select name="game" defaultValue={values?.game ?? ""} className={inputClass}>
+        <select name="game" defaultValue={values?.game ?? ""} className={`mt-1 ${controlClassName}`}>
           <option value="">Todos</option>
           {(games ?? []).map((game) => (
             <option key={game.id} value={game.slug}>
@@ -50,15 +49,15 @@ export function SearchForm({
       </label>
       <label className="text-sm">
         Set (slug o código)
-        <input name="set" defaultValue={values?.set ?? ""} className={inputClass} />
+        <input name="set" defaultValue={values?.set ?? ""} className={`mt-1 ${controlClassName}`} />
       </label>
       <label className="text-sm">
         Rareza
-        <input name="rarity" defaultValue={values?.rarity ?? ""} className={inputClass} />
+        <input name="rarity" defaultValue={values?.rarity ?? ""} className={`mt-1 ${controlClassName}`} />
       </label>
       <label className="text-sm">
         Idioma
-        <select name="language" defaultValue={values?.language ?? ""} className={inputClass}>
+        <select name="language" defaultValue={values?.language ?? ""} className={`mt-1 ${controlClassName}`}>
           <option value="">Todos</option>
           {CARD_LANGUAGES.map((language) => (
             <option key={language} value={language}>
@@ -69,7 +68,7 @@ export function SearchForm({
       </label>
       <label className="text-sm">
         Finish
-        <select name="finish" defaultValue={values?.finish ?? ""} className={inputClass}>
+        <select name="finish" defaultValue={values?.finish ?? ""} className={`mt-1 ${controlClassName}`}>
           <option value="">Todos</option>
           {CARD_FINISHES.map((finish) => (
             <option key={finish} value={finish}>
@@ -80,7 +79,7 @@ export function SearchForm({
       </label>
       <label className="text-sm">
         Orden
-        <select name="sort" defaultValue={values?.sort ?? "relevance"} className={inputClass}>
+        <select name="sort" defaultValue={values?.sort ?? "relevance"} className={`mt-1 ${controlClassName}`}>
           <option value="relevance">Relevancia</option>
           <option value="releasedAt">Novedad del set</option>
           <option value="price">Precio mínimo</option>
@@ -88,14 +87,14 @@ export function SearchForm({
       </label>
       <label className="text-sm">
         Precio mín. CLP
-        <input name="priceMin" type="number" min={1} defaultValue={values?.priceMin ?? ""} className={inputClass} />
+        <input name="priceMin" type="number" min={1} defaultValue={values?.priceMin ?? ""} className={`mt-1 ${controlClassName}`} />
       </label>
       <label className="text-sm">
         Precio máx. CLP
-        <input name="priceMax" type="number" min={1} defaultValue={values?.priceMax ?? ""} className={inputClass} />
+        <input name="priceMax" type="number" min={1} defaultValue={values?.priceMax ?? ""} className={`mt-1 ${controlClassName}`} />
       </label>
       <div className="flex items-end">
-        <button type="submit" className="rounded border px-4 py-2 text-sm">
+        <button type="submit" className={buttonClassName("primary")}>
           Buscar
         </button>
       </div>

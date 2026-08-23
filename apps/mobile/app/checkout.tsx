@@ -11,13 +11,13 @@ import { createCheckout, fetchAddresses, fetchCart, fetchConfig, quoteShipping }
 import { useAuth } from "../src/lib/auth";
 import { userFacingError } from "../src/lib/errors";
 import { Button, EmptyState, ErrorText, LoadingState, SandboxBanner, Screen } from "../src/ui/screen";
-import { TextLink } from "../src/ui/nav";
-import { colors } from "../src/ui/theme";
-import { RequireAuth } from "../src/ui/nav";
+import { RequireAuth, TextLink } from "../src/ui/nav";
+import { useColors } from "../src/ui/theme-provider";
 
 const METHODS: ShippingMethod[] = ["MEETUP", "CHILEXPRESS", "BLUE_EXPRESS", "COORDINATED"];
 
 function CheckoutInner() {
+  const colors = useColors();
   const router = useRouter();
   const { me } = useAuth();
   const cart = useQuery({ queryKey: ["cart"], queryFn: fetchCart });

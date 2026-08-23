@@ -35,7 +35,7 @@ function formatWhen(iso: string | null): string {
 export function OrderTimeline({ order }: { order: OrderView }) {
   if (order.status === "CANCELLED" || order.status === "REFUNDED") {
     return (
-      <p className="mt-4 text-sm text-neutral-600">
+      <p className="mt-4 text-sm text-text-muted">
         Esta orden está {order.status === "CANCELLED" ? "cancelada" : "reembolsada"}. No hay más pasos de entrega.
       </p>
     );
@@ -85,17 +85,17 @@ export function OrderTimeline({ order }: { order: OrderView }) {
             <span
               className={
                 step.state === "done"
-                  ? "mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-neutral-900"
+                  ? "mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-primary"
                   : step.state === "current"
-                    ? "mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-neutral-900"
-                    : "mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full border border-neutral-300"
+                    ? "mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-primary"
+                    : "mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full border border-border"
               }
               aria-hidden
             />
-            <span className={step.state === "pending" ? "text-neutral-500" : "text-neutral-900"}>
+            <span className={step.state === "pending" ? "text-text-muted" : "text-text"}>
               {step.label}
-              {step.at ? <span className="text-neutral-500"> · {formatWhen(step.at)}</span> : null}
-              {step.state === "current" ? <span className="text-neutral-500"> · ahora</span> : null}
+              {step.at ? <span className="text-text-muted"> · {formatWhen(step.at)}</span> : null}
+              {step.state === "current" ? <span className="text-text-muted"> · ahora</span> : null}
             </span>
           </li>
         ))}

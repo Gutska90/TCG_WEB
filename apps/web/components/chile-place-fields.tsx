@@ -33,7 +33,7 @@ export function ChilePlaceFields({
         <select
           name="region"
           required
-          className="mt-1 w-full rounded border px-3 py-2"
+          className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2"
           value={region}
           onChange={(event) => {
             const nextRegion = event.target.value;
@@ -54,7 +54,7 @@ export function ChilePlaceFields({
         <select
           name="comuna"
           required
-          className="mt-1 w-full rounded border px-3 py-2"
+          className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2"
           value={comuna}
           onChange={(event) => setComuna(event.target.value)}
         >

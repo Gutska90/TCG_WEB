@@ -8,9 +8,10 @@ import { userFacingError } from "../../../../src/lib/errors";
 import { Button, EmptyState, ErrorText, LoadingState, Screen } from "../../../../src/ui/screen";
 import { ListRow } from "../../../../src/ui/list-row";
 import { RequireAuth } from "../../../../src/ui/nav";
-import { colors } from "../../../../src/ui/theme";
+import { useColors } from "../../../../src/ui/theme-provider";
 
 function Inner() {
+  const colors = useColors();
   const { setId } = useLocalSearchParams<{ setId: string }>();
   const router = useRouter();
   const detail = useQuery({

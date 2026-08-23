@@ -17,7 +17,7 @@ export function OpenDisputeForm({ orderId }: { orderId: string }) {
 
   return (
     <form
-      className="mt-6 grid gap-3 rounded border p-4"
+      className="mt-6 grid gap-3 rounded-[16px] border border-border bg-surface p-4"
       onSubmit={(event) => {
         event.preventDefault();
         setPending(true);
@@ -34,11 +34,11 @@ export function OpenDisputeForm({ orderId }: { orderId: string }) {
       }}
     >
       <h2 className="font-medium">Abrir reclamo</h2>
-      <p className="text-sm text-neutral-600">Un reclamo no reembolsa solo. El staff revisa la evidencia.</p>
+      <p className="text-sm text-text-muted">Un reclamo no reembolsa solo. El staff revisa la evidencia.</p>
       <label className="text-sm">
         Motivo
         <select
-          className="mt-1 w-full rounded border px-3 py-2"
+          className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2"
           value={reason}
           onChange={(event) => setReason(event.target.value as DisputeReason)}
         >
@@ -52,14 +52,14 @@ export function OpenDisputeForm({ orderId }: { orderId: string }) {
       <label className="text-sm">
         Detalle (opcional)
         <textarea
-          className="mt-1 w-full rounded border px-3 py-2"
+          className="mt-1 w-full rounded-[12px] border border-border bg-surface px-3 py-2"
           value={description}
           maxLength={2000}
           onChange={(event) => setDescription(event.target.value)}
         />
       </label>
-      {error ? <p className="text-sm text-red-700">{error}</p> : null}
-      <button type="submit" disabled={pending} className="w-fit rounded border px-4 py-2 text-sm">
+      {error ? <p className="text-sm text-danger">{error}</p> : null}
+      <button type="submit" disabled={pending} className="w-fit inline-flex min-h-11 items-center rounded-[12px] border border-border bg-surface px-4 py-2 text-sm">
         {pending ? "Enviando…" : "Abrir reclamo"}
       </button>
     </form>

@@ -4,8 +4,11 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { CARD_CONDITION_LABELS, CARD_CONDITIONS, formatClp } from "@tcg/config";
-import type { CardDetailView, FileUploadView, ListingView, PriceSuggestionView, SearchCardView, VariantDetailView } from "@tcg/types";
+import type { CardDetailView, ListingView, PriceSuggestionView, SearchCardView, VariantDetailView } from "@tcg/types";
 import { ApiError, api, fetchMe } from "../../lib/api";
+import { uploadUserFile } from "../../lib/files";
+import { buttonClassName } from "../../components/ui/button-styles";
+import { controlClassName } from "../../components/ui/input";
 
 function SellWizard() {
   const router = useRouter();
@@ -77,13 +80,9 @@ function SellWizard() {
     if (data.items.length === 0) setMessage("No encontramos esa carta.");
   }
 
-  async function registerPhoto() {
-    const created = await api<FileUploadView>("/v1/files/uploads", {
-      method: "POST",
-      body: JSON.stringify({ mime: "image/jpeg", size: 1, purpose: "LISTING" }),
-    });
-    await api(`/v1/files/${created.fileId}/complete`, { method: "POST" });
-    setImageFileIds((current) => [...current, created.fileId]);
+  async function registerPhoto(file: File) {
+    const fileId = await uploadUserFile(file, "LISTING");
+    setImageFileIds((current) => [...current, fileId]);
   }
 
   async function publish() {
@@ -115,17 +114,33 @@ function SellWizard() {
 
   return (
     <main id="contenido" className="mx-auto max-w-xl px-4 py-10 sm:px-6 sm:py-12">
-      <h1 className="text-2xl font-semibold">Vender</h1>
-      <p className="mt-1 text-sm text-neutral-500">Paso {step} de 6</p>
-      {message ? <p className="mt-4 text-sm text-red-700">{message}</p> : null}
+      <h1 className="text-3xl font-medium tracking-tight">Vender</h1>
+      <ol className="mt-4 flex flex-wrap gap-2 text-xs">
+        {["Carta", "Variante", "Condición", "Precio", "Fotos", "Revisar"].map((label, index) => (
+          <li
+            key={label}
+            className={
+              step === index + 1
+                ? "rounded-full bg-primary px-2.5 py-1 font-medium text-white"
+                : step > index + 1
+                  ? "rounded-full bg-surface-elevated px-2.5 py-1 text-text"
+                  : "rounded-full border border-border px-2.5 py-1 text-text-muted"
+            }
+          >
+            {index + 1}. {label}
+          </li>
+        ))}
+      </ol>
+      <p className="mt-2 text-sm text-text-muted">Paso {step} de 6</p>
+      {message ? <p className="mt-4 text-sm text-danger">{message}</p> : null}
 
       {step === 1 ? (
         <div className="mt-6 grid gap-3">
           <label className="text-sm">
             Buscar carta
-            <input className="mt-1 w-full rounded border px-3 py-2" value={q} onChange={(e) => setQ(e.target.value)} />
+            <input className={`mt-1 ${controlClassName}`} value={q} onChange={(e) => setQ(e.target.value)} />
           </label>
-          <button type="button" className="w-fit rounded border px-4 py-2 text-sm" onClick={() => void searchCards()}>
+          <button type="button" className={buttonClassName("primary", "w-fit")} onClick={() => void searchCards()}>
             Buscar
           </button>
           <ul className="grid gap-2">
@@ -133,7 +148,7 @@ function SellWizard() {
               <li key={hit.id}>
                 <button
                   type="button"
-                  className="w-full rounded border p-3 text-left"
+                  className="w-full rounded-[12px] border border-border bg-surface p-3 text-left hover:bg-surface-elevated"
                   onClick={() => {
                     void api<CardDetailView>(`/v1/cards/${hit.id}`).then((detail) => {
                       setCard(detail);
@@ -155,7 +170,7 @@ function SellWizard() {
           <p>{card.name}</p>
           <label className="text-sm">
             Variante
-            <select className="mt-1 w-full rounded border px-3 py-2" value={variantId} onChange={(e) => setVariantId(e.target.value)}>
+            <select className={`mt-1 ${controlClassName}`} value={variantId} onChange={(e) => setVariantId(e.target.value)}>
               {card.variants.map((variant) => (
                 <option key={variant.id} value={variant.id}>
                   {variant.language} · {variant.finish}
@@ -163,7 +178,7 @@ function SellWizard() {
               ))}
             </select>
           </label>
-          <button type="button" className="w-fit rounded border px-4 py-2 text-sm" onClick={() => setStep(3)}>
+          <button type="button" className={buttonClassName("primary", "w-fit")} onClick={() => setStep(3)}>
             Continuar
           </button>
         </div>
@@ -174,7 +189,7 @@ function SellWizard() {
           <label className="text-sm">
             Condición
             <select
-              className="mt-1 w-full rounded border px-3 py-2"
+              className={`mt-1 ${controlClassName}`}
               value={condition}
               onChange={(e) => setCondition(e.target.value as (typeof CARD_CONDITIONS)[number])}
             >
@@ -185,7 +200,7 @@ function SellWizard() {
               ))}
             </select>
           </label>
-          <button type="button" className="w-fit rounded border px-4 py-2 text-sm" onClick={() => setStep(4)}>
+          <button type="button" className={buttonClassName("primary", "w-fit")} onClick={() => setStep(4)}>
             Continuar
           </button>
         </div>
@@ -194,20 +209,20 @@ function SellWizard() {
       {step === 4 ? (
         <div className="mt-6 grid gap-3">
           {suggestion ? (
-            <p className="text-sm text-neutral-600">
+            <p className="text-sm text-text-muted">
               Mercado: {suggestion.market ? formatClp(suggestion.market) : "—"} · Mínimo:{" "}
               {suggestion.minListing ? formatClp(suggestion.minListing) : "—"} · Sugerido:{" "}
               {suggestion.suggested ? formatClp(suggestion.suggested) : "—"}
             </p>
           ) : (
-            <p className="text-sm text-neutral-500">Aún no hay publicaciones para sugerir precio.</p>
+            <p className="text-sm text-text-muted">Aún no hay publicaciones para sugerir precio.</p>
           )}
           <label className="text-sm">
             Cantidad
             <input
               type="number"
               min={1}
-              className="mt-1 w-full rounded border px-3 py-2"
+              className={`mt-1 ${controlClassName}`}
               value={quantity}
               onChange={(e) => setQuantity(Number(e.target.value) || 1)}
             />
@@ -217,12 +232,12 @@ function SellWizard() {
             <input
               type="number"
               min={1}
-              className="mt-1 w-full rounded border px-3 py-2"
+              className={`mt-1 ${controlClassName}`}
               value={priceClp}
               onChange={(e) => setPriceClp(Number(e.target.value) || 1)}
             />
           </label>
-          <button type="button" className="w-fit rounded border px-4 py-2 text-sm" onClick={() => setStep(5)}>
+          <button type="button" className={buttonClassName("primary", "w-fit")} onClick={() => setStep(5)}>
             Continuar
           </button>
         </div>
@@ -230,12 +245,22 @@ function SellWizard() {
 
       {step === 5 ? (
         <div className="mt-6 grid gap-3">
-          <p className="text-sm text-neutral-600">
-            Fotos: se registra el archivo (object storage R2 llega en deploy). Mínimo 1.
+          <p className="text-sm text-text-muted">
+            Fotos de la carta (JPEG, PNG o WebP). Mínimo 1. El archivo se sube a object storage cuando está configurado.
           </p>
-          <button type="button" className="w-fit rounded border px-4 py-2 text-sm" onClick={() => void registerPhoto()}>
-            Registrar foto
-          </button>
+          <label className={buttonClassName("primary", "w-fit")}>
+            Agregar foto
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="sr-only"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) void registerPhoto(file).catch((err: unknown) => setMessage(err instanceof Error ? err.message : "No se pudo subir"));
+              }}
+            />
+          </label>
           <p className="text-sm">{imageFileIds.length} foto(s)</p>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={allowsMeetup} onChange={(e) => setAllowsMeetup(e.target.checked)} />
@@ -247,9 +272,9 @@ function SellWizard() {
           </label>
           <label className="text-sm">
             Descripción
-            <textarea className="mt-1 w-full rounded border px-3 py-2" value={description} onChange={(e) => setDescription(e.target.value)} />
+            <textarea className={`mt-1 ${controlClassName}`} value={description} onChange={(e) => setDescription(e.target.value)} />
           </label>
-          <button type="button" className="w-fit rounded border px-4 py-2 text-sm" onClick={() => setStep(6)}>
+          <button type="button" className={buttonClassName("primary", "w-fit")} onClick={() => setStep(6)}>
             Continuar
           </button>
         </div>
@@ -260,7 +285,7 @@ function SellWizard() {
           <p>
             {card?.name ?? "Carta"} · {condition} · {quantity} × {formatClp(priceClp)}
           </p>
-          <button type="button" className="w-fit rounded border px-4 py-2" onClick={() => void publish()}>
+          <button type="button" className={buttonClassName("primary")} onClick={() => void publish()}>
             Publicar
           </button>
         </div>
@@ -281,7 +306,7 @@ function SellWizard() {
 
 export default function SellPage() {
   return (
-    <Suspense fallback={<main className="px-6 py-12 text-neutral-500">Cargando…</main>}>
+    <Suspense fallback={<main className="px-6 py-12 text-text-muted">Cargando…</main>}>
       <SellWizard />
     </Suspense>
   );

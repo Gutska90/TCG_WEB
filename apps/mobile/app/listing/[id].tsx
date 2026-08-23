@@ -3,15 +3,15 @@ import { CARD_CONDITION_LABELS, REPORT_REASON_LABELS, REPORT_REASONS, formatClp,
 import type { ReportReason } from "@tcg/config";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { Text, View, Image } from "react-native";
 import { track } from "../../src/lib/analytics";
 import { api } from "../../src/lib/api";
+import { getApiBaseUrl } from "../../src/lib/config";
 import { fetchCart, fetchListing, putCartItem } from "../../src/lib/endpoints";
 import { useAuth } from "../../src/lib/auth";
 import { userFacingError } from "../../src/lib/errors";
 import { Button, EmptyState, ErrorText, LoadingState, Screen, SuccessText } from "../../src/ui/screen";
 import { Field } from "../../src/ui/field";
-import { colors } from "../../src/ui/theme";
 import { TextLink } from "../../src/ui/nav";
 
 export default function ListingScreen() {
@@ -73,7 +73,15 @@ export default function ListingScreen() {
       </Text>
       {row.description ? <Text>{row.description}</Text> : null}
       {row.images.length > 0 ? (
-        <Text style={{ color: colors.muted }}>{row.images.length} foto(s) registradas (el archivo público llega con object storage).</Text>
+        row.images.map((image) => (
+          <Image
+            key={image.fileId}
+            source={{ uri: `${getApiBaseUrl()}${image.url}` }}
+            style={{ width: "100%", height: 220, backgroundColor: "#f5f5f5" }}
+            resizeMode="contain"
+            accessibilityLabel="Foto de la publicación"
+          />
+        ))
       ) : (
         <EmptyState>Sin fotos.</EmptyState>
       )}
@@ -102,6 +110,7 @@ export default function ListingScreen() {
       ) : null}
       <SuccessText message={notice} />
       <ErrorText message={add.error ? userFacingError(add.error) : report.error ? userFacingError(report.error) : null} />
+      <TextLink href="/cart" label="Carrito" />
       <Button variant="secondary" label="Ver carta" onPress={() => router.push(`/card/${row.variant.card.id}`)} />
     </Screen>
   );

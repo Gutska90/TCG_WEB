@@ -18,11 +18,11 @@ export function CatalogPager({
   return (
     <nav className="mt-8 flex items-center gap-4 text-sm">
       {page > 1 ? (
-        <Link href={hrefForPage(page - 1)} className="underline">
+        <Link href={hrefForPage(page - 1)} className="underline underline-offset-2">
           Anterior
         </Link>
       ) : (
-        <span className="text-neutral-400">Anterior</span>
+        <span className="text-text-muted">Anterior</span>
       )}
       <span>
         {page} / {last}
@@ -32,7 +32,7 @@ export function CatalogPager({
           Siguiente
         </Link>
       ) : (
-        <span className="text-neutral-400">Siguiente</span>
+        <span className="text-text-muted">Siguiente</span>
       )}
     </nav>
   );

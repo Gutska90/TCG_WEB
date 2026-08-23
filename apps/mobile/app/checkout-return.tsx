@@ -9,7 +9,7 @@ import { checkoutUiStatus } from "../src/lib/order-timeline";
 import { userFacingError } from "../src/lib/errors";
 import { Button, ErrorText, LoadingState, SandboxBanner, Screen, SuccessText } from "../src/ui/screen";
 import { RequireAuth } from "../src/ui/nav";
-import { colors } from "../src/ui/theme";
+import { useColors } from "../src/ui/theme-provider";
 
 const POLL_MS = 2500;
 const TIMEOUT_MS = 45_000;
@@ -24,6 +24,7 @@ const COPY: Record<string, { title: string; body: string }> = {
 };
 
 function ReturnInner() {
+  const colors = useColors();
   const router = useRouter();
   const { checkoutId } = useLocalSearchParams<{ checkoutId?: string }>();
   const [timedOut, setTimedOut] = useState(false);

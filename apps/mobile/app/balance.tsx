@@ -5,9 +5,10 @@ import { fetchBalance } from "../src/lib/endpoints";
 import { userFacingError } from "../src/lib/errors";
 import { EmptyState, ErrorText, LoadingState, Screen } from "../src/ui/screen";
 import { RequireAuth } from "../src/ui/nav";
-import { colors } from "../src/ui/theme";
+import { useColors } from "../src/ui/theme-provider";
 
 function Inner() {
+  const colors = useColors();
   const query = useQuery({ queryKey: ["balance"], queryFn: fetchBalance });
   if (query.isLoading) return <Screen title="Saldo"><LoadingState /></Screen>;
   if (query.error) return <Screen title="Saldo"><ErrorText message={userFacingError(query.error)} /></Screen>;

@@ -53,7 +53,7 @@ export default function SalesPage() {
         <ul className="mt-6 grid gap-3">
           {rows.map((order) => (
             <li key={order.id}>
-              <Link href={`/me/ventas/${order.id}`} className="block rounded border p-4">
+              <Link href={`/me/ventas/${order.id}`} className="block rounded-[16px] border border-border bg-surface p-4">
                 {order.orderNumber} · {ORDER_STATUS_LABELS[order.status]} · {formatClp(order.totalClp)}
               </Link>
             </li>

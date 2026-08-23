@@ -21,8 +21,8 @@ export default function MyDisputesPage() {
       });
   }, [router]);
 
-  if (error) return <main className="px-6 py-12 text-red-700">{error}</main>;
-  if (!data) return <main className="px-6 py-12 text-neutral-500">Cargando…</main>;
+  if (error) return <main className="px-6 py-12 text-danger">{error}</main>;
+  if (!data) return <main className="px-6 py-12 text-text-muted">Cargando…</main>;
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
@@ -35,15 +35,15 @@ export default function MyDisputesPage() {
       <ul className="mt-6 grid gap-3">
         {data.items.map((row) => (
           <li key={row.id}>
-            <Link href={`/me/disputas/${row.id}`} className="block rounded border p-4">
+            <Link href={`/me/disputas/${row.id}`} className="block rounded-[16px] border border-border bg-surface p-4">
               <p className="font-medium">{row.orderNumber}</p>
-              <p className="text-sm text-neutral-600">
+              <p className="text-sm text-text-muted">
                 {DISPUTE_REASON_LABELS[row.reason]} · {DISPUTE_STATUS_LABELS[row.status]}
               </p>
             </Link>
           </li>
         ))}
-        {data.items.length === 0 ? <li className="text-sm text-neutral-500">No tienes reclamos.</li> : null}
+        {data.items.length === 0 ? <li className="text-sm text-text-muted">No tienes reclamos.</li> : null}
       </ul>
     </main>
   );

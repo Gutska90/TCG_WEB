@@ -10,9 +10,10 @@ import {
 import { userFacingError } from "../src/lib/errors";
 import { Button, EmptyState, ErrorText, LoadingState, Screen } from "../src/ui/screen";
 import { RequireAuth } from "../src/ui/nav";
-import { colors } from "../src/ui/theme";
+import { useColors } from "../src/ui/theme-provider";
 
 function Inner() {
+  const colors = useColors();
   const qc = useQueryClient();
   const query = useQuery({ queryKey: ["notifications"], queryFn: fetchNotifications });
   const prefsQuery = useQuery({ queryKey: ["notification-prefs"], queryFn: fetchNotificationPreferences });

@@ -80,6 +80,22 @@ Vacío paso 1: “No encontramos esa carta. Puedes reportarla.”
 - MP rechazo / checkout expirado / timeout de polling: mensajes en `/checkout/retorno`; stock ya liberado si webhook cancelled.
 - 401 sesión: redirect a `/ingresar?next=`. 500: `app/error.tsx` sin stack.
 
+## Web — UI.1 Visual Refresh
+
+Header: **TCG MARKET** + badge Beta, buscador, wishlist, carrito, cuenta (dropdown). Subnav de juegos + Vender. Tema Claro/Oscuro/Sistema (local, sin login).
+
+Home: hero “Encuentra. Colecciona. Compra. Vende.”, juegos, publicaciones vía `GET /v1/listings` existente, CTAs colección/wishlist.
+
+`/buscar`: filtros en sidebar (desktop) o sheet (mobile). Cards con imagen `object-contain`.
+
+Ficha: imagen | mercado / menor listing; historial con confianza; publicaciones tabla/cards.
+
+`/me`: sidebar Perfil, Colección, Wishlist, Compras, Ventas, Publicaciones, Seguridad.
+
+Colección: StatCards, chips de juego, grid/list. Wishlist: cards + “Objetivo alcanzado”. Carrito agrupado por seller; checkout dos columnas + SANDBOX/BETA.
+
+Tokens: [design/DESIGN-SYSTEM.md](design/DESIGN-SYSTEM.md).
+
 ---
 
 ## Mobile (Fase 11, mismos flujos)
@@ -89,9 +105,10 @@ Vacío paso 1: “No encontramos esa carta. Puedes reportarla.”
 | Inicio | `/(tabs)` | games, listings recientes |
 | Buscar | `/(tabs)/search` | `GET /v1/search/cards` |
 | Colección | `/(tabs)/collection` `/collection/[id]` `/collection/sets/[setId]` | `GET/POST/PATCH/DELETE /v1/me/collection/*` |
-| Favoritos | `/(tabs)/favorites` | `GET/PUT/DELETE /v1/me/favorites` |
-| Carrito | `/(tabs)/cart` | `GET/PUT/DELETE /v1/cart` (sesión) |
-| Perfil | `/(tabs)/profile` | `GET /v1/me` |
+| Wishlist | `/(tabs)/wishlist` | `GET/PUT/DELETE /v1/me/wishlist` |
+| Perfil | `/(tabs)/profile` | `GET /v1/me` + selector de tema |
+| Favoritos | `/(tabs)/favorites` (oculto en tab bar) | `GET/PUT/DELETE /v1/me/favorites` |
+| Carrito | `/(tabs)/cart` (icono header + badge) | `GET/PUT/DELETE /v1/cart` (sesión) |
 | Auth | `/login` `/register` `/verify-email` `/forgot-password` `/oauth` | email + Google/Apple |
 | Seguridad | `/security` | identities, sessions, password |
 | Carta | `/card/[id]` | `GET /v1/cards/:id` + listings |
@@ -102,7 +119,7 @@ Vacío paso 1: “No encontramos esa carta. Puedes reportarla.”
 | Reclamos | `/disputes` `/disputes/[id]` | disputes |
 | Publicaciones | `/sell` `/sell/new` `/sell/[id]` | listings seller |
 | Saldo / direcciones | `/balance` `/addresses` | me/balance, addresses |
-| Wishlist | `/wishlist` | `GET/PUT/DELETE /v1/me/wishlist` |
+| Wishlist | tab `/(tabs)/wishlist` | `GET/PUT/DELETE /v1/me/wishlist` |
 | Notificaciones | `/notifications` | `GET /v1/me/notifications` + preferencias (PRICE_DROP opt-in) |
 | Legal / feedback | `/legal/[slug]` `/feedback` | documentos + `POST /v1/feedback` |
 

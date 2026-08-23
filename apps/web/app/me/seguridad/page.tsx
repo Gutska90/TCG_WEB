@@ -64,7 +64,7 @@ export default function SecurityPage() {
   return (
     <PageMain>
       <h1 className="text-2xl font-semibold">Seguridad</h1>
-      <p className="mt-2 text-sm text-neutral-600">
+      <p className="mt-2 text-sm text-text-muted">
         Métodos de acceso y sesiones. No mostramos secretos de sesión.
       </p>
       <FormError message={error} />
@@ -73,7 +73,7 @@ export default function SecurityPage() {
       <section className="mt-8">
         <h2 className="font-semibold">Métodos de acceso</h2>
         <ul className="mt-3 grid gap-3 text-sm">
-          <li className="rounded border p-4">
+          <li className="rounded-[16px] border border-border bg-surface p-4">
             <p>Email/contraseña · {methods.hasPassword ? "Conectado" : "No configurado"}</p>
             <form
               className="mt-3 grid gap-2"
@@ -103,7 +103,7 @@ export default function SecurityPage() {
                     type="password"
                     value={currentPassword}
                     onChange={(event) => setCurrentPassword(event.target.value)}
-                    className="rounded border px-3 py-2"
+                    className="rounded-[12px] border border-border bg-surface px-3 py-2"
                   />
                 </label>
               ) : null}
@@ -115,7 +115,7 @@ export default function SecurityPage() {
                   minLength={10}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
-                  className="rounded border px-3 py-2"
+                  className="rounded-[12px] border border-border bg-surface px-3 py-2"
                 />
               </label>
               <button type="submit" className={buttonSecondaryClass}>
@@ -123,7 +123,7 @@ export default function SecurityPage() {
               </button>
             </form>
           </li>
-          <li className="rounded border p-4">
+          <li className="rounded-[16px] border border-border bg-surface p-4">
             <p>Google · {google ? "Conectado" : "No conectado"}</p>
             {google ? (
               <button
@@ -163,12 +163,12 @@ export default function SecurityPage() {
                 Conectar
               </button>
             ) : (
-              <p className="mt-2 text-neutral-600">Google no está habilitado.</p>
+              <p className="mt-2 text-text-muted">Google no está habilitado.</p>
             )}
           </li>
-          <li className="rounded border p-4">
+          <li className="rounded-[16px] border border-border bg-surface p-4">
             <p>Apple · {apple ? "Conectado" : "No conectado"}</p>
-            <p className="mt-1 text-neutral-600">Apple se vincula desde la app iOS.</p>
+            <p className="mt-1 text-text-muted">Apple se vincula desde la app iOS.</p>
             {apple ? (
               <button
                 type="button"
@@ -193,9 +193,9 @@ export default function SecurityPage() {
         <h2 className="font-semibold">Sesiones</h2>
         <ul className="mt-3 grid gap-3">
           {sessions.map((row) => (
-            <li key={row.id} className="rounded border p-4 text-sm">
+            <li key={row.id} className="rounded-[16px] border border-border bg-surface p-4 text-sm">
               <p>{row.current ? "Esta sesión" : row.userAgent ?? "Otro dispositivo"}</p>
-              <p className="text-neutral-600">
+              <p className="text-text-muted">
                 Inicio {new Date(row.createdAt).toLocaleString("es-CL")} · expira{" "}
                 {new Date(row.expiresAt).toLocaleString("es-CL")}
               </p>

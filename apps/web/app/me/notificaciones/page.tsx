@@ -82,13 +82,13 @@ export default function NotificationsPage() {
   return (
     <PageMain>
       <h1 className="text-2xl font-semibold">Notificaciones</h1>
-      <p className="mt-2 text-sm text-neutral-600">
+      <p className="mt-2 text-sm text-text-muted">
         {data.unreadCount} sin leer. El push aún no está activo en esta beta; el correo sigue tus preferencias.
       </p>
       <FormError message={error} />
-      <section className="mt-6 rounded border p-4 text-sm">
+      <section className="mt-6 rounded-[16px] border border-border bg-surface p-4 text-sm">
         <h2 className="font-medium">Alertas</h2>
-        <p className="mt-1 text-neutral-600">
+        <p className="mt-1 text-text-muted">
           El aviso de wishlist siempre aparece aquí. La bajada de precio es opt-in y no cubre push todavía.
         </p>
         <label className="mt-4 flex items-start gap-2">
@@ -123,19 +123,19 @@ export default function NotificationsPage() {
         </label>
       </section>
       {data.unreadCount > 0 ? (
-        <button type="button" className="mt-4 rounded border px-3 py-2 text-sm" onClick={() => void markAll()}>
+        <button type="button" className="mt-4 rounded-[12px] border border-border bg-surface px-3 py-2 text-sm" onClick={() => void markAll()}>
           Marcar todas como leídas
         </button>
       ) : null}
       {data.items.length === 0 ? (
-        <p className="mt-8 text-neutral-600">No hay notificaciones todavía.</p>
+        <p className="mt-8 text-text-muted">No hay notificaciones todavía.</p>
       ) : (
         <ul className="mt-8 grid gap-3">
           {data.items.map((row) => (
-            <li key={row.id} className={`rounded border p-4 text-sm ${row.readAt ? "text-neutral-600" : "bg-neutral-50"}`}>
+            <li key={row.id} className={`rounded-[16px] border border-border bg-surface p-4 text-sm ${row.readAt ? "text-text-muted" : "bg-surface-elevated"}`}>
               <p className="font-medium">{row.title}</p>
               <p className="mt-1">{row.body}</p>
-              <p className="mt-2 text-xs text-neutral-500">{new Date(row.createdAt).toLocaleString("es-CL")}</p>
+              <p className="mt-2 text-xs text-text-muted">{new Date(row.createdAt).toLocaleString("es-CL")}</p>
             </li>
           ))}
         </ul>

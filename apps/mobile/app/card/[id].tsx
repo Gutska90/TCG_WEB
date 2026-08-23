@@ -10,10 +10,11 @@ import { useAuth } from "../../src/lib/auth";
 import { userFacingError } from "../../src/lib/errors";
 import { Button, EmptyState, ErrorText, LoadingState, Screen, SuccessText } from "../../src/ui/screen";
 import { Field } from "../../src/ui/field";
-import { colors } from "../../src/ui/theme";
+import { useColors } from "../../src/ui/theme-provider";
 import { useEffect } from "react";
 
 export default function CardScreen() {
+  const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { me } = useAuth();

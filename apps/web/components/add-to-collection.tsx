@@ -6,6 +6,8 @@ import type { CardCondition } from "@tcg/config";
 import type { CollectionItemView } from "@tcg/types";
 import { ApiError, api } from "../lib/api";
 import { track } from "../lib/analytics";
+import { buttonClassName } from "./ui/button-styles";
+import { controlClassName } from "./ui/input";
 
 export function AddToCollectionButton({
   variantId,
@@ -65,16 +67,16 @@ export function AddToCollectionButton({
 
   return (
     <div>
-      <button type="button" className="w-fit rounded border px-4 py-2 text-sm" onClick={() => setOpen(true)}>
+      <button type="button" className={buttonClassName("secondary")} onClick={() => setOpen(true)}>
         {label}
       </button>
-      {message ? <p className="mt-2 text-sm text-neutral-600">{message}</p> : null}
+      {message ? <p className="mt-2 text-sm text-text-muted">{message}</p> : null}
       {open ? (
         <div className="fixed inset-0 z-40 flex items-end justify-center bg-black/40 p-4 sm:items-center">
           <div
             role="dialog"
             aria-labelledby="add-collection-title"
-            className="w-full max-w-md rounded-lg bg-white p-4 shadow-lg"
+            className="w-full max-w-md rounded-[16px] border border-border bg-surface p-4 shadow-[var(--shadow)]"
           >
             <h2 id="add-collection-title" className="text-lg font-semibold">
               Agregar a colección
@@ -83,7 +85,7 @@ export function AddToCollectionButton({
               <label>
                 Condición
                 <select
-                  className="mt-1 w-full rounded border px-3 py-2"
+                  className={`mt-1 ${controlClassName}`}
                   value={condition}
                   onChange={(event) => setCondition(event.target.value as CardCondition)}
                 >
@@ -99,7 +101,7 @@ export function AddToCollectionButton({
                 <input
                   type="number"
                   min={1}
-                  className="mt-1 w-full rounded border px-3 py-2"
+                  className={`mt-1 ${controlClassName}`}
                   value={quantity}
                   onChange={(event) => setQuantity(Math.max(1, Number(event.target.value) || 1))}
                 />
@@ -109,7 +111,7 @@ export function AddToCollectionButton({
                 <input
                   type="number"
                   min={0}
-                  className="mt-1 w-full rounded border px-3 py-2"
+                  className={`mt-1 ${controlClassName}`}
                   value={purchasePriceClp}
                   onChange={(event) => setPurchasePriceClp(event.target.value)}
                 />
@@ -118,7 +120,7 @@ export function AddToCollectionButton({
                 Fecha de compra (opcional)
                 <input
                   type="date"
-                  className="mt-1 w-full rounded border px-3 py-2"
+                  className={`mt-1 ${controlClassName}`}
                   value={purchasedAt}
                   onChange={(event) => setPurchasedAt(event.target.value)}
                 />
@@ -126,7 +128,7 @@ export function AddToCollectionButton({
               <label>
                 Notas (opcional)
                 <textarea
-                  className="mt-1 w-full rounded border px-3 py-2"
+                  className={`mt-1 ${controlClassName}`}
                   value={notes}
                   maxLength={500}
                   onChange={(event) => setNotes(event.target.value)}
@@ -136,13 +138,13 @@ export function AddToCollectionButton({
             <div className="mt-4 flex flex-wrap gap-3">
               <button
                 type="button"
-                className="rounded border bg-neutral-900 px-4 py-2 text-sm text-white disabled:opacity-50"
+                className={buttonClassName("primary")}
                 disabled={pending}
                 onClick={() => void submit()}
               >
                 {pending ? "Guardando…" : "Guardar en colección"}
               </button>
-              <button type="button" className="rounded border px-4 py-2 text-sm" onClick={() => setOpen(false)}>
+              <button type="button" className={buttonClassName("secondary")} onClick={() => setOpen(false)}>
                 Cancelar
               </button>
             </div>

@@ -79,10 +79,7 @@ MVP 1 nav: Logo, Buscar, Juegos, Favoritos, Login.
 
 ## Design system
 
-- Tailwind + shadcn/ui en `packages/ui` o `apps/web/components`.
-- Tokens de color propios (no copiar TCGMatch).
-- Condiciones con badge consistente (NM/LP/MP/HP/DMG).
-- Precios: `$12.500` con punto de miles, sin decimales.
+Tailwind + componentes en `apps/web/components/ui`. Tokens: [design/DESIGN-SYSTEM.md](design/DESIGN-SYSTEM.md). No shadcn. Condiciones con badge. Precios CLP enteros.
 
 ## Accesibilidad
 

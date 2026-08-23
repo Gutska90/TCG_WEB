@@ -7,6 +7,7 @@ import { ApiError, api, fetchMe, logout, requestAccountDeletion } from "../../li
 import type { MeView } from "@tcg/types";
 import { userFacingError, loginHref } from "../../lib/errors";
 import { FormError, LoadingBlock, PageMain, SuccessNote, buttonSecondaryClass } from "../../components/ui-feedback";
+import { buttonClassName } from "../../components/ui/button-styles";
 
 export default function MePage() {
   const router = useRouter();
@@ -44,13 +45,13 @@ export default function MePage() {
 
   return (
     <PageMain>
-      <h1 className="text-2xl font-semibold">{me.displayName}</h1>
-      <p className="mt-2 text-neutral-600">{me.email}</p>
-      <p className="mt-1 text-sm text-neutral-600">
+        <h1 className="text-3xl font-medium tracking-tight">{me.displayName}</h1>
+      <p className="mt-2 text-text-muted">{me.email}</p>
+      <p className="mt-1 text-sm text-text-muted">
         {me.emailVerified ? "Email verificado" : "Email pendiente de verificación"} · roles: {me.roles.join(", ")}
       </p>
       {!me.emailVerified ? (
-        <div className="mt-4 rounded border border-amber-200 bg-amber-50 p-3 text-sm">
+        <div className="mt-4 rounded-[12px] border border-warning/40 bg-warning/10 p-3 text-sm">
           <p>Verifica tu email para comprar y vender.</p>
           <div className="mt-2 flex flex-wrap gap-3">
             <Link href="/verificar-email" className="underline">
@@ -71,7 +72,7 @@ export default function MePage() {
         </div>
       ) : null}
       {me.legal.stale ? (
-        <p className="mt-4 rounded border border-neutral-200 p-3 text-sm text-neutral-700">
+        <p className="mt-4 rounded border border-border p-3 text-sm text-text-muted">
           Hay una versión más nueva de términos o privacidad. No te pedimos reaceptar ahora.{" "}
           <Link href="/terminos" className="underline">
             Ver términos
@@ -80,8 +81,8 @@ export default function MePage() {
       ) : null}
       <FormError message={error} />
       <SuccessNote message={notice} />
-      <section className="mt-6 rounded border border-neutral-200 p-4 text-sm text-neutral-700">
-        <h2 className="font-semibold text-neutral-900">Datos de la cuenta</h2>
+      <section className="mt-6 rounded-[16px] border border-border bg-surface p-4 text-sm text-text-muted">
+        <h2 className="font-medium text-text">Datos de la cuenta</h2>
         <p className="mt-2">Nombre público: {me.displayName}</p>
         <p>Comuna: {me.profile.comuna ?? "—"}</p>
         <p>Región: {me.profile.region ?? "—"}</p>
@@ -117,13 +118,13 @@ export default function MePage() {
       >
         Cerrar sesión
       </button>
-      <p className="mt-8 text-sm text-neutral-600">
+      <p className="mt-8 text-sm text-text-muted">
         Si pides desactivar la cuenta, no borramos órdenes, pagos, reembolsos, ledger ni auditoría.
       </p>
       <button
         type="button"
         disabled={pendingDelete}
-        className="mt-2 rounded border border-red-300 px-4 py-2 text-sm text-red-800 disabled:opacity-50"
+        className={buttonClassName("danger", "mt-2")}
         onClick={() => {
           if (!window.confirm("¿Desactivar tu cuenta? Los registros financieros se conservan.")) return;
           setPendingDelete(true);

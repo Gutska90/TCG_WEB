@@ -2,18 +2,19 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatClp } from "@tcg/config";
 import { useRouter } from "expo-router";
 import { Text } from "react-native";
-import { fetchWishlist, removeWishlistItem } from "../src/lib/endpoints";
-import { useAuth } from "../src/lib/auth";
-import { userFacingError } from "../src/lib/errors";
-import { Button, EmptyState, ErrorText, LoadingState, Screen } from "../src/ui/screen";
-import { ListRow } from "../src/ui/list-row";
-import { TextLink } from "../src/ui/nav";
-import { colors } from "../src/ui/theme";
+import { fetchWishlist, removeWishlistItem } from "../../src/lib/endpoints";
+import { useAuth } from "../../src/lib/auth";
+import { userFacingError } from "../../src/lib/errors";
+import { Button, EmptyState, ErrorText, LoadingState, Screen } from "../../src/ui/screen";
+import { ListRow } from "../../src/ui/list-row";
+import { TextLink } from "../../src/ui/nav";
+import { useColors } from "../../src/ui/theme-provider";
 
 export default function WishlistScreen() {
   const { me } = useAuth();
   const router = useRouter();
   const qc = useQueryClient();
+  const colors = useColors();
   const query = useQuery({
     queryKey: ["wishlist"],
     queryFn: fetchWishlist,
@@ -44,10 +45,10 @@ export default function WishlistScreen() {
       {query.data?.items.map((item) => (
         <ListRow
           key={item.id}
-          title={item.card.name}
+          title={item.hit ? `${item.card.name} · Objetivo alcanzado` : item.card.name}
           subtitle={`Objetivo ${formatClp(item.targetPriceClp)} · ${
             item.currentMinClp != null ? formatClp(item.currentMinClp) : "Sin listings"
-          }${item.hit ? " · Dentro del objetivo" : ""}`}
+          }`}
           imageUrl={item.card.imageUrl}
           onPress={() => router.push(`/card/${item.card.id}`)}
         />

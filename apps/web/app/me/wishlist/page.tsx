@@ -8,6 +8,11 @@ import type { Paginated, WishlistItemView } from "@tcg/types";
 import { ApiError, api } from "../../../lib/api";
 import { loginHref, userFacingError } from "../../../lib/errors";
 import { FormError, LoadingBlock, PageMain } from "../../../components/ui-feedback";
+import { Badge } from "../../../components/ui/badge";
+import { buttonClassName } from "../../../components/ui/button-styles";
+import { CardImage } from "../../../components/ui/product-card";
+import { EmptyState } from "../../../components/ui/empty-state";
+import { Price } from "../../../components/ui/price";
 
 export default function WishlistPage() {
   const router = useRouter();
@@ -58,46 +63,81 @@ export default function WishlistPage() {
 
   return (
     <PageMain>
-      <h1 className="text-2xl font-semibold">Wishlist</h1>
-      <p className="mt-2 text-sm text-neutral-600">
+      <h1 className="text-3xl font-medium tracking-tight">Wishlist</h1>
+      <p className="mt-2 text-sm text-text-muted">
         Cartas que quieres, con un precio máximo. No es tu colección ni un favorito. Te avisamos si aparece un listing a
         ese precio o menos.
       </p>
       <FormError message={error} />
       {page.items.length === 0 ? (
-        <p className="mt-8 text-neutral-600">Aún no hay cartas en tu wishlist.</p>
-      ) : (
-        <ul className="mt-8 grid gap-3">
-          {page.items.map((item) => (
-            <li key={item.id} className="rounded border p-4 text-sm">
-              <Link
-                href={`/${item.card.gameSlug}/${item.card.setSlug}/${item.card.slug}`}
-                className="font-medium underline"
-              >
-                {item.card.name}
+        <div className="mt-8">
+          <EmptyState
+            title="Tu wishlist está vacía."
+            body="Aún no hay cartas en tu wishlist."
+            action={
+              <Link href="/buscar" className="underline">
+                Buscar cartas
               </Link>
-              <p className="mt-1 text-neutral-600">
-                {item.variant.language} · {item.variant.finish} · objetivo {formatClp(item.targetPriceClp)}
-              </p>
-              <p className="mt-1">
-                Precio actual: {item.currentMinClp != null ? formatClp(item.currentMinClp) : "Sin listings activos"}
-                {item.hit ? " · Dentro del objetivo" : ""}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-3">
-                <Link href={`/${item.card.gameSlug}/${item.card.setSlug}/${item.card.slug}`} className="underline">
-                  Ver disponibles
-                </Link>
-                <button
-                  type="button"
-                  className="underline disabled:opacity-50"
-                  disabled={pending === item.variantId}
-                  onClick={() => void remove(item.variantId)}
-                >
-                  Quitar
-                </button>
-              </div>
-            </li>
-          ))}
+            }
+          />
+        </div>
+      ) : (
+        <ul className="mt-8 grid gap-4 sm:grid-cols-2">
+          {page.items.map((item) => {
+            const diff =
+              item.currentMinClp != null ? item.currentMinClp - item.targetPriceClp : null;
+            return (
+              <li key={item.id} className="rounded-[16px] border border-border bg-surface p-4">
+                <div className="flex gap-3">
+                  <CardImage src={item.card.imageUrl} alt="" className="h-24 w-[68px] shrink-0" />
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      href={`/${item.card.gameSlug}/${item.card.setSlug}/${item.card.slug}`}
+                      className="font-medium underline underline-offset-2"
+                    >
+                      {item.card.name}
+                    </Link>
+                    {item.hit ? (
+                      <p className="mt-1">
+                        <Badge tone="success">Objetivo alcanzado</Badge>
+                      </p>
+                    ) : null}
+                    <Price className="mt-2" size="sm" prefix="Objetivo" value={item.targetPriceClp} />
+                    <Price
+                      className="mt-1"
+                      size="sm"
+                      prefix="Mercado"
+                      value={item.currentMinClp}
+                    />
+                    {diff != null ? (
+                      <p className="mt-1 text-xs text-text-muted">
+                        Diferencia {diff > 0 ? "+" : ""}
+                        {formatClp(diff)}
+                      </p>
+                    ) : (
+                      <p className="mt-1 text-xs text-text-muted">Sin listings activos</p>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Link
+                    href={`/${item.card.gameSlug}/${item.card.setSlug}/${item.card.slug}`}
+                    className={buttonClassName("primary", "min-h-9 py-1")}
+                  >
+                    Ver publicación
+                  </Link>
+                  <button
+                    type="button"
+                    className={buttonClassName("ghost", "min-h-9 py-1")}
+                    disabled={pending === item.variantId}
+                    onClick={() => void remove(item.variantId)}
+                  >
+                    Quitar
+                  </button>
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </PageMain>

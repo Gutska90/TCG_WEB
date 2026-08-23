@@ -41,7 +41,7 @@ export default function SellerBalancePage() {
   return (
     <PageMain>
       <h1 className="text-2xl font-semibold">Saldo vendedor</h1>
-      <p className="mt-2 text-sm text-neutral-600">
+      <p className="mt-2 text-sm text-text-muted">
         Pendiente: pago recibido, aún no elegible para liquidación. Disponible: elegible para liquidación. Las liquidaciones las registra el staff.
       </p>
       <dl className="mt-6 grid max-w-sm gap-2 text-sm">

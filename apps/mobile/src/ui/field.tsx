@@ -1,5 +1,6 @@
-import { StyleSheet, Text, TextInput, View } from "react-native";
-import { colors, space } from "./theme";
+import { Text, TextInput, View } from "react-native";
+import { space } from "./theme";
+import { useColors } from "./theme-provider";
 
 export function Field({
   label,
@@ -22,9 +23,10 @@ export function Field({
   multiline?: boolean;
   editable?: boolean;
 }) {
+  const colors = useColors();
   return (
-    <View style={styles.wrap}>
-      <Text style={styles.label}>{label}</Text>
+    <View style={{ gap: 4 }}>
+      <Text style={{ fontSize: 14, color: colors.text }}>{label}</Text>
       <TextInput
         accessibilityLabel={label}
         value={value}
@@ -37,24 +39,19 @@ export function Field({
         placeholderTextColor={colors.muted}
         multiline={multiline}
         editable={editable}
-        style={[styles.input, multiline ? styles.multi : null]}
+        style={{
+          minHeight: multiline ? 96 : 44,
+          borderWidth: 1,
+          borderColor: colors.border,
+          borderRadius: 12,
+          paddingHorizontal: space.sm,
+          fontSize: 16,
+          color: colors.text,
+          backgroundColor: colors.surface,
+          textAlignVertical: multiline ? "top" : "center",
+          paddingTop: multiline ? 10 : undefined,
+        }}
       />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrap: { gap: 4 },
-  label: { fontSize: 14, color: colors.text },
-  input: {
-    minHeight: 44,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 8,
-    paddingHorizontal: space.sm,
-    fontSize: 16,
-    color: colors.text,
-    backgroundColor: colors.bg,
-  },
-  multi: { minHeight: 96, textAlignVertical: "top", paddingTop: 10 },
-});

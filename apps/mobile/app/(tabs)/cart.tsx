@@ -8,7 +8,7 @@ import { useAuth } from "../../src/lib/auth";
 import { userFacingError } from "../../src/lib/errors";
 import { Button, EmptyState, ErrorText, LoadingState, Screen } from "../../src/ui/screen";
 import { TextLink } from "../../src/ui/nav";
-import { colors } from "../../src/ui/theme";
+import { useColors } from "../../src/ui/theme-provider";
 
 const ISSUE_COPY: Record<NonNullable<CartView["items"][number]["issue"]>, string> = {
   LISTING_NOT_ACTIVE: "Esta publicación ya no está activa.",
@@ -17,6 +17,7 @@ const ISSUE_COPY: Record<NonNullable<CartView["items"][number]["issue"]>, string
 };
 
 export default function CartScreen() {
+  const colors = useColors();
   const { me } = useAuth();
   const router = useRouter();
   const qc = useQueryClient();

@@ -5,14 +5,15 @@ import { useState } from "react";
 import { Text } from "react-native";
 import { api } from "../../src/lib/api";
 import { fetchDispute } from "../../src/lib/endpoints";
-import { createDeferredFile } from "../../src/lib/files";
+import { pickAndUploadImage } from "../../src/lib/files";
 import { userFacingError } from "../../src/lib/errors";
 import { Button, EmptyState, ErrorText, LoadingState, Screen, SuccessText } from "../../src/ui/screen";
 import { Field } from "../../src/ui/field";
 import { RequireAuth } from "../../src/ui/nav";
-import { colors } from "../../src/ui/theme";
+import { useColors } from "../../src/ui/theme-provider";
 
 function Inner() {
+  const colors = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const qc = useQueryClient();
   const [body, setBody] = useState("");
@@ -28,10 +29,10 @@ function Inner() {
   });
   const evidence = useMutation({
     mutationFn: async () => {
-      const fileId = await createDeferredFile("DISPUTE_EVIDENCE");
+      const fileId = await pickAndUploadImage("DISPUTE_EVIDENCE");
       return api(`/v1/disputes/${id}/evidence`, {
         method: "POST",
-        body: JSON.stringify({ fileId, evidenceType: DISPUTE_EVIDENCE_TYPES[0], description: "Evidencia beta (archivo diferido)" }),
+        body: JSON.stringify({ fileId, evidenceType: DISPUTE_EVIDENCE_TYPES[0], description: "Evidencia" }),
       });
     },
     onSuccess: () => {
@@ -71,9 +72,19 @@ function Inner() {
       ))}
       <Field label="Mensaje" value={body} onChangeText={setBody} multiline />
       <Button label="Enviar mensaje" pending={send.isPending} disabled={body.trim().length < 1} onPress={() => send.mutate()} />
-      <Button variant="secondary" label="Adjuntar evidencia (archivo diferido)" pending={evidence.isPending} onPress={() => evidence.mutate()} />
+      <Button variant="secondary" label="Adjuntar evidencia" pending={evidence.isPending} onPress={() => evidence.mutate()} />
       <SuccessText message={notice} />
-      <ErrorText message={send.error ? userFacingError(send.error) : evidence.error ? userFacingError(evidence.error) : null} />
+      <ErrorText
+        message={
+          send.error
+            ? userFacingError(send.error)
+            : evidence.error
+              ? evidence.error instanceof Error && evidence.error.message === "cancel"
+                ? "Elige un archivo para adjuntar."
+                : userFacingError(evidence.error)
+              : null
+        }
+      />
     </Screen>
   );
 }

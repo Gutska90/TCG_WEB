@@ -8,6 +8,9 @@ import { ApiError, api } from "../../../../../lib/api";
 import { track } from "../../../../../lib/analytics";
 import { loginHref, userFacingError } from "../../../../../lib/errors";
 import { FormError, LoadingBlock, PageMain } from "../../../../../components/ui-feedback";
+import { buttonClassName } from "../../../../../components/ui/button-styles";
+import { CardImage } from "../../../../../components/ui/product-card";
+import { ProgressBar } from "../../../../../components/ui/stat-card";
 
 export default function CollectionSetPage() {
   const { setId } = useParams<{ setId: string }>();
@@ -51,39 +54,42 @@ export default function CollectionSetPage() {
   return (
     <PageMain>
       <p className="text-sm">
-        <Link href="/me/coleccion" className="underline">
+        <Link href="/me/coleccion" className="underline underline-offset-2">
           Colección
         </Link>
       </p>
-      <h1 className="mt-4 text-2xl font-semibold">
+      <h1 className="mt-4 text-3xl font-medium tracking-tight">
         {progress.gameName} {progress.setName}
       </h1>
-      <p className="mt-2 text-neutral-600">
-        {progress.ownedUnique} / {progress.total} · {progress.percentage}%
+      <p className="mt-2 text-text-muted">
+        {progress.ownedUnique} / {progress.total}
       </p>
-      <p className="mt-1 text-sm text-neutral-600">
-        Te faltan {progress.missing} cartas · {progress.missingWithActiveListings} tienen publicaciones activas ·
-        duplicados {progress.extraCopies}
+      <ProgressBar className="mt-3 max-w-md" value={progress.percentage} label={`Progreso ${progress.setName}`} />
+      <p className="mt-2 text-sm font-medium tabular-nums">{progress.percentage}%</p>
+      <p className="mt-1 text-sm text-text-muted">
+        Te faltan {progress.missing} cartas · {progress.extraCopies} duplicadas
+        {progress.missingWithActiveListings ? ` · ${progress.missingWithActiveListings} con publicaciones` : ""}
       </p>
       {progress.missing > 0 ? (
-        <Link href={marketplaceHref} className="mt-4 inline-block rounded border px-4 py-2 text-sm">
-          Ver disponibles
+        <Link href={marketplaceHref} className={buttonClassName("primary", "mt-4")}>
+          Ver cartas faltantes
         </Link>
       ) : (
         <p className="mt-4 text-sm">Set completo en tu colección.</p>
       )}
       <h2 className="mt-8 text-lg font-medium">Faltantes</h2>
       {missing.items.length === 0 ? (
-        <p className="mt-2 text-sm text-neutral-600">No te falta ninguna carta de este set.</p>
+        <p className="mt-2 text-sm text-text-muted">No te falta ninguna carta de este set.</p>
       ) : (
-        <ul className="mt-3 grid gap-2">
+        <ul className="mt-3 grid gap-3 sm:grid-cols-2">
           {missing.items.map((card) => (
-            <li key={card.cardId} className="flex items-center justify-between rounded border p-3 text-sm">
-              <span>
+            <li key={card.cardId} className="flex items-center gap-3 rounded-[16px] border border-border bg-surface p-3 text-sm">
+              <CardImage src={card.imageUrl} alt="" className="h-20 w-14 shrink-0" />
+              <span className="min-w-0 flex-1">
                 {card.name} · {card.number}
                 {card.hasActiveListing ? " · con publicaciones" : ""}
               </span>
-              <Link href={`/${card.gameSlug}/${card.setSlug}/${card.slug}`} className="underline">
+              <Link href={`/${card.gameSlug}/${card.setSlug}/${card.slug}`} className="underline underline-offset-2">
                 Ver en marketplace
               </Link>
             </li>
