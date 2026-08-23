@@ -59,4 +59,4 @@ Defaults al crear usuario: transaccionales (venta/compra/envío) on en los tres 
 - `ORDER_SHIPPED`: “{sellerName} despachó tu pedido {orderNumber}.”
 - `WISHLIST_HIT`: “{cardName} apareció por ${price}.”
 
-No HTML de competidores. Templates propios en `apps/api` o `packages/email`.
+No HTML de competidores. Templates propios en `apps/api/src/mail/mail.templates.ts` (`verificationEmailHtml`, `passwordResetEmailHtml`, `notificationEmailHtml`). Texto plano se mantiene; HTML se envía cuando Resend/SMTP está configurado.

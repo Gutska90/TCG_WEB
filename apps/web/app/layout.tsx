@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
+import { OfflineBanner } from "../components/offline-banner";
 import { SiteFooter } from "../components/site-footer";
 import { SiteHeader } from "../components/site-header";
 import { ThemeProvider } from "../components/theme-provider";
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <a className="skip-link" href="#contenido">
             Saltar al contenido
           </a>
+          <OfflineBanner />
           <SiteHeader />
           {children}
           <SiteFooter />

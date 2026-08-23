@@ -2,8 +2,8 @@
 
 **Nombre de trabajo:** TCG Market Chile  
 **Nombre interno:** `tcg-platform`  
-**Fecha:** 21 agosto 2026  
-**Estado:** Fase **14** lista. **UI.1** ✓. Feature freeze 15–20. **B0–B7** ✓ repo. **B1/B8** = operador: [OPERATOR-KICKOFF](release/OPERATOR-KICKOFF.md). No Scanner ni pagos live.
+**Fecha:** 23 agosto 2026  
+**Estado:** Fase **14** lista. **UI.1** ✓. **PS Pre-Staging Readiness** ✓ repo. Feature freeze 15–20. **B0–B7** ✓ repo. **B1/B8** = operador: [OPERATOR-KICKOFF](release/OPERATOR-KICKOFF.md). No Scanner ni pagos live.
 
 Este repositorio no es una copia de TCGMatch. TCGMatch es **referencia funcional** de un marketplace chileno de cartas. El producto objetivo es una **plataforma TCG integral** para coleccionistas, jugadores y tiendas, con web, PWA y apps móviles sobre **un solo backend y una sola base de datos**.
 
@@ -55,6 +55,9 @@ Este repositorio no es una copia de TCGMatch. TCGMatch es **referencia funcional
 | — | [MOBILE-BETA-QA](release/MOBILE-BETA-QA.md) | Checklist tester mobile B4 |
 | — | [ADMIN-BETA-QA](release/ADMIN-BETA-QA.md) | Checklist staff B4 |
 | — | [B4-QA](release/B4-QA.md) | Índice QA beta (Playwright + Maestro opcional) |
+| — | [TESTER-GUIDE](release/TESTER-GUIDE.md) | PS: guía rápida testers (sandbox, qué no probar) |
+| — | [QA-MANUAL](release/QA-MANUAL.md) | PS: checklist buyer / seller / admin |
+| — | [PRE-STAGING-READINESS](audits/PRE-STAGING-READINESS.md) | PS: P0 operador vs código |
 | — | [B6-ANDROID-BETA](release/B6-ANDROID-BETA.md) | EAS preview APK interno (no Play) |
 | — | [B7-IOS-TESTFLIGHT](release/B7-IOS-TESTFLIGHT.md) | EAS iOS + TestFlight (no App Store) |
 | — | [B8-CLOSED-BETA](release/B8-CLOSED-BETA.md) | Testers invitados, sandbox |

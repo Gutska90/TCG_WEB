@@ -10,6 +10,7 @@ import { fetchMe, logout } from "../lib/api";
 import { getCart } from "../lib/cart";
 import { SearchForm } from "./search-form";
 import { ThemeToggle } from "./theme-toggle";
+import { BrandMark } from "./brand-mark";
 import { Badge } from "./ui/badge";
 import { buttonClassName } from "./ui/button-styles";
 
@@ -54,6 +55,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2 tracking-tight">
+          <BrandMark className="h-8 w-8" />
           <span className="text-base font-semibold">TCG MARKET</span>
           <span className="hidden text-xs font-medium text-text-muted sm:inline">Chile</span>
           <Badge tone="primary">Beta</Badge>

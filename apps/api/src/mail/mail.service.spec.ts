@@ -27,7 +27,7 @@ describe("MailService", () => {
         return undefined;
       },
     } as never);
-    await service.send({ to: "a@b.cl", subject: "Hola", text: "cuerpo" });
+    await service.send({ to: "a@b.cl", subject: "Hola", text: "cuerpo", html: "<p>cuerpo</p>" });
     expect(fetchMock).toHaveBeenCalledOnce();
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe("https://api.resend.com/emails");
@@ -35,6 +35,7 @@ describe("MailService", () => {
     expect(JSON.parse(String(init.body))).toMatchObject({
       to: ["a@b.cl"],
       subject: "Hola",
+      html: "<p>cuerpo</p>",
     });
   });
 });

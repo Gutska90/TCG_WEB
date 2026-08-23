@@ -21,6 +21,7 @@ import { AuditService } from "../audit/audit.service";
 import { AppError } from "../common/errors/app-error";
 import { normalizeEmail, randomToken, sha256, slugFromName } from "../common/crypto/tokens";
 import { MailService } from "../mail/mail.service";
+import { passwordResetEmailHtml, verificationEmailHtml } from "../mail/mail.templates";
 import { PrismaService } from "../prisma/prisma.service";
 import { OauthService, type OauthProfile } from "./oauth.service";
 import { PasswordService } from "./password.service";
@@ -74,6 +75,7 @@ export class AuthService {
       to: email,
       subject: "Verifica tu email — TCG Platform (beta)",
       text: this.verificationMailBody(verifyToken),
+      html: verificationEmailHtml(this.webUrl(), verifyToken),
     });
     await this.audit.log({
       actorId: user.id,
@@ -192,6 +194,7 @@ export class AuthService {
       to: email,
       subject: "Restablece tu contraseña — TCG Platform (beta)",
       text: `Usa este enlace (1 hora):\n${webUrl}/recuperar-password?token=${token}${this.mailFooter(webUrl)}`,
+      html: passwordResetEmailHtml(webUrl, token),
     });
   }
 
@@ -259,6 +262,7 @@ export class AuthService {
       to: full.email,
       subject: "Verifica tu email — TCG Platform (beta)",
       text: this.verificationMailBody(token),
+      html: verificationEmailHtml(this.webUrl(), token),
     });
   }
 
@@ -739,8 +743,12 @@ export class AuthService {
     return token;
   }
 
+  private webUrl(): string {
+    return this.config.get<string>("APP_WEB_URL") ?? "http://localhost:3000";
+  }
+
   private verificationMailBody(token: string): string {
-    const webUrl = this.config.get<string>("APP_WEB_URL") ?? "http://localhost:3000";
+    const webUrl = this.webUrl();
     return `Verifica tu email:\n${webUrl}/verificar-email?token=${token}${this.mailFooter(webUrl)}`;
   }
 

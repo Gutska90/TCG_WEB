@@ -7,7 +7,7 @@ No subir todavía. Checklist para cuando exista app (Fase 11). URLs de esta beta
 | Campo | Estado beta | Notas |
 |-------|-------------|--------|
 | App name | TCG Platform / TCG Market Chile (provisional) | Nombre de tienda TBD |
-| Package / bundle IDs | `cl.tcgplatform.app` (iOS + Android) | Provisionales de beta; confirmar cuenta developer |
+| Package / bundle IDs | `cl.tcgplatform.app` (iOS + Android) | Cerrado en `apps/mobile/app.config.ts`; confirmar cuenta developer |
 | App icon | placeholder beta en `apps/mobile/assets` | Asset de producción pendiente |
 | Screenshots | no | Capturas de web no sustituyen las de la app |
 

@@ -10,6 +10,12 @@ API arriba (`pnpm dev` o staging). Seed beta si hace falta (`pnpm beta:seed`).
 pnpm test:load
 ```
 
+EXPLAIN local (Postgres + `DATABASE_URL`, sin internet): listings ACTIVE por precio, `card_prices` 90d, scan de wishlist, ítems de colección.
+
+```text
+pnpm db:explain
+```
+
 Escribe `load-report.json` (gitignored) y p95/p50 por escenario.
 
 Staging (operador):

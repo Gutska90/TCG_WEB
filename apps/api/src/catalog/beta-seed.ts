@@ -4,6 +4,7 @@ import * as argon2 from "argon2";
 import { ledgerIdempotencyKey, sellerNetClp } from "../ledger/ledger.money";
 import { consumeReservedStock, releaseStock, reserveStock } from "../orders/stock";
 import { seedCatalog, seedShippingRates } from "./seed";
+import { seedShowcase } from "./showcase-seed";
 
 /** Keep in sync with e2e/fixtures.ts — Playwright filters admin refunds by this reason. */
 export const QA_REFUND_REASON = "QA_B4_REFUND_RETRY";
@@ -335,8 +336,12 @@ export async function seedBeta(prisma: PrismaClient): Promise<{ listingId: strin
     variantId: qaCard.variants[0].id,
   });
 
+  const showcase = await seedShowcase(prisma, { buyerId: buyer.id, defaultSellerId: seller.id });
   if (expired > 0) {
     console.log(`Beta seed: ${expired} checkout(s) expirados (reservas liberadas).`);
   }
+  console.log(
+    `Beta seed: vitrina ${showcase.games} juegos, ${showcase.cards} cartas, ${showcase.listings} publicaciones.`,
+  );
   return { listingId: listing.id, cardName: card.name };
 }

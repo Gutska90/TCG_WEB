@@ -3,7 +3,8 @@ import Link from "next/link";
 export default function NotFound() {
   return (
     <main id="contenido" className="mx-auto max-w-lg px-6 py-16">
-      <h1 className="text-2xl font-semibold">No encontrado</h1>
+      <p className="text-sm font-medium text-text-muted">Error 404</p>
+      <h1 className="mt-2 text-2xl font-semibold">No encontrado</h1>
       <p className="mt-2 text-text-muted">Esta página no existe o ya no está disponible.</p>
       <p className="mt-6 flex gap-4 text-sm">
         <Link href="/" className="underline">

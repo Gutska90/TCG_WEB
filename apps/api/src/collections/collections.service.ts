@@ -592,12 +592,27 @@ export class CollectionsService {
     setIds: string[],
     ownedBySet: Map<string, Set<string>>,
   ): Promise<Map<string, number>> {
-    const result = new Map<string, number>();
-    for (const setId of setIds) {
-      const owned = [...(ownedBySet.get(setId) ?? [])];
-      result.set(setId, await this.countMissingWithActiveListings(setId, owned));
+    const counts = new Map(setIds.map((id) => [id, 0]));
+    if (setIds.length === 0) return counts;
+    const cards = await this.prisma.card.findMany({
+      where: { setId: { in: setIds } },
+      select: { id: true, setId: true },
+    });
+    const missingIds: string[] = [];
+    const setOfCard = new Map<string, string>();
+    for (const card of cards) {
+      if (ownedBySet.get(card.setId)?.has(card.id)) continue;
+      missingIds.push(card.id);
+      setOfCard.set(card.id, card.setId);
     }
-    return result;
+    if (missingIds.length === 0) return counts;
+    const active = await this.cardsWithActiveListings(missingIds);
+    for (const cardId of active) {
+      const setId = setOfCard.get(cardId);
+      if (!setId) continue;
+      counts.set(setId, (counts.get(setId) ?? 0) + 1);
+    }
+    return counts;
   }
 
   private async countMissingWithActiveListings(setId: string, ownedCardIds: string[]): Promise<number> {

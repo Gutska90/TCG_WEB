@@ -6,24 +6,31 @@ export function CardImage({
   src,
   alt,
   className,
+  name,
+  gameSlug,
 }: {
   src: string | null | undefined;
   alt: string;
   className?: string;
+  name?: string;
+  gameSlug?: string;
 }) {
+  const accent = gameSlug ? gameAccentForSlug(gameSlug) : undefined;
+  const initials = (name ?? alt).replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ]/g, "").slice(0, 2).toUpperCase() || "CG";
   return (
     <div
       className={cx(
         "flex aspect-[63/88] items-center justify-center overflow-hidden rounded-[12px] bg-surface-elevated",
         className,
       )}
+      style={accent && !src ? { background: `${accent}22` } : undefined}
     >
       {src ? (
         // Catalog source URL; we do not host publisher art.
         // eslint-disable-next-line @next/next/no-img-element
         <img src={src} alt={alt} className="h-full w-full object-contain" />
       ) : (
-        <span className="px-2 text-center text-xs text-text-muted">Sin imagen</span>
+        <span className="px-2 text-center text-sm font-medium tracking-tight text-text-muted">{initials}</span>
       )}
     </div>
   );
@@ -57,7 +64,7 @@ export function ProductCard({
       className="elevate-hover block rounded-[16px] border border-border bg-surface p-3"
       style={accent ? { borderColor: `${accent}55` } : undefined}
     >
-      <CardImage src={imageUrl} alt="" />
+      <CardImage src={imageUrl} alt="" name={name} gameSlug={gameSlug} />
       <p className="mt-3 font-medium tracking-tight text-text">{name}</p>
       {gameName ? <span className="sr-only">{gameName}</span> : null}
       <p className="mt-1 text-sm text-text-muted">

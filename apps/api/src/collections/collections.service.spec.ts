@@ -132,4 +132,52 @@ describe("CollectionsService", () => {
     await service.deleteItem(userId, itemId);
     expect(prisma.collectionItem.delete).toHaveBeenCalledWith({ where: { id: itemId } });
   });
+
+  it("loads set progress missing-with-listings in two queries, not per set", async () => {
+    const setA = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+    const setB = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+    prisma.collectionItem.findMany.mockResolvedValue([
+      {
+        quantity: 1,
+        variant: { cardId: "owned-a", card: { setId: setA } },
+      },
+      {
+        quantity: 1,
+        variant: { cardId: "owned-b", card: { setId: setB } },
+      },
+    ]);
+    prisma.tcgSet.findMany.mockResolvedValue([
+      {
+        id: setA,
+        slug: "set-a",
+        name: "Set A",
+        game: { slug: "pokemon", name: "Pokémon" },
+        _count: { cards: 3 },
+      },
+      {
+        id: setB,
+        slug: "set-b",
+        name: "Set B",
+        game: { slug: "pokemon", name: "Pokémon" },
+        _count: { cards: 2 },
+      },
+    ]);
+    prisma.card.findMany.mockResolvedValue([
+      { id: "owned-a", setId: setA },
+      { id: "miss-a", setId: setA },
+      { id: "owned-b", setId: setB },
+      { id: "miss-b", setId: setB },
+    ]);
+    prisma.listing.findMany.mockResolvedValue([
+      { variant: { cardId: "miss-a" }, quantity: 2, quantityReserved: 0 },
+    ]);
+
+    const rows = await service.listSetProgress(userId);
+
+    expect(prisma.card.findMany).toHaveBeenCalledTimes(1);
+    expect(prisma.listing.findMany).toHaveBeenCalledTimes(1);
+    const bySet = Object.fromEntries(rows.map((row) => [row.setName, row.missingWithActiveListings]));
+    expect(bySet["Set A"]).toBe(1);
+    expect(bySet["Set B"]).toBe(0);
+  });
 });

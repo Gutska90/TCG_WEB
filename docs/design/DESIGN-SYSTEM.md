@@ -8,6 +8,8 @@ Premium, tecnológica, coleccionable, confiable. El arte de la carta aporta el c
 
 Marca visible: **TCG MARKET** / Chile. Nombre interno `tcg-platform` sin cambios. Beta = badge pequeño.
 
+Marca gráfica: `BrandMark` (`apps/web/components/brand-mark.tsx`) — carta estilizada violeta `#7C3AED` + acento cian. Favicon: `apps/web/app/icon.svg` (mismo motivo). Tipografía web: Geist Sans; cifras con `tabular-nums`. No copiar identidad de TCGMatch.
+
 ## Color
 
 CSS variables (`packages/ui/src/tokens.css`). Tailwind consume `--color-*`.

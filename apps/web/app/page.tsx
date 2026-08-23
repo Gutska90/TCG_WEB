@@ -7,6 +7,13 @@ import { buttonClassName } from "../components/ui/button-styles";
 import { ProductCard } from "../components/ui/product-card";
 import { SearchInput } from "../components/ui/search-input";
 
+const GAME_BLURBS: Record<string, string> = {
+  pokemon: "Criaturas y sets para completar.",
+  magic: "Singles para armar tu mazo.",
+  "one-piece": "Personajes y rares de One Piece.",
+  yugioh: "Monstruos, magias y trampas.",
+};
+
 export default async function HomePage() {
   let games: Awaited<ReturnType<typeof getGames>> = [];
   try {
@@ -25,7 +32,7 @@ export default async function HomePage() {
 
   return (
     <main id="contenido" className="mx-auto max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
-      <section className="max-w-3xl">
+      <section className="rounded-[24px] border border-border bg-surface px-5 py-8 sm:px-8 sm:py-10">
         <p className="text-sm font-medium tracking-wide text-text-muted uppercase">Marketplace Chile</p>
         <h1 className="mt-3 text-4xl font-medium tracking-tight text-text sm:text-5xl">
           Encuentra. Colecciona. Compra. Vende.
@@ -68,7 +75,7 @@ export default async function HomePage() {
                   style={accent ? { borderTopWidth: 3, borderTopColor: accent } : undefined}
                 >
                   <p className="text-lg font-medium">{game.name}</p>
-                  <p className="mt-1 text-sm text-text-muted">{game.publisher}</p>
+                  <p className="mt-1 text-sm text-text-muted">{GAME_BLURBS[game.slug] ?? game.publisher}</p>
                 </Link>
               </li>
             );

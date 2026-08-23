@@ -24,7 +24,17 @@ Cuentas sintéticas (`pnpm beta:seed`), no personas reales:
 | Vendedor | `seller.beta@example.test` | `BetaPassw0rd!` |
 | Admin | `admin.beta@example.test` | `BetaPassw0rd!` |
 
-Carta semilla de compra: **Test Mon #1** (Pokémon / Set de prueba).
+Carta semilla de compra: **Test Mon #1** (Pokémon / Set de prueba). No renombrar ni borrar esa carta.
+
+Sellers de vitrina (mismo password; no son cuentas de E2E):
+
+| Rol | Email | Contraseña |
+|-----|-------|------------|
+| Vitrina RM | `cartas.santiago.beta@example.test` | `BetaPassw0rd!` |
+| Vitrina Valparaíso | `mazo.valparaiso.beta@example.test` | `BetaPassw0rd!` |
+| Vitrina Biobío | `foil.concepcion.beta@example.test` | `BetaPassw0rd!` |
+
+Yu-Gi-Oh en home/buscar es **catálogo demo** del seed, no un juego Fase 1. Colección grande local: `SHOWCASE_COLLECTION_SIZE=1000 pnpm beta:seed`.
 
 ## Buyer (Fases 11–14)
 

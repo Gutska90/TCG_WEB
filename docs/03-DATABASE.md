@@ -262,6 +262,9 @@ Listing
   grader String?       // PSA, BGS
   grade String?        // "10"
   publishedAt
+  indexes (sellerId), (variantId, status), (status, priceClp), (sourceCollectionItemId)
+  // listado público: status=ACTIVE ORDER BY priceClp — cubierto por (status, priceClp)
+  // no se añadió (status, publishedAt): el listado no ordena por recencia
 
 ListingImage
   listingId, fileId, sortOrder
