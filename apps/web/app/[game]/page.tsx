@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CatalogRequestError, getGame, getSets } from "../../lib/catalog";
+import { EmptyState } from "../../components/ui/empty-state";
 
 export default async function GamePage({ params }: { params: Promise<{ game: string }> }) {
   const { game: slug } = await params;
@@ -20,18 +21,27 @@ export default async function GamePage({ params }: { params: Promise<{ game: str
             Ver todas las cartas
           </Link>
         </p>
-        <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {sets.map((set) => (
-            <li key={set.id}>
-              <Link href={`/${game.slug}/${set.slug}`} className="elevate-hover block rounded-[16px] border border-border bg-surface p-4">
-                <p className="font-medium">{set.name}</p>
-                <p className="text-sm text-text-muted">
-                  {set.code} · {set.cardCount} cartas
-                </p>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        {sets.length === 0 ? (
+          <div className="mt-8">
+            <EmptyState
+              title={`El catálogo de ${game.name} está en preparación.`}
+              body="Aún no publicamos expansiones verificadas de este juego."
+            />
+          </div>
+        ) : (
+          <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {sets.map((set) => (
+              <li key={set.id}>
+                <Link href={`/${game.slug}/${set.slug}`} className="elevate-hover block rounded-[16px] border border-border bg-surface p-4">
+                  <p className="font-medium">{set.name}</p>
+                  <p className="text-sm text-text-muted">
+                    {set.code} · {set.cardCount} cartas
+                  </p>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </main>
     );
   } catch (error) {

@@ -16,6 +16,7 @@ import { PrismaService } from "../prisma/prisma.service";
 import { ListingsService } from "../listings/listings.service";
 import { MarketService } from "../listings/market.service";
 import { PricesService } from "../prices/prices.service";
+import { isHiddenSyntheticCard, publicCatalogCardWhere } from "../search/search-filters";
 
 @Injectable()
 export class CatalogService {
@@ -44,10 +45,12 @@ export class CatalogService {
 
   async listSets(gameSlug: string): Promise<SetSummaryView[]> {
     const game = await this.requireGame(gameSlug);
+    const visibility = publicCatalogCardWhere();
+    const hideEmptyPublic = Object.keys(visibility).length > 0;
     const rows = await this.prisma.tcgSet.findMany({
-      where: { gameId: game.id },
+      where: hideEmptyPublic ? { gameId: game.id, cards: { some: visibility } } : { gameId: game.id },
       orderBy: [{ releasedAt: "desc" }, { name: "asc" }],
-      include: { _count: { select: { cards: true } } },
+      include: { _count: { select: { cards: { where: visibility } } } },
     });
     return rows.map((row) => toSetView(row, row._count.cards));
   }
@@ -55,9 +58,9 @@ export class CatalogService {
   async getSetById(id: string): Promise<SetSummaryView & { game: GameView }> {
     const row = await this.prisma.tcgSet.findUnique({
       where: { id },
-      include: { game: true, _count: { select: { cards: true } } },
+      include: { game: true, _count: { select: { cards: { where: publicCatalogCardWhere() } } } },
     });
-    if (!row || !row.game.isActive) {
+    if (!row || !row.game.isActive || this.hiddenEmptySet(row._count.cards)) {
       throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Set no encontrado");
     }
     return { ...toSetView(row, row._count.cards), game: toGameView(row.game) };
@@ -67,9 +70,9 @@ export class CatalogService {
     const game = await this.requireGame(gameSlug);
     const row = await this.prisma.tcgSet.findFirst({
       where: { gameId: game.id, slug: setSlug },
-      include: { _count: { select: { cards: true } } },
+      include: { _count: { select: { cards: { where: publicCatalogCardWhere() } } } },
     });
-    if (!row) {
+    if (!row || this.hiddenEmptySet(row._count.cards)) {
       throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Set no encontrado");
     }
     return { ...toSetView(row, row._count.cards), game: toGameView(game) };
@@ -101,7 +104,7 @@ export class CatalogService {
       where: { id },
       include: { variants: true, set: { include: { game: true } } },
     });
-    if (!row || !row.set.game.isActive) {
+    if (!row || !row.set.game.isActive || isHiddenSyntheticCard(row.attributes)) {
       throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Carta no encontrada");
     }
     return toCardDetail(row, await this.market.summarizeForCard(row.id));
@@ -142,7 +145,7 @@ export class CatalogService {
       where: { setId: set.id, slug: cardSlug },
       include: { variants: true, set: { include: { game: true } } },
     });
-    if (!row) {
+    if (!row || isHiddenSyntheticCard(row.attributes)) {
       throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Carta no encontrada");
     }
     return toCardDetail(row, await this.market.summarizeForCard(row.id));
@@ -153,7 +156,7 @@ export class CatalogService {
       where: { id },
       include: { card: { include: { set: { include: { game: true } } } } },
     });
-    if (!row || !row.card.set.game.isActive) {
+    if (!row || !row.card.set.game.isActive || isHiddenSyntheticCard(row.card.attributes)) {
       throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Variante no encontrada");
     }
     const [listings, market] = await Promise.all([
@@ -188,7 +191,7 @@ export class CatalogService {
       where: { id: variantId },
       include: { card: { include: { set: { include: { game: true } } } } },
     });
-    if (!row || !row.card.set.game.isActive) {
+    if (!row || !row.card.set.game.isActive || isHiddenSyntheticCard(row.card.attributes)) {
       throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Variante no encontrada");
     }
     return this.prices.suggestionForVariant(variantId);
@@ -199,7 +202,7 @@ export class CatalogService {
       where: { id: variantId },
       include: { card: { include: { set: { include: { game: true } } } } },
     });
-    if (!row || !row.card.set.game.isActive) {
+    if (!row || !row.card.set.game.isActive || isHiddenSyntheticCard(row.card.attributes)) {
       throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Variante no encontrada");
     }
     return this.prices.history(variantId, range);
@@ -213,15 +216,20 @@ export class CatalogService {
     return game;
   }
 
+  private hiddenEmptySet(publicCardCount: number): boolean {
+    return Object.keys(publicCatalogCardWhere()).length > 0 && publicCardCount === 0;
+  }
+
   private async pageCards(
     where: Prisma.CardWhereInput,
     page: number,
     pageSize: number,
   ): Promise<Paginated<CardSummaryView>> {
+    const visible: Prisma.CardWhereInput = { AND: [where, publicCatalogCardWhere()] };
     const [total, items] = await this.prisma.$transaction([
-      this.prisma.card.count({ where }),
+      this.prisma.card.count({ where: visible }),
       this.prisma.card.findMany({
-        where,
+        where: visible,
         orderBy: [{ number: "asc" }, { name: "asc" }],
         skip: (page - 1) * pageSize,
         take: pageSize,

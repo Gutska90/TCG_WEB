@@ -73,6 +73,8 @@ Copia `.env.staging.example` → `.env.staging` (gitignored). Llena:
 | `ADMIN_IP_ALLOWLIST` | IPs públicas de staff, separadas por coma (o no publiques el host admin) |
 | `ENABLE_REAL_PAYMENTS` | `false` |
 | `AUTH_STUB_OAUTH` | `false` |
+| `SHOW_SYNTHETIC_CATALOG` | `false` (oculta vitrina sintética) |
+| `POKEMON_TCG_API_KEY` | opcional; solo CLI importer, nunca web |
 | `ENABLE_SCANNER` `ENABLE_STORES` `ENABLE_AUCTIONS` | `false` |
 | `JOBS_ENABLED` | `true` |
 
@@ -91,10 +93,11 @@ Exit 1 = aún no invites testers.
 ## Día 1 — deploy
 
 1. `pnpm exec prisma migrate deploy` contra el `DATABASE_URL` de staging (**nunca** `db push`).
-2. API: `docker build -f docker/Dockerfile.api -t tcg-api .` y el runtime del host con el `.env.staging`.
-3. Web: `API_ORIGIN` + `LEGAL_*` + `LEGAL_CONTACT_EMAIL`.
-4. Admin: igual + `ADMIN_IP_ALLOWLIST` en el middleware (ya lee env).
-5. Smoke: `GET https://api.…/health` y `/ready`. Registro + correo en Inbucket no: tiene que llegar Resend. Subir foto de listing. Checkout “Pago de prueba / sandbox”.
+2. Catálogo: [STAGING-CATALOG.md](../runbooks/STAGING-CATALOG.md) — `seed-reference`, 2–4 sets Magic + Pokémon, `SHOW_SYNTHETIC_CATALOG=false`.
+3. API: `docker build -f docker/Dockerfile.api -t tcg-api .` y el runtime del host con el `.env.staging`.
+4. Web: `API_ORIGIN` + `LEGAL_*` + `LEGAL_CONTACT_EMAIL`.
+5. Admin: igual + `ADMIN_IP_ALLOWLIST` en el middleware (ya lee env).
+6. Smoke: `GET https://api.…/health` y `/ready`. Registro + correo de verificación, publicar listing con foto, checkout sandbox. Ember Pup / Andes Demo no deben aparecer.
 
 Opcional: `REDIS_URL` (1 réplica puede vivir sin Redis). Sentry: `ERROR_TRACKING_ENABLED=true` y `SENTRY_DSN`. Backup diario del Postgres **en el panel del proveedor**.
 

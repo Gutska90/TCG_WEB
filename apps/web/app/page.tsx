@@ -83,9 +83,7 @@ export default async function HomePage() {
           })}
         </ul>
         {games.length === 0 ? (
-          <p className="mt-6 text-sm text-text-muted">
-            Aún no hay juegos. Corre <code>pnpm catalog:seed</code> con Postgres arriba.
-          </p>
+          <p className="mt-6 text-sm text-text-muted">Aún no hay juegos publicados.</p>
         ) : null}
       </section>
 

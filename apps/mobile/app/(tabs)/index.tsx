@@ -75,7 +75,7 @@ export default function HomeScreen() {
           </Pressable>
         ))}
       </View>
-      {games.data?.length === 0 ? <EmptyState>Aún no hay juegos. Corre el seed de catálogo.</EmptyState> : null}
+      {games.data?.length === 0 ? <EmptyState>Aún no hay juegos publicados.</EmptyState> : null}
 
       <Text style={{ fontWeight: "600", fontSize: 16, marginTop: space.md, color: colors.text }}>Publicaciones</Text>
       {listings.isLoading ? <LoadingState /> : null}

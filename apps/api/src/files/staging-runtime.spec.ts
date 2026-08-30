@@ -103,10 +103,64 @@ describe("collectStagingOperatorReport", () => {
       ENABLE_REAL_PAYMENTS: "false",
       AUTH_STUB_OAUTH: "false",
       ENABLE_SCANNER: "false",
+      SHOW_SYNTHETIC_CATALOG: "false",
+      API_ORIGIN: "https://api.staging.tcg.cl",
       LEGAL_CONTACT_EMAIL: "soporte@staging.tcg.cl",
       LEGAL_PRIVACY_EMAIL: "privacidad@staging.tcg.cl",
     });
     expect(report.blockers).toEqual([]);
+    expect(report.warnings.some((row) => /API_ORIGIN/i.test(row))).toBe(false);
+  });
+
+  it("warns when staging still shows the synthetic showcase catalog", () => {
+    const report = collectStagingOperatorReport({
+      NODE_ENV: "staging",
+      APP_ENV: "staging",
+      DATABASE_URL: "postgresql://tcg:tcg@db/tcg_platform",
+      JWT_ACCESS_SECRET: "a".repeat(32),
+      APP_WEB_URL: "https://staging.tcg.cl",
+      APP_ADMIN_URL: "https://admin.staging.tcg.cl",
+      API_PUBLIC_URL: "https://api.staging.tcg.cl",
+      CORS_ORIGINS: "https://staging.tcg.cl,https://admin.staging.tcg.cl",
+      ADMIN_IP_ALLOWLIST: "203.0.113.10",
+      R2_ACCOUNT_ID: "acct",
+      R2_ACCESS_KEY_ID: "id",
+      R2_SECRET_ACCESS_KEY: "secret",
+      R2_BUCKET: "tcg-files",
+      RESEND_API_KEY: "re_test",
+      ENABLE_REAL_PAYMENTS: "false",
+      AUTH_STUB_OAUTH: "false",
+      SHOW_SYNTHETIC_CATALOG: "true",
+      LEGAL_CONTACT_EMAIL: "soporte@staging.tcg.cl",
+      LEGAL_PRIVACY_EMAIL: "privacidad@staging.tcg.cl",
+    });
+    expect(report.blockers).toEqual([]);
+    expect(report.warnings.some((row) => /Synthetic showcase catalog is visible/i.test(row))).toBe(true);
+  });
+
+  it("warns when staging Next would fall back to localhost API_ORIGIN", () => {
+    const report = collectStagingOperatorReport({
+      NODE_ENV: "staging",
+      APP_ENV: "staging",
+      DATABASE_URL: "postgresql://tcg:tcg@db/tcg_platform",
+      JWT_ACCESS_SECRET: "a".repeat(32),
+      APP_WEB_URL: "https://staging.tcg.cl",
+      APP_ADMIN_URL: "https://admin.staging.tcg.cl",
+      API_PUBLIC_URL: "https://api.staging.tcg.cl",
+      CORS_ORIGINS: "https://staging.tcg.cl,https://admin.staging.tcg.cl",
+      ADMIN_IP_ALLOWLIST: "203.0.113.10",
+      R2_ACCOUNT_ID: "acct",
+      R2_ACCESS_KEY_ID: "id",
+      R2_SECRET_ACCESS_KEY: "secret",
+      R2_BUCKET: "tcg-files",
+      RESEND_API_KEY: "re_test",
+      ENABLE_REAL_PAYMENTS: "false",
+      AUTH_STUB_OAUTH: "false",
+      SHOW_SYNTHETIC_CATALOG: "false",
+      LEGAL_CONTACT_EMAIL: "soporte@staging.tcg.cl",
+      LEGAL_PRIVACY_EMAIL: "privacidad@staging.tcg.cl",
+    });
+    expect(report.warnings.some((row) => /API_ORIGIN is empty/i.test(row))).toBe(true);
   });
 });
 

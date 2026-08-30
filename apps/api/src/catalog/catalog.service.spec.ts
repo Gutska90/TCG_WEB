@@ -21,6 +21,7 @@ describe("CatalogService", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllEnvs();
   });
 
   it("returns active games ordered", async () => {
@@ -40,9 +41,15 @@ describe("CatalogService", () => {
     });
   });
 
-  it("404s unknown cards", async () => {
-    prisma.card.findUnique.mockResolvedValue(null);
-    await expect(service.getCard("missing")).rejects.toMatchObject({
+  it("404s synthetic cards when SHOW_SYNTHETIC_CATALOG is false", async () => {
+    vi.stubEnv("SHOW_SYNTHETIC_CATALOG", "false");
+    prisma.card.findUnique.mockResolvedValue({
+      id: "c1",
+      attributes: { sourceQuality: "SYNTHETIC", source: "synthetic-showcase" },
+      set: { game: { isActive: true, slug: "pokemon" } },
+      variants: [],
+    });
+    await expect(service.getCard("c1")).rejects.toMatchObject({
       code: ERROR_CODES.NOT_FOUND,
       status: HttpStatus.NOT_FOUND,
     });

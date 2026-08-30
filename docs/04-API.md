@@ -93,7 +93,7 @@ Máximo `pageSize=100`.
 |--------|------|------|-------------|
 | GET | `/v1/games` | no | TCG activos |
 | GET | `/v1/games/:slug` | no | |
-| GET | `/v1/games/:slug/sets` | no | |
+| GET | `/v1/games/:slug/sets` | no | con `SHOW_SYNTHETIC_CATALOG=false`, omite sets solo-sintéticos |
 | GET | `/v1/games/:slug/sets/:setSlug` | no | resolver SEO |
 | GET | `/v1/games/:slug/sets/:setSlug/cards/:cardSlug` | no | ficha por slugs |
 | GET | `/v1/games/:slug/cards` | no | paginado |

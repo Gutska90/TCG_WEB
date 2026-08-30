@@ -6,7 +6,7 @@ import { SearchLayout } from "../../../components/search-layout";
 import { EmptyState } from "../../../components/ui/empty-state";
 import { ProductCard } from "../../../components/ui/product-card";
 import { CatalogRequestError, getGame, getGameFilters } from "../../../lib/catalog";
-import { searchCards, searchCardsHref, searchInputFromParams, type SearchCardsInput } from "../../../lib/search";
+import { searchCards, searchCardsHref, searchInputFromParams, type SearchCardsInput, hasExtraSearchFilters } from "../../../lib/search";
 
 export default async function GameCardsPage({
   params,
@@ -74,11 +74,26 @@ export default async function GameCardsPage({
                 </ul>
                 {results.items.length === 0 ? (
                   <EmptyState
-                    title="No hay cartas que coincidan."
+                    title={
+                      hasExtraSearchFilters(values, ["game"])
+                        ? "No hay cartas que coincidan."
+                        : `El catálogo de ${game.name} está en preparación.`
+                    }
+                    body={
+                      hasExtraSearchFilters(values, ["game"])
+                        ? undefined
+                        : "Aún no publicamos cartas verificadas de este juego."
+                    }
                     action={
-                      <Link href={pathname} className="underline">
-                        Quitar filtros
-                      </Link>
+                      hasExtraSearchFilters(values, ["game"]) ? (
+                        <Link href={pathname} className="underline">
+                          Quitar filtros
+                        </Link>
+                      ) : (
+                        <Link href={`/${game.slug}`} className="underline">
+                          Volver al juego
+                        </Link>
+                      )
                     }
                   />
                 ) : null}

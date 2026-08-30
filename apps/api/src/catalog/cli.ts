@@ -36,7 +36,7 @@ async function main() {
     }
     if (command === "import-scryfall") {
       if (!arg) {
-        throw new Error("Uso: catalog:import-scryfall <codigo-set>  (ej. mh3)");
+        throw new Error("Uso: catalog:import-scryfall <codigo-set>  (staging: mh3 blb dsk fdn)");
       }
       const result = await importScryfallSet(prisma, arg);
       console.log(`Import Scryfall ${arg}: ${result.cards} cartas.`);
@@ -44,7 +44,7 @@ async function main() {
     }
     if (command === "import-pokemon") {
       if (!arg) {
-        throw new Error("Uso: catalog:import-pokemon <set-id>  (ej. xy1)");
+        throw new Error("Uso: catalog:import-pokemon <set-id>  (staging: sv8 sv6 sv3 xy1)");
       }
       const result = await importPokemonTcgSet(prisma, arg);
       console.log(`Import Pokémon TCG API ${arg}: ${result.cards} cartas.`);

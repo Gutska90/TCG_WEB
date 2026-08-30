@@ -4,10 +4,12 @@ import {
   getGameFilterDefinition,
   isCommonSearchKey,
   isKnownCatalogAttrKey,
+  isSyntheticCardAttributes,
   loadFeatureFlags,
   normalizeCatalogCode,
   resolveAttrFilterKey,
   sortAllowedForGame,
+  SYNTHETIC_ATTRIBUTE_SOURCES,
   type CatalogFilterDef,
 } from "@tcg/config";
 import { HttpStatus } from "@nestjs/common";
@@ -140,6 +142,28 @@ export function catalogVisibilitySql(): Prisma.Sql[] {
       AND COALESCE(c.attributes->>'source', '') NOT IN ('synthetic-showcase', 'showcase-seed', 'seed')
     )`,
   ];
+}
+
+/** Prisma `CardWhereInput` equivalent of `catalogVisibilitySql` for REST catalog pages. */
+export function publicCatalogCardWhere(): Prisma.CardWhereInput {
+  if (loadFeatureFlags().showSyntheticCatalog) return {};
+  return {
+    AND: [
+      { NOT: { attributes: { path: ["sourceQuality"], equals: "SYNTHETIC" } } },
+      ...SYNTHETIC_ATTRIBUTE_SOURCES.map((source) => ({
+        NOT: { attributes: { path: ["source"], equals: source } },
+      })),
+    ],
+  };
+}
+
+export function isHiddenSyntheticCard(attributes: Prisma.JsonValue | Record<string, unknown> | null): boolean {
+  if (loadFeatureFlags().showSyntheticCatalog) return false;
+  const raw =
+    attributes && typeof attributes === "object" && !Array.isArray(attributes)
+      ? (attributes as Record<string, unknown>)
+      : {};
+  return isSyntheticCardAttributes(raw);
 }
 
 export function jsonSortExpression(filter: CatalogFilterDef | undefined): Prisma.Sql | null {

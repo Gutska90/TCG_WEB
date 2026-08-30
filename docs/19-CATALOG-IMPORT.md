@@ -62,7 +62,7 @@ Sin llamar APIs externas en CI:
 - 1 set cada uno
 - 8–12 cartas fake **con nombres genéricos de test** (`Test Mon #1`), no arte con copyright, para tests.
 
-Staging/prod: import real.
+Staging/prod: [STAGING-CATALOG.md](runbooks/STAGING-CATALOG.md) (`seed-reference` + 2–4 sets Magic/Pokémon, `SHOW_SYNTHETIC_CATALOG=false`).
 
 ## Carga masiva de **listings** (no catálogo)
 

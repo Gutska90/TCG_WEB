@@ -8,6 +8,7 @@ El código es 12-factor; **este documento no crea la cuenta de hosting**. Lista 
 
 - Fail-fast en `NODE_ENV=staging|production` o `APP_ENV=staging|production` si faltan object storage o correo.
 - Staging rechaza `ENABLE_REAL_PAYMENTS=true`.
+- `SHOW_SYNTHETIC_CATALOG=false` en `.env.staging.example`; preflight WARNING si queda visible.
 - Object storage: Cloudflare R2 (`R2_*`) o S3/Minio (`S3_ENDPOINT` + credenciales). `complete` exige que el objeto exista. `GET /v1/files/:id` sirve listing/avatar; evidencia solo con auth de parte o staff.
 - Correo: Resend (`RESEND_API_KEY`) o SMTP (`SMTP_HOST`). Local: Inbucket `:2500`.
 - API contenedor: `docker/Dockerfile.api`.
@@ -21,7 +22,7 @@ Copia `.env.staging.example` a `.env.staging` (gitignored), llena valores reales
 pnpm staging:preflight -- --env-file .env.staging
 ```
 
-Exit 1 = blockers (no invites testers). Warnings (host `example.test`, admin sin IP allowlist, OAuth off) no impiden el boot. Este comando **no** crea el servidor.
+Exit 1 = blockers (no invites testers). Warnings (host `example.test`, admin sin IP allowlist, OAuth off, `SHOW_SYNTHETIC_CATALOG=true`, `API_ORIGIN` localhost) no impiden el boot. Este comando **no** crea el servidor.
 
 ## Checklist operador
 
@@ -33,8 +34,9 @@ Exit 1 = blockers (no invites testers). Warnings (host `example.test`, admin sin
 6. `EMAIL_FROM` con dominio verificado en Resend.
 7. Deploy API (`docker/Dockerfile.api`) + web/admin (Vercel u homólogo) con `API_ORIGIN` / `NEXT_PUBLIC_*` apuntando al API HTTPS.
 8. Smoke: `/health`, `/ready`, registro + correo de verificación, publicar listing con foto, checkout sandbox.
-9. OAuth: dejar flags off hasta tener client IDs de staging (B1 no exige Google/Apple).
-10. Admin: `ADMIN_IP_ALLOWLIST` con las IPs del staff (o no publicar el host). Auth de staff no basta sola en internet.
+9. Catálogo: [STAGING-CATALOG.md](STAGING-CATALOG.md) (`SHOW_SYNTHETIC_CATALOG=false`, seed-reference, import Magic/Pokémon).
+10. OAuth: dejar flags off hasta tener client IDs de staging (B1 no exige Google/Apple).
+11. Admin: `ADMIN_IP_ALLOWLIST` con las IPs del staff (o no publicar el host). Auth de staff no basta sola en internet.
 
 ## Local con Minio + Inbucket
 

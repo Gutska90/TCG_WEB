@@ -35,6 +35,7 @@ CATALOG.1 Game-Specific Dynamic Filters  ✓
 CATALOG.2 Real Data & Taxonomy Hardening ✓
 UI.1      Visual Refresh                 ✓
 PS        Pre-Staging Readiness          ✓
+PS.1      Final pre-staging cleanup      ✓
 
 --- BETA RELEASE PROGRAM (feature freeze) ---
 B0        Release Audit                  ✓
@@ -336,7 +337,13 @@ Entregado en repo:
 - Identidad mobile documentada (`cl.tcgplatform.app`, scheme `tcgplatform`) **sin** abrir Expo.
 - Guías: [TESTER-GUIDE](release/TESTER-GUIDE.md), [QA-MANUAL](release/QA-MANUAL.md), [PRE-STAGING-READINESS](audits/PRE-STAGING-READINESS.md).
 
-**Estado: listo en repo.** P0 de publicación = operador (B1/B6/B7/B8). `ENABLE_REAL_PAYMENTS=false`.
+**Estado: listo en repo.** P0 de publicación = operador (B1/B6/B7/B8). `ENABLE_REAL_PAYMENTS=false`. **PS.1** env staging + hide synthetic en REST catálogo + runbook de bootstrap.
+
+## PS.1 — Final pre-staging cleanup ✓
+
+Deja `main` listo para B1: `.env.staging.example` con `SHOW_SYNTHETIC_CATALOG=false`, preflight WARNING si el showcase sintético sigue visible, hide en search **y** `GET /v1/games|sets|cards`, seed-reference sin listings, runbook [STAGING-CATALOG](runbooks/STAGING-CATALOG.md). No Scanner.
+
+**Estado: listo.** Siguiente: cuentas B1 (operador). No Fase 15.
 
 ## Feature freeze (B0–B8)
 

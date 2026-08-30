@@ -3,7 +3,7 @@
 **Nombre de trabajo:** TCG Market Chile  
 **Nombre interno:** `tcg-platform`  
 **Fecha:** 23 agosto 2026  
-**Estado:** Fase **14** lista. **UI.1** ✓. **PS Pre-Staging Readiness** ✓ repo. **M1** Seller Plans + fee engine ✓. Feature freeze 15–20. **B0–B7** ✓ repo. **B1/B8** = operador: [OPERATOR-KICKOFF](release/OPERATOR-KICKOFF.md). No Scanner ni pagos live. **M2** no implementar.
+**Estado:** Fase **14** lista. **UI.1** ✓. **PS** ✓. **PS.1** ✓ (env staging + hide synthetic). **M1** Seller Plans + fee engine ✓. Feature freeze 15–20. **B0–B7** ✓ repo. **B1/B8** = operador: [OPERATOR-KICKOFF](release/OPERATOR-KICKOFF.md). No Scanner ni pagos live. **M2** no implementar.
 
 Este repositorio no es una copia de TCGMatch. TCGMatch es **referencia funcional** de un marketplace chileno de cartas. El producto objetivo es una **plataforma TCG integral** para coleccionistas, jugadores y tiendas, con web, PWA y apps móviles sobre **un solo backend y una sola base de datos**.
 
@@ -52,6 +52,8 @@ Este repositorio no es una copia de TCGMatch. TCGMatch es **referencia funcional
 | — | [LEGAL-BETA](LEGAL-BETA.md) | Términos, privacidad, copy, gates de pagos live 10.7 |
 | — | [COLLECTIONS](COLLECTIONS.md) | Colección personal, lotes, valor estimado, set progress 12 |
 | — | [OPERATOR-KICKOFF](release/OPERATOR-KICKOFF.md) | Cuentas, secretos y orden para abrir staging/beta |
+| — | [STAGING](runbooks/STAGING.md) | B1: preflight, Docker API, Minio local |
+| — | [STAGING-CATALOG](runbooks/STAGING-CATALOG.md) | PS.1: seed-reference + import Magic/Pokémon |
 | — | [PERFORMANCE](runbooks/PERFORMANCE.md) | B3: load HTTP, p95 search, jobs |
 | — | [PRODUCTION](runbooks/PRODUCTION.md) | B5: Sentry, Redis líder, backups/incidentes |
 | — | [audit-allowlist](security/audit-allowlist.json) | B2: GHSA high/critical aceptados con motivo |

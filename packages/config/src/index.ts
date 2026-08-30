@@ -944,6 +944,27 @@ export function collectStagingOperatorReport(env: NodeJS.Dict<string> = process.
     blockers.push("AUTH_STUB_OAUTH must be false in staging/production");
   }
 
+  if (isStrictDeployEnv(env) && envFlag(env.SHOW_SYNTHETIC_CATALOG, true)) {
+    warnings.push(
+      "Synthetic showcase catalog is visible in staging. Set SHOW_SYNTHETIC_CATALOG=false so Ember Pup / Andes Demo / Test Mon stay out of the public catalog.",
+    );
+  }
+
+  if (isStrictDeployEnv(env) && /localhost|127\.0\.0\.1/i.test(envTrimmed(env.CORS_ORIGINS))) {
+    warnings.push("CORS_ORIGINS still includes localhost — testers will not use that origin");
+  }
+
+  if (isStrictDeployEnv(env)) {
+    const apiOrigin = envTrimmed(env.API_ORIGIN);
+    if (!apiOrigin) {
+      warnings.push(
+        "API_ORIGIN is empty — Next web/admin will rewrite /v1 to http://localhost:4000. Set it to the public API HTTPS origin.",
+      );
+    } else if (looksLikePlaceholderHost(apiOrigin) || /localhost|127\.0\.0\.1/i.test(apiOrigin)) {
+      warnings.push(`API_ORIGIN still looks local or placeholder (${apiOrigin})`);
+    }
+  }
+
   if (envFlag(env.ENABLE_GOOGLE_AUTH, false) === false && envFlag(env.ENABLE_APPLE_AUTH, false) === false) {
     warnings.push("Google/Apple auth flags are off — testers will use email/password (OK for B1)");
   }

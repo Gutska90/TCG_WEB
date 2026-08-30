@@ -14,6 +14,10 @@ const GAMES: Record<string, { name: string; publisher: string; sortOrder: number
   gundam: { name: "Gundam Card Game", publisher: "Bandai", sortOrder: 7 },
 };
 
+/**
+ * Verified reference snapshots only (games, sets, cards, default variants).
+ * Idempotent upsert. Does not create users, listings, orders, or payments.
+ */
 export async function seedReferenceCatalog(prisma: PrismaClient): Promise<{ games: number; cards: number }> {
   const fixtures = loadReferenceFixtures();
   const gameSlugs = new Set(fixtures.map((row) => row.gameSlug));

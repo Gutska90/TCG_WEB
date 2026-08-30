@@ -104,6 +104,7 @@ R2_BUCKET
 R2_PUBLIC_BASE_URL
 S3_ENDPOINT / S3_PUBLIC_ENDPOINT / S3_REGION / S3_ACCESS_KEY_ID / S3_SECRET_ACCESS_KEY / S3_BUCKET / S3_FORCE_PATH_STYLE
 APP_ENV                      # staging|production fuerza el mismo fail-fast que NODE_ENV
+API_ORIGIN                   # Next web/admin rewrite /v1; staging no debe ser localhost
 
 RESEND_API_KEY
 EMAIL_FROM
@@ -113,7 +114,7 @@ SMTP_HOST / SMTP_PORT / SMTP_SECURE / SMTP_USER / SMTP_PASS
 EXPO_ACCESS_TOKEN         # push, fase 11
 
 ENABLE_REAL_PAYMENTS / ENABLE_PAYOUTS / ENABLE_* (features futuras)
-SHOW_SYNTHETIC_CATALOG       # default true (e2e/showcase). false en staging público oculta sourceQuality=SYNTHETIC
+SHOW_SYNTHETIC_CATALOG       # default true (e2e). staging.example = false; hide search + REST catálogo
 POKEMON_TCG_API_KEY          # opcional; solo API, nunca frontend
 REAL_PAYMENTS_LEGAL_APPROVED   # solo true fuera del repo, tras revisión legal
 DISABLE_CHECKOUT / DISABLE_NEW_LISTINGS / DISABLE_PAYOUTS / DISABLE_REFUNDS_AUTOMATION

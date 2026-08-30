@@ -111,6 +111,16 @@ export function searchCards(input: SearchCardsInput) {
   return catalogGet<Paginated<SearchCardView>>(`/v1/search/cards?${params.toString()}`, false);
 }
 
+export function hasExtraSearchFilters(input: SearchCardsInput, lockedKeys: string[] = []): boolean {
+  const locked = new Set(lockedKeys);
+  if (input.q) return true;
+  if (input.game && !locked.has("game")) return true;
+  if (input.set && !locked.has("set")) return true;
+  if (input.rarity || input.supertype || input.language || input.finish || input.condition) return true;
+  if (input.hasListings || input.priceMin || input.priceMax) return true;
+  return Boolean(input.attrs && Object.keys(input.attrs).length > 0);
+}
+
 export function omitSearchFilter(input: SearchCardsInput, key: string): SearchCardsInput {
   const next: SearchCardsInput = { ...input, page: 1 };
   if (key in next && key !== "attrs") {

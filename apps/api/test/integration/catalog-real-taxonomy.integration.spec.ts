@@ -78,5 +78,14 @@ describe("CATALOG.2 real taxonomy search (postgres)", () => {
       attrs: { sourceTitle: ["Mobile Suit Gundam"] },
     });
     expect(gundam.items.some((row) => row.number === "GD01-001")).toBe(true);
+
+    const gundamBlue = await search.searchCards({
+      page: 1,
+      pageSize: 50,
+      sort: "relevance",
+      game: "gundam",
+      attrs: { color: ["BLUE"] },
+    });
+    expect(gundamBlue.items.some((row) => row.number === "GD01-001")).toBe(true);
   });
 });
