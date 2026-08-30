@@ -262,6 +262,9 @@ Listing
   grader String?       // PSA, BGS
   grade String?        // "10"
   publishedAt
+  indexes (sellerId), (variantId, status), (status, priceClp), (sourceCollectionItemId)
+  // listado público: status=ACTIVE ORDER BY priceClp — cubierto por (status, priceClp)
+  // no se añadió (status, publishedAt): el listado no ordena por recencia
 
 ListingImage
   listingId, fileId, sortOrder
@@ -275,7 +278,13 @@ CartItem
   cartId, listingId, quantity
   unique(cartId, listingId)
 
-Checkout / Order / OrderItem   // Fase 6; no se crean en Fase 5
+SellerSubscription          // M1 entitlement; no es factura
+  sellerId, plan, status, source, startsAt, endsAt?, reason
+  status ACTIVE | CANCELLED | EXPIRED
+  source MANUAL | FUTURE_BILLING_PROVIDER
+  plan FREE | SELLER_PLUS | SELLER_PRO | STORE
+  // FREE no exige fila. Sin subscription ACTIVE vigente → plan efectivo FREE.
+
 
 Order                      // una por vendedor por checkout
   orderNumber unique
@@ -283,6 +292,9 @@ Order                      // una por vendedor por checkout
   sellerId
   status
   subtotalClp, shippingClp, commissionClp, totalClp
+  marketplaceFeePolicyVersion, sellerPlanCode, marketplacePromotionCode, marketplaceFeeBps, marketplaceFeeCapClp  // snapshot M1 al crear la Order; no editar
+  // commissionClp = fee TCG Market del snapshot. Refunds/ledger usan este valor, no el plan actual.
+
   shippingMethod
   shippingAddressId
   notes

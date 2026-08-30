@@ -29,6 +29,7 @@ function order(partial: Partial<OrderView>): OrderView {
     payment: null,
     shipment: null,
     rating: null,
+    marketplaceFee: null,
     ...partial,
   };
 }

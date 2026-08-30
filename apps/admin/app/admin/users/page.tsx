@@ -68,9 +68,14 @@ function Inner() {
                 <td>{row.isBanned ? "sí" : "no"}</td>
                 <td>
                   {row.roles.includes("SELLER") || row.roles.includes("STORE") ? (
-                    <a href={`/admin/sellers/${row.id}/balance`} className="text-xs underline">
-                      Saldo
-                    </a>
+                    <>
+                      <a href={`/admin/sellers/${row.id}/balance`} className="text-xs underline">
+                        Saldo
+                      </a>{" "}
+                      <a href={`/admin/sellers/${row.id}/plan`} className="text-xs underline">
+                        Plan
+                      </a>
+                    </>
                   ) : null}
                 </td>
               </tr>

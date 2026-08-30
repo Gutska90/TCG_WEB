@@ -9,6 +9,7 @@ import type {
 import type { PatchNotificationPreferenceInput } from "@tcg/validation";
 import { AppError } from "../common/errors/app-error";
 import { MailService } from "../mail/mail.service";
+import { notificationEmailHtml } from "../mail/mail.templates";
 import { PrismaService } from "../prisma/prisma.service";
 
 const TRANSACTIONAL = { inApp: true, email: true, push: false } as const;
@@ -148,7 +149,12 @@ export class NotificationsService {
     if (prefs.email) {
       const user = await this.prisma.user.findUnique({ where: { id: input.userId }, select: { email: true } });
       if (user?.email) {
-        await this.mail.send({ to: user.email, subject: input.title, text: input.body });
+        await this.mail.send({
+          to: user.email,
+          subject: input.title,
+          text: input.body,
+          html: notificationEmailHtml(input.title, input.body),
+        });
       }
     }
     return persistInApp;

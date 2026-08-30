@@ -32,6 +32,7 @@ export const gameAccents = {
   magic: "#F97316",
   "one-piece": "#EF4444",
   yugioh: "#8B5CF6",
+  "mitos-y-leyendas": "#B45309",
 } as const;
 
 export const radii = {
@@ -53,6 +54,7 @@ export function gameAccentForSlug(slug: string): string | undefined {
   if (key.includes("magic") || key === "mtg") return gameAccents.magic;
   if (key.includes("one-piece") || key.includes("onepiece")) return gameAccents["one-piece"];
   if (key.includes("yugioh") || key.includes("yu-gi-oh") || key.includes("ygo")) return gameAccents.yugioh;
+  if (key.includes("mitos") || key === "myl") return gameAccents["mitos-y-leyendas"];
   return undefined;
 }
 

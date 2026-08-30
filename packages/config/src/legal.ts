@@ -1,5 +1,5 @@
 export const LEGAL = {
-  termsVersion: "2026-08-21.beta.1",
+  termsVersion: "2026-08-23.beta.1",
   privacyVersion: "2026-08-21.beta.1",
   betaNotice: "Documento de beta / sujeto a revisión legal antes de producción real.",
   betaProductNotice: "Esta versión está en prueba. Algunas funciones pueden cambiar.",
@@ -116,6 +116,14 @@ export const TERMS_DOCUMENT: LegalDocument = {
       paragraphs: [
         "Quien publica debe describir el artículo de forma razonable: juego, variante, condición, precio y fotos cuando se exijan. El listing debe corresponder al producto real y al stock disponible.",
         "La plataforma puede pausar, ocultar o rechazar publicaciones que incumplan estas reglas o las de moderación.",
+      ],
+    },
+    {
+      heading: "Comisiones y planes de vendedor",
+      paragraphs: [
+        "La comisión de TCG Market se calcula sobre el subtotal de productos de cada Order (no sobre el envío) y se descuenta al vendedor. El comprador no paga comisión de plataforma. El costo del medio de pago es un cargo distinto y, si el procesador no lo informa de forma confiable, no se estima como dato financiero.",
+        "Las tarifas vigentes al crear una Order quedan guardadas en esa Order (plan, política, promoción, bps, tope y monto). Un cambio de plan o el fin de una promoción no modifica órdenes ya creadas. Las tarifas pueden cambiar para operaciones futuras.",
+        "Durante la beta las mensualidades de planes de vendedor no se cobran de forma automática: un administrador puede asignar un plan de forma manual, sin generar Payment, Order ni asiento de ledger de suscripción.",
       ],
     },
     {
@@ -305,6 +313,7 @@ export const MARKETPLACE_DOCUMENT: LegalDocument = {
         PAYMENT_COPY.released,
         PAYMENT_COPY.payout,
         "Mercado Pago, cuando corresponde, es el procesador. No atribuimos al procesador una retención a nombre del comprador, ni un escrow, ni una protección financiera de los fondos.",
+        "La comisión de TCG Market es independiente del costo del medio de pago. Cada Order conserva el snapshot de comisión con el que se creó. Durante la beta no hay cobro automático de mensualidades de plan.",
       ],
     },
   ],
@@ -414,6 +423,7 @@ export const REQUIRED_TERMS_HEADINGS = [
   "Conducta prohibida",
   "Rol de TCG Platform",
   "Publicaciones y listings",
+  "Comisiones y planes de vendedor",
   "Responsabilidad del vendedor sobre condición y autenticidad",
   "Órdenes",
   "Cancelaciones",

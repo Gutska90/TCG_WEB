@@ -1,9 +1,10 @@
-import { commissionClp, LEGAL } from "@tcg/config";
+import { LEGAL, LAUNCH_PROMO_INACTIVE, orderFeeSnapshotFromQuote, quoteMarketplaceFee } from "@tcg/config";
 import type { PrismaClient } from "@prisma/client";
 import * as argon2 from "argon2";
 import { ledgerIdempotencyKey, sellerNetClp } from "../ledger/ledger.money";
 import { consumeReservedStock, releaseStock, reserveStock } from "../orders/stock";
 import { seedCatalog, seedShippingRates } from "./seed";
+import { seedShowcase } from "./showcase-seed";
 
 /** Keep in sync with e2e/fixtures.ts — Playwright filters admin refunds by this reason. */
 export const QA_REFUND_REASON = "QA_B4_REFUND_RETRY";
@@ -203,7 +204,12 @@ async function ensureFailedRefundFixture(
   }
 
   const priceClp = 5000;
-  const fee = commissionClp(priceClp);
+  const quote = quoteMarketplaceFee({
+    plan: "FREE",
+    orderSubtotalClp: priceClp,
+    promoWindow: LAUNCH_PROMO_INACTIVE,
+  });
+  const fee = quote.platformFeeClp;
   const net = sellerNetClp(priceClp, fee);
   const orderNumber = `${QA_REFUND_ORDER_PREFIX}-${Date.now().toString(36).toUpperCase()}`;
 
@@ -223,7 +229,7 @@ async function ensureFailedRefundFixture(
             status: "PAID",
             subtotalClp: priceClp,
             shippingClp: 0,
-            commissionClp: fee,
+            ...orderFeeSnapshotFromQuote(quote),
             totalClp: priceClp,
             shippingMethod: "MEETUP",
             paidAt: new Date(),
@@ -335,8 +341,12 @@ export async function seedBeta(prisma: PrismaClient): Promise<{ listingId: strin
     variantId: qaCard.variants[0].id,
   });
 
+  const showcase = await seedShowcase(prisma, { buyerId: buyer.id, defaultSellerId: seller.id });
   if (expired > 0) {
     console.log(`Beta seed: ${expired} checkout(s) expirados (reservas liberadas).`);
   }
+  console.log(
+    `Beta seed: vitrina ${showcase.games} juegos, ${showcase.cards} cartas, ${showcase.listings} publicaciones.`,
+  );
   return { listingId: listing.id, cardName: card.name };
 }

@@ -25,6 +25,11 @@ type OrderRow = {
   subtotalClp: number;
   shippingClp: number;
   commissionClp: number;
+  marketplaceFeePolicyVersion: string | null;
+  sellerPlanCode: string | null;
+  marketplacePromotionCode: string | null;
+  marketplaceFeeBps: number | null;
+  marketplaceFeeCapClp: number | null;
   totalClp: number;
   shippingMethod: ShippingMethod;
   notes: string;
@@ -107,6 +112,15 @@ export function toOrderView(row: OrderRow): OrderView {
           isPublic: row.rating.isPublic,
           createdAt: row.rating.createdAt.toISOString(),
           from: row.rating.from,
+        }
+      : null,
+    marketplaceFee: row.marketplaceFeePolicyVersion
+      ? {
+          policyVersion: row.marketplaceFeePolicyVersion,
+          planCode: row.sellerPlanCode,
+          promotionCode: row.marketplacePromotionCode,
+          feeBps: row.marketplaceFeeBps,
+          feeCapClp: row.marketplaceFeeCapClp,
         }
       : null,
   };

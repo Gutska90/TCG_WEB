@@ -40,6 +40,25 @@ EXPO_PUBLIC_API_BASE_URL=http://192.168.1.20:4000 pnpm --filter @tcg/mobile star
 
 Staging/producción: HTTPS. No hardcodear IPs en el repo.
 
+## Identidad de app (PS, sin abrir Expo)
+
+Valores en `apps/mobile/app.config.ts`. No publicar Play/App Store. No correr EAS hasta B6/B7 (operador).
+
+| Campo | Valor |
+|-------|--------|
+| Nombre visible | TCG Market |
+| Slug Expo | `tcg-platform` |
+| Scheme / deep link | `tcgplatform` (`tcgplatform://…`) |
+| Android package | `cl.tcgplatform.app` |
+| iOS bundle ID | `cl.tcgplatform.app` |
+| Versión | `0.1.0` (iOS `buildNumber` 1, Android `versionCode` 1) |
+| Icono / adaptive | `./assets/icon.png`, `adaptive-icon.png` |
+| Splash | `./assets/splash.png`, fondo `#171717` |
+| Permisos | Android `INTERNET`; fotos vía `expo-image-picker` (publicaciones y evidencia) |
+| Universal links | `EXPO_PUBLIC_ASSOCIATED_DOMAIN` cuando exista host; scheme listo ahora |
+
+`EXPO_PUBLIC_ENABLE_REAL_PAYMENTS` debe seguir en `false`.
+
 ## Navegación (MVP 11)
 
 Tabs: **Inicio | Buscar | Colección | Favoritos | Carrito | Perfil**.

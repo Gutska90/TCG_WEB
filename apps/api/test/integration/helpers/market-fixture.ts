@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { PrismaClient } from "@prisma/client";
+import { LAUNCH_PROMO_INACTIVE, orderFeeSnapshotFromQuote, quoteMarketplaceFee } from "@tcg/config";
 import { reserveStock } from "../../../src/orders/stock";
 
 export type PendingSale = {
@@ -114,7 +115,13 @@ export async function createPendingSale(
             status: "PENDING_PAYMENT",
             subtotalClp: 80000 * quantity,
             shippingClp: 0,
-            commissionClp: Math.floor(80000 * quantity * 0.08),
+            ...orderFeeSnapshotFromQuote(
+              quoteMarketplaceFee({
+                plan: "FREE",
+                orderSubtotalClp: 80000 * quantity,
+                promoWindow: LAUNCH_PROMO_INACTIVE,
+              }),
+            ),
             totalClp: 80000 * quantity,
             shippingMethod: "MEETUP",
             items: {
@@ -161,16 +168,33 @@ export async function cleanupUsersAndCatalog(
   prisma: PrismaClient,
   input: { userIds: string[]; listingId: string; variantId: string; gameId: string; checkoutIds?: string[] },
 ): Promise<void> {
+  const orders = await prisma.order.findMany({
+    where: {
+      OR: [
+        { sellerId: { in: input.userIds } },
+        { buyerId: { in: input.userIds } },
+        { checkoutId: { in: input.checkoutIds ?? [] } },
+      ],
+    },
+    select: { id: true, checkoutId: true },
+  });
+  const orderIds = orders.map((row) => row.id);
   const checkouts = await prisma.checkout.findMany({
     where: {
-      OR: [{ id: { in: input.checkoutIds ?? [] } }, { buyerId: { in: input.userIds } }],
+      OR: [
+        { id: { in: [...(input.checkoutIds ?? []), ...orders.map((row) => row.checkoutId)] } },
+        { buyerId: { in: input.userIds } },
+      ],
     },
     select: { id: true },
   });
-  const checkoutIds = checkouts.map((row) => row.id);
-  const orderIds = (
+  const checkoutIds = [...new Set(checkouts.map((row) => row.id))];
+  const extraOrderIds = (
     await prisma.order.findMany({ where: { checkoutId: { in: checkoutIds } }, select: { id: true } })
   ).map((row) => row.id);
+  for (const id of extraOrderIds) {
+    if (!orderIds.includes(id)) orderIds.push(id);
+  }
   const paymentIds = (
     await prisma.payment.findMany({ where: { orderId: { in: orderIds } }, select: { id: true } })
   ).map((row) => row.id);
@@ -275,6 +299,7 @@ export async function cleanupUsersAndCatalog(
   await prisma.tcgGame.deleteMany({ where: { id: input.gameId } });
   await prisma.feedback.deleteMany({ where: { userId: { in: input.userIds } } });
   await prisma.address.deleteMany({ where: { userId: { in: input.userIds } } });
+  await prisma.sellerSubscription.deleteMany({ where: { sellerId: { in: input.userIds } } });
   await prisma.profile.deleteMany({ where: { userId: { in: input.userIds } } });
   await prisma.userRole.deleteMany({ where: { userId: { in: input.userIds } } });
   await prisma.user.deleteMany({ where: { id: { in: input.userIds } } });

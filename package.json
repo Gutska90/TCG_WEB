@@ -20,6 +20,7 @@
     "eas:ios:preview": "pnpm --filter @tcg/mobile eas:ios:preview",
     "eas:ios:testflight": "pnpm --filter @tcg/mobile eas:ios:testflight",
     "test:load": "node scripts/load-test.mjs",
+    "db:explain": "node scripts/explain-hot-paths.mjs",
     "audit:deps": "node scripts/audit-deps.mjs",
     "beta:seed": "pnpm --filter @tcg/api beta:seed",
     "staging:preflight": "pnpm --filter @tcg/api exec tsx src/ops/staging-preflight.cli.ts",

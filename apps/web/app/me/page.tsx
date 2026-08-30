@@ -8,6 +8,7 @@ import type { MeView } from "@tcg/types";
 import { userFacingError, loginHref } from "../../lib/errors";
 import { FormError, LoadingBlock, PageMain, SuccessNote, buttonSecondaryClass } from "../../components/ui-feedback";
 import { buttonClassName } from "../../components/ui/button-styles";
+import { SellerPlanCard } from "../../components/seller-plan-card";
 
 export default function MePage() {
   const router = useRouter();
@@ -92,6 +93,11 @@ export default function MePage() {
         </p>
         <p className="mt-2">Novedades opcionales: {me.legal.marketingOptIn ? "sí" : "no"}</p>
       </section>
+      {me.roles.includes("SELLER") || me.profile.sellerOnboardedAt ? (
+        <div className="mt-6">
+          <SellerPlanCard />
+        </div>
+      ) : null}
       <nav className="mt-6 grid gap-2 text-sm">
         <Link href="/me/coleccion" className="underline">Mi colección</Link>
         <Link href="/me/wishlist" className="underline">Wishlist</Link>

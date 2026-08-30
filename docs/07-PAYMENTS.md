@@ -73,12 +73,11 @@ Si el comprador no confirma en **N días** tras `DELIVERED` (default 7), el sist
 
 ## Comisión
 
-Default provisional: **8% del subtotal de productos** (no del envío), mínimo $0. El costo de MP:
+Default M1: comisión **variable por plan** (`SELLER_PLANS_V1`) sobre el subtotal de productos, con cap. FREE = 6% / $25.000. Promo de lanzamiento opcional: 3% / $15.000. El costo de MP:
 
-- Decisión provisional: la plataforma absorbe MP de la comisión, o se suma al total como `paymentFeeClp`.
-- **Default: comisión 8% incluye cubrir fee MP estimado; no mostrar fee MP al comprador.** Revisar con números reales antes de producción.
-
-`Order.commissionClp` se calcula al crear la orden y no se recalcula después (snapshot).
+- **Separado** de la comisión TCG Market. Si MP no informa un fee confiable: `null`; no estimar como dato financiero.
+- El comprador no paga comisión de plataforma.
+- `Order.commissionClp` y el resto del snapshot se fijan al crear la Order y no se recalculan. Refunds y ledger usan ese snapshot. Ver [SELLER-PLANS-AND-FEES](SELLER-PLANS-AND-FEES.md).
 
 ## Webhooks Mercado Pago
 

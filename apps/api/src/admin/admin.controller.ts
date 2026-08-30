@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
-import { ADMIN_OPS_ROLES } from "@tcg/config";
+import { ADMIN_OPS_ROLES, LAUNCH_PROMO_CODE, SELLER_PLAN_RATES, SELLER_PLANS_POLICY_VERSION, isLaunchPromoActive, loadLaunchPromoWindow } from "@tcg/config";
 import {
   adminCancelOrderSchema,
   adminLedgerAdjustmentSchema,
@@ -18,6 +18,7 @@ import {
   createAdminPayoutSchema,
   paginationQuerySchema,
   uuidParamSchema,
+  assignSellerPlanSchema,
   type AdminCancelOrderInput,
   type AdminLedgerAdjustmentInput,
   type AdminLedgerQuery,
@@ -32,6 +33,7 @@ import {
   type AdminUsersQuery,
   type CreateAdminPayoutInput,
   type PaginationQuery,
+  type AssignSellerPlanInput,
 } from "@tcg/validation";
 import { CurrentUser } from "../common/decorators/current-user.decorator";
 import { Roles } from "../common/decorators/roles.decorator";
@@ -44,6 +46,7 @@ import { LedgerQueryService } from "../ledger/ledger-query.service";
 import { SellerBalanceService } from "../ledger/seller-balance.service";
 import { PayoutsService } from "../payouts/payouts.service";
 import { MetricsService } from "../observability/metrics.service";
+import { SellerPlanService } from "../seller-plans/seller-plan.service";
 
 @Controller("v1/admin")
 @Roles(...ADMIN_OPS_ROLES)
@@ -56,6 +59,7 @@ export class AdminController {
     private readonly ledgerQuery: LedgerQueryService,
     private readonly adjustments: LedgerAdjustmentService,
     private readonly metrics: MetricsService,
+    private readonly sellerPlans: SellerPlanService,
   ) {}
 
   @Get("dashboard")
@@ -215,6 +219,54 @@ export class AdminController {
   @Get("sellers/:id/balance")
   sellerBalance(@Param("id", new ZodPipe(uuidParamSchema)) id: string) {
     return this.balances.forSeller(id);
+  }
+
+  @Get("sellers/:id/plan")
+  async sellerPlan(@Param("id", new ZodPipe(uuidParamSchema)) id: string) {
+    const at = new Date();
+    const plan = await this.sellerPlans.getEffectivePlan(id, at);
+    const subscription = await this.sellerPlans.getActiveSubscription(id, at);
+    const rates = SELLER_PLAN_RATES[plan];
+    const window = loadLaunchPromoWindow();
+    const promoActive = isLaunchPromoActive(at, window);
+    return {
+      sellerId: id,
+      policyVersion: SELLER_PLANS_POLICY_VERSION,
+      plan,
+      monthlyPriceClp: rates.monthlyPriceClp,
+      source: subscription?.source ?? null,
+      startsAt: subscription?.startsAt.toISOString() ?? null,
+      endsAt: subscription?.endsAt?.toISOString() ?? null,
+      normalFeeBps: rates.platformFeeBps,
+      normalFeeCapClp: rates.platformFeeCapClp,
+      promotion: {
+        active: promoActive,
+        code: promoActive ? LAUNCH_PROMO_CODE : null,
+        endsAt: promoActive && window.endsAt ? window.endsAt.toISOString() : null,
+        effectiveFeeBps: promoActive ? 300 : rates.platformFeeBps,
+        effectiveFeeCapClp: promoActive ? 15_000 : rates.platformFeeCapClp,
+      },
+      billing: {
+        automaticCollection: false as const,
+        message: "Plan asignado manualmente. No existe cobro recurrente automático.",
+      },
+      notice: "Plan asignado manualmente. No existe cobro recurrente automático.",
+    };
+  }
+
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Post("sellers/:id/plan")
+  assignSellerPlan(
+    @CurrentUser() user: RequestUser,
+    @Param("id", new ZodPipe(uuidParamSchema)) id: string,
+    @Body(new ZodPipe(assignSellerPlanSchema)) body: AssignSellerPlanInput,
+  ) {
+    return this.sellerPlans.assignPlan(user, id, {
+      plan: body.plan,
+      reason: body.reason,
+      startsAt: body.startsAt ? new Date(body.startsAt) : undefined,
+      endsAt: body.endsAt ? new Date(body.endsAt) : undefined,
+    });
   }
 
   @Get("ledger")

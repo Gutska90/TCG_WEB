@@ -4,7 +4,7 @@ import {
   COURIER_METHODS,
   ERROR_CODES,
   PLATFORM,
-  commissionClp,
+  orderFeeSnapshotFromQuote,
   type ShippingMethod,
 } from "@tcg/config";
 import type { CheckoutView, OrderView, Paginated } from "@tcg/types";
@@ -32,6 +32,8 @@ import { MetricsService } from "../observability/metrics.service";
 import { CollectionsService } from "../collections/collections.service";
 import { NotificationsService } from "../notifications/notifications.service";
 import { formatClp, orderCardLabel } from "../notifications/order-notification-copy";
+import { MarketplaceFeeService } from "../seller-plans/marketplace-fee.service";
+import { SellerPlanService } from "../seller-plans/seller-plan.service";
 
 const LATE_PAYMENT_NOTE =
   "[late_payment] Cobro Mercado Pago tras checkout terminal. Sin fulfillment. Reembolso pendiente.";
@@ -58,6 +60,8 @@ export class OrdersService {
     private readonly metrics: MetricsService,
     private readonly collections: CollectionsService,
     private readonly notifications: NotificationsService,
+    private readonly sellerPlans: SellerPlanService,
+    private readonly marketplaceFees: MarketplaceFeeService,
   ) {}
 
   async createCheckout(
@@ -110,6 +114,11 @@ export class OrdersService {
         tx,
         purchasable.map((item) => item.listingId),
       );
+      await this.sellerPlans.lockSellers(
+        tx,
+        groups.map((group) => group.seller.id),
+      );
+      const pricedAt = new Date();
       const selectionBySeller = new Map(input.shippingSelections.map((row) => [row.sellerId, row]));
       if (groups.length !== input.shippingSelections.length) {
         throw new AppError(
@@ -173,6 +182,11 @@ export class OrdersService {
         const shippingClp = quote.priceClp;
         const totalClp = subtotalClp + shippingClp;
         checkoutTotal += totalClp;
+        const feeQuote = await this.marketplaceFees.calculate(
+          { sellerId: group.seller.id, orderSubtotalClp: subtotalClp, at: pricedAt },
+          tx,
+        );
+        this.marketplaceFees.recordOrderQuote(feeQuote);
         for (const item of group.items) {
           await reserveStock(tx, item.listingId, item.quantity);
         }
@@ -185,7 +199,7 @@ export class OrdersService {
             status: "PENDING_PAYMENT",
             subtotalClp,
             shippingClp,
-            commissionClp: commissionClp(subtotalClp),
+            ...orderFeeSnapshotFromQuote(feeQuote),
             totalClp,
             shippingMethod: selection.method,
             shippingAddressId: selection.addressId ?? null,

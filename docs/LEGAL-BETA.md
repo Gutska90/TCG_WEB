@@ -11,7 +11,7 @@ Aviso: *Documento de beta / sujeto a revisión legal antes de producción real.*
 - Versionado `TERMS_VERSION` / `PRIVACY_VERSION` en `@tcg/config` (`LEGAL.termsVersion`, `LEGAL.privacyVersion`), guardado en `User`.
 - Opt-in de marketing separado (`marketingOptIn`).
 - Detección de aceptación anterior (`legal.stale` en `GET /v1/me`). No se fuerza reconsentimiento en 10.7.
-- Copy de pagos para usuario final (recibido / elegible para liquidación / liquidación). Sin “Mercado Pago retiene”, “escrow Mercado Pago” ni “dinero protegido por Mercado Pago”.
+- Copy de pagos para usuario final (recibido / elegible para liquidación / liquidación). Comisión de plataforma vs costo del medio de pago. Snapshot de Order. Planes de vendedor sin cobro automático en beta. Sin “Mercado Pago retiene”, “escrow Mercado Pago” ni “dinero protegido por Mercado Pago”.
 - Compra Protegida = reglas internas de soporte, moderación y disputas. No es seguro, escrow, garantía financiera ni certificación de autenticidad.
 - Baja de cuenta: solicitud + desactivación (`deletedAt` + `deletionRequestedAt`). No hard delete de Order, Payment, Refund, Ledger ni AuditLog.
 - Feedback beta `POST /v1/feedback` (rate limit). Admin `GET /v1/admin/feedback` (lista simple, no helpdesk).

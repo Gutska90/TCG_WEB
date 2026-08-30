@@ -22,10 +22,17 @@ type Histogram = { count: number; sumMs: number };
 @Injectable()
 export class MetricsService {
   private readonly counters = new Map<CounterName, number>();
+  private readonly extras = new Map<string, number>();
   private readonly histograms = new Map<HistogramName, Histogram>();
 
   inc(name: CounterName, by = 1): void {
     this.counters.set(name, (this.counters.get(name) ?? 0) + by);
+  }
+
+  /** Counters de negocio con nombre libre (GMV, revenue de plataforma, planes). */
+  add(name: string, by: number): void {
+    if (!Number.isInteger(by) || by === 0) return;
+    this.extras.set(name, (this.extras.get(name) ?? 0) + by);
   }
 
   observe(name: HistogramName, durationMs: number): void {
@@ -41,6 +48,7 @@ export class MetricsService {
   } {
     const counters: Record<string, number> = {};
     for (const [key, value] of this.counters) counters[key] = value;
+    for (const [key, value] of this.extras) counters[key] = value;
     const histograms: Record<string, { count: number; sumMs: number; avgMs: number }> = {};
     for (const [key, value] of this.histograms) {
       histograms[key] = {

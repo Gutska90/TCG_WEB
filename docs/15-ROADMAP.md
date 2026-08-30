@@ -32,6 +32,7 @@ FASE 13   Historial de precios           ✓
 FASE 14   Wishlist + alertas             ✓
 
 UI.1      Visual Refresh                 ✓
+PS        Pre-Staging Readiness          ✓
 
 --- BETA RELEASE PROGRAM (feature freeze) ---
 B0        Release Audit                  ✓
@@ -300,7 +301,24 @@ Refresh visual marketplace (web + mobile) entre Fase 14 y el Beta Release Progra
 
 Doc: [design/DESIGN-SYSTEM.md](design/DESIGN-SYSTEM.md).
 
-**Estado: listo.** B0–B7 en repo. **B8** playbook de testers invitados (operador). No Scanner.
+**Estado: listo.** Siguiente en repo: **PS Pre-Staging Readiness** (hecho). Luego B0–B8. No Scanner.
+
+## PS — Pre-Staging Readiness ✓
+
+Cierra lo que **no** depende de cuentas externas (dominio, Railway, Neon, R2, Resend, Apple, EAS). Objetivo: cuando existan esas cuentas, el despliegue sea pegar secretos, DNS, migrar y publicar.
+
+Orden de este bloque: UI/UX → auditoría de release → P0/P1 de código → seed de vitrina → performance local → QA documentado → branding + templates de email. **No** inicia Scanner, Tiendas ni Subastas.
+
+Entregado en repo:
+
+- Seed de vitrina (`seedShowcase` en `pnpm beta:seed`): Pokémon, Magic, One Piece + Yu-Gi-Oh y Mitos y Leyendas **solo demo**, sellers ficticios, listings, historial `LISTING_MIN`, colección y wishlist del buyer. `SHOWCASE_COLLECTION_SIZE` para lotes grandes locales.
+- Templates HTML de correo (verificar, reset, notificaciones). El envío real sigue bloqueado sin Resend/SMTP.
+- Hardening web: skeletons, 404/500, `reason=expired`, banner offline, anti doble-submit en checkout.
+- Índices de listado/precios/wishlist/colección revisados; script `pnpm db:explain`.
+- Identidad mobile documentada (`cl.tcgplatform.app`, scheme `tcgplatform`) **sin** abrir Expo.
+- Guías: [TESTER-GUIDE](release/TESTER-GUIDE.md), [QA-MANUAL](release/QA-MANUAL.md), [PRE-STAGING-READINESS](audits/PRE-STAGING-READINESS.md).
+
+**Estado: listo en repo.** P0 de publicación = operador (B1/B6/B7/B8). `ENABLE_REAL_PAYMENTS=false`.
 
 ## Feature freeze (B0–B8)
 
@@ -319,6 +337,14 @@ Auditoría canónica: [audits/BETA-RELEASE-AUDIT-2026-08.md](audits/BETA-RELEASE
 | **B6** Android Beta | EAS preview interno (no Play submit) | ✓ [B6-ANDROID-BETA](release/B6-ANDROID-BETA.md) |
 | **B7** iOS TestFlight | EAS + Apple (no App Store submit) | ✓ [B7-IOS-TESTFLIGHT](release/B7-IOS-TESTFLIGHT.md) |
 | **B8** Closed Beta | Testers invitados, sandbox, sin plata real | 🟡 invitaciones = operador. In-app `SALE_MADE`/`PURCHASE_MADE`/envío/cancel/disputa/rating ✓ [B8-CLOSED-BETA](release/B8-CLOSED-BETA.md) |
+
+## M1 — Seller Plans + Fee Engine
+
+**Estado: listo.** Planes FREE / PLUS / PRO / STORE, caps, promo `LAUNCH_3_PERCENT`, snapshot por Order, admin manual. **No** pagos live, **no** billing de suscripción, **no** Scanner/Stores/Auctions. Doc: [SELLER-PLANS-AND-FEES](SELLER-PLANS-AND-FEES.md).
+
+## M2 — Subscription Billing (futuro, no implementar)
+
+Cobro real de mensualidades (Mercado Pago u otro). `SellerSubscription.source = FUTURE_BILLING_PROVIDER`. No forma parte de M1.
 
 ## Fases 13–17
 

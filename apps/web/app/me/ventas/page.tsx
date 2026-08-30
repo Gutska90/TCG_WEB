@@ -9,6 +9,7 @@ import { ApiError } from "../../../lib/api";
 import { userFacingError, loginHref } from "../../../lib/errors";
 import { listOrders } from "../../../lib/orders";
 import { EmptyState, FormError, LoadingBlock, PageMain } from "../../../components/ui-feedback";
+import { SellerPlanCard } from "../../../components/seller-plan-card";
 
 export default function SalesPage() {
   const router = useRouter();
@@ -42,6 +43,9 @@ export default function SalesPage() {
   return (
     <PageMain width="lg">
       <h1 className="text-2xl font-semibold">Mis ventas</h1>
+      <div className="mt-4">
+        <SellerPlanCard />
+      </div>
       {rows.length === 0 ? (
         <EmptyState>
           Aún no hay ventas.{" "}
@@ -63,6 +67,10 @@ export default function SalesPage() {
       <p className="mt-8 text-sm">
         <Link href="/me/balance" className="underline">
           Ver saldo
+        </Link>
+        {" · "}
+        <Link href="/planes" className="underline">
+          Ver planes
         </Link>
       </p>
     </PageMain>

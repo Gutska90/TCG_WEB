@@ -29,6 +29,7 @@ export default defineConfig({
         PORT: "4000",
         ENABLE_REAL_PAYMENTS: "false",
         JOBS_ENABLED: "false",
+        REDIS_URL: "",
         CORS_ORIGINS: "http://localhost:3000,http://localhost:3002",
         APP_WEB_URL: web,
         APP_ADMIN_URL: admin,

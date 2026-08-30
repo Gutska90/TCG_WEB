@@ -24,14 +24,15 @@ Cada pantalla lista: fase, ruta, datos (API), acciones, vacío, error. Si la API
 | 4 | ficha + bloque vendedores | listings by variant | add cart |
 | 4 | `/listings/{id}` | listing | |
 | 4 | `/vendedores/{slug}` | user public + listings | |
-| 4 | `/vender` wizard | search cards, suggestion, POST listing | 6 pasos |
+| M1 | `/planes` | config pública `sellerPlans` | comparar tarifas, ver promo de lanzamiento |
+| M1 | `/vender` | listing + fee-preview | wizard + estimación de comisión + “Ver planes” |
 | 5 | `/carrito` | cart | qty, quitar |
 | 6 | `/checkout` | checkout | address, shipping, pagar |
 | 6 | `/me/compras` | orders as=buyer | |
 | 6 | `/me/compras/{id}` | order | confirmar, abrir disputa |
 | 10.5 | `/me/disputas` `/me/disputas/{id}` | disputes | mensajes |
 | 6 | `/me/ventas` | orders as=seller | |
-| 6 | `/me/ventas/{id}` | order | preparar, despachar |
+| 6 | `/me/ventas/{id}` | order | preparar, despachar; snapshot de comisión (plan/promo) |
 | 4 | `/me/publicaciones` | listings mine | pausar, editar |
 | 1 | `/me` | me | datos de cuenta, privacidad, solicitud de baja |
 | 11.5 | `/me/seguridad` | identities + sessions | métodos, password, revoke |
@@ -132,7 +133,8 @@ No hay tab Escanear ni Tiendas. Rutas alineadas en intención, no clonan slugs S
 | Ruta admin | |
 |-----------|--|
 | `/admin` | dashboard KPIs (10A) |
-| `/admin/users` | listado lectura (10A); detalle/ban en 10B |
+| `/admin/users` | listado lectura (10A); detalle/ban en 10B; link Plan (M1) |
+| `/admin/sellers/:id/plan` | M1 asignar plan manual (motivo + audit, sin cobro) |
 | `/admin/listings` | listado lectura (10A); pausar en 10B |
 | `/admin/orders` `/admin/orders/:id` | listado 10A; detalle, cancel, retry 10B |
 | `/admin/payments` `/admin/payments/:id` | 10A listado; 10B detalle |

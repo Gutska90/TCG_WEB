@@ -4,6 +4,8 @@ Checklists sobre **staging** (si el operador ya publicó B1) o **localhost**. Fe
 
 | Superficie | Doc | Gate |
 |------------|-----|------|
+| Testers | [TESTER-GUIDE.md](TESTER-GUIDE.md) | Onboarding humano (PS) |
+| Manual | [QA-MANUAL.md](QA-MANUAL.md) | Checklist buyer / seller / admin (PS) |
 | Web | [WEB-BETA-QA.md](WEB-BETA-QA.md) | `pnpm test:e2e` (Playwright, CI) |
 | Admin | [ADMIN-BETA-QA.md](ADMIN-BETA-QA.md) | mismos Playwright (`admin-*-path`) |
 | Mobile | [MOBILE-BETA-QA.md](MOBILE-BETA-QA.md) | checklist humana + Maestro **opcional** (`pnpm test:maestro`) |

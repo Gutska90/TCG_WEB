@@ -6,6 +6,7 @@ export type MailMessage = {
   to: string;
   subject: string;
   text: string;
+  html?: string;
 };
 
 @Injectable()
@@ -46,6 +47,7 @@ export class MailService {
         to: [message.to],
         subject: message.subject,
         text: message.text,
+        ...(message.html ? { html: message.html } : {}),
       }),
     });
     if (!response.ok) {
@@ -72,6 +74,7 @@ export class MailService {
       to: message.to,
       subject: message.subject,
       text: message.text,
+      html: message.html,
     });
   }
 }

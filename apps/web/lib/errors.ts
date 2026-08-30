@@ -19,6 +19,8 @@ export function userFacingError(err: unknown): string {
 
 export function loginHref(next?: string): string {
   const path = safeInternalPath(next);
-  if (!path) return "/ingresar";
-  return `/ingresar?next=${encodeURIComponent(path)}`;
+  const params = new URLSearchParams();
+  params.set("reason", "expired");
+  if (path) params.set("next", path);
+  return `/ingresar?${params.toString()}`;
 }

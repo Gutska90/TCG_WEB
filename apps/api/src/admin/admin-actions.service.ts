@@ -123,6 +123,16 @@ export class AdminActionsService {
       payment: payment ? toAdminPayment(payment) : null,
       refunds,
       timeline,
+      marketplaceFee: {
+        policyVersion: row.marketplaceFeePolicyVersion,
+        planCode: row.sellerPlanCode,
+        promotionCode: row.marketplacePromotionCode,
+        feeBps: row.marketplaceFeeBps,
+        feeCapClp: row.marketplaceFeeCapClp,
+        platformFeeClp: row.commissionClp,
+        sellerPayableClp: row.totalClp - row.commissionClp,
+        processorFeeClp: null,
+      },
     };
   }
 

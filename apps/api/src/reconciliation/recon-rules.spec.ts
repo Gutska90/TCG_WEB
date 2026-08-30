@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   compareLedger,
   comparePayments,
+  comparePlatformFeeSnapshots,
   compareRefunds,
   issueFingerprint,
   paymentStatusCompatible,
@@ -117,5 +118,23 @@ describe("recon-rules", () => {
       "LEDGER_MISSING_SELLER_PAYABLE",
       "PAYOUT_LEDGER_MISMATCH",
     ]);
+  });
+
+  it("flags PLATFORM_FEE snapshot mismatch without auto-fix", () => {
+    const issues = comparePlatformFeeSnapshots({
+      orders: [
+        {
+          id: "ord-1",
+          status: "COMPLETED",
+          commissionClp: 1_800,
+          marketplaceFeePolicyVersion: "SELLER_PLANS_V1",
+        },
+      ],
+      platformFeeByOrderId: new Map([["ord-1", 6_400]]),
+    });
+    expect(issues).toHaveLength(1);
+    expect(issues[0]?.issueType).toBe("PLATFORM_FEE_SNAPSHOT_MISMATCH");
+    expect(issues[0]?.expectedAmountClp).toBe(1_800);
+    expect(issues[0]?.actualAmountClp).toBe(6_400);
   });
 });

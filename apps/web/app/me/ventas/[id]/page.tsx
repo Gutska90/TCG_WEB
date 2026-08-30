@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CARD_CONDITION_LABELS, ORDER_STATUS_LABELS, PAYMENT_STATUS_USER_LABELS, SHIPPING_METHOD_LABELS, formatClp } from "@tcg/config";
+import { CARD_CONDITION_LABELS, ORDER_STATUS_LABELS, PAYMENT_STATUS_USER_LABELS, SHIPPING_METHOD_LABELS, formatClp, formatFeePercentEsCl, sellerPlanLabel } from "@tcg/config";
 import type { OrderView, SellerBalanceView } from "@tcg/types";
 import { ApiError, api } from "../../../../lib/api";
 import { userFacingError, loginHref } from "../../../../lib/errors";
@@ -79,6 +79,14 @@ export default function SaleDetailPage() {
         Comisión {formatClp(order.commissionClp)} · pago{" "}
         {order.payment?.status ? PAYMENT_STATUS_USER_LABELS[order.payment.status] : "pendiente"}
       </p>
+      {order.marketplaceFee ? (
+        <p className="mt-1 text-sm text-text-muted">
+          Plan {order.marketplaceFee.planCode ? sellerPlanLabel(order.marketplaceFee.planCode) : "sin snapshot"}
+          {order.marketplaceFee.promotionCode ? ` · promo ${order.marketplaceFee.promotionCode}` : ""}
+          {order.marketplaceFee.feeBps != null ? ` · ${formatFeePercentEsCl(order.marketplaceFee.feeBps)}` : ""}. El
+          costo del medio de pago se calcula por separado.
+        </p>
+      ) : null}
       <p className="mt-1 text-sm text-text-muted">Entrega: {SHIPPING_METHOD_LABELS[order.shippingMethod]}</p>
       <ul className="mt-6 grid gap-2 text-sm">
         {order.items.map((item) => (
