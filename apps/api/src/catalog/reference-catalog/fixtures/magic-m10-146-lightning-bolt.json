@@ -1,0 +1,47 @@
+{
+  "source": "scryfall",
+  "sourceUrl": "https://api.scryfall.com/cards/m10/146",
+  "retrievedAt": "2026-08-30T20:00:00.000Z",
+  "externalId": "435589bb-27c6-4a6d-9d63-394d5092b9d8",
+  "verified": true,
+  "sourceQuality": "VERIFIED_PROVIDER",
+  "gameSlug": "magic",
+  "data": {
+    "set": { "code": "M10", "slug": "m10", "name": "Magic 2010" },
+    "card": {
+      "name": "Lightning Bolt",
+      "number": "146",
+      "rarity": "common",
+      "supertype": "Instant",
+      "imageUrl": "https://cards.scryfall.io/normal/front/4/3/435589bb-27c6-4a6d-9d63-394d5092b9d8.jpg?1783942371",
+      "attributes": {
+        "source": "scryfall",
+        "sourceQuality": "VERIFIED_PROVIDER",
+        "sourceUrl": "https://scryfall.com/card/m10/146/lightning-bolt",
+        "sourceId": "435589bb-27c6-4a6d-9d63-394d5092b9d8",
+        "sourceRetrievedAt": "2026-08-30T20:00:00.000Z",
+        "verified": true,
+        "manaCost": "{R}",
+        "manaValue": 1,
+        "cmc": 1,
+        "colors": ["R"],
+        "colorIdentity": ["R"],
+        "cardTypes": ["INSTANT"],
+        "supertypes": [],
+        "subtypes": [],
+        "typeLine": "Instant",
+        "powerText": null,
+        "toughnessText": null,
+        "powerNumeric": null,
+        "toughnessNumeric": null,
+        "keywords": [],
+        "legalities": ["timeless", "gladiator", "modern", "legacy", "pauper", "vintage", "commander", "oathbreaker", "brawl", "paupercommander", "duel", "premodern", "predh"]
+      }
+    },
+    "variant": {
+      "language": "EN",
+      "finish": "NORMAL",
+      "externalIds": { "scryfallId": "435589bb-27c6-4a6d-9d63-394d5092b9d8" }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "source": "tor.myl.cl",
+  "sourceUrl": "https://tor.myl.cl/carta/espada-sagrada/excalibur",
+  "retrievedAt": "2026-08-30T20:00:00.000Z",
+  "externalId": "espada-sagrada/excalibur",
+  "verified": true,
+  "sourceQuality": "CURATED_VERIFIED",
+  "gameSlug": "mitos-y-leyendas",
+  "data": {
+    "set": { "code": "ES", "slug": "espada-sagrada", "name": "Espada Sagrada" },
+    "card": {
+      "name": "Excalibur",
+      "number": "Excalibur",
+      "rarity": "Ultra Real",
+      "supertype": "Arma",
+      "imageUrl": null,
+      "attributes": {
+        "source": "tor.myl.cl",
+        "sourceQuality": "CURATED_VERIFIED",
+        "sourceUrl": "https://tor.myl.cl/carta/espada-sagrada/excalibur",
+        "sourceId": "espada-sagrada/excalibur",
+        "sourceRetrievedAt": "2026-08-30T20:00:00.000Z",
+        "verified": true,
+        "cardType": "ARMA",
+        "edicion": "ESPADA_SAGRADA"
+      }
+    },
+    "variant": {
+      "language": "ES",
+      "finish": "NORMAL",
+      "externalIds": { "torPath": "espada-sagrada/excalibur" }
+    }
+  }
+}

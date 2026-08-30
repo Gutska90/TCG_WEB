@@ -1,0 +1,38 @@
+{
+  "source": "tor.myl.cl",
+  "sourceUrl": "https://tor.myl.cl/carta/tierra-austral/la-mayoria",
+  "retrievedAt": "2026-08-30T20:00:00.000Z",
+  "externalId": "tierra-austral/la-mayoria",
+  "verified": true,
+  "sourceQuality": "CURATED_VERIFIED",
+  "gameSlug": "mitos-y-leyendas",
+  "data": {
+    "set": { "code": "TA", "slug": "tierra-austral", "name": "Tierra Austral" },
+    "card": {
+      "name": "La Mayoría",
+      "number": "La Mayoría",
+      "rarity": "Legendaria",
+      "supertype": "Aliado",
+      "imageUrl": null,
+      "attributes": {
+        "source": "tor.myl.cl",
+        "sourceQuality": "CURATED_VERIFIED",
+        "sourceUrl": "https://tor.myl.cl/carta/tierra-austral/la-mayoria",
+        "sourceId": "tierra-austral/la-mayoria",
+        "sourceRetrievedAt": "2026-08-30T20:00:00.000Z",
+        "verified": true,
+        "cardType": "ALIADO",
+        "raza": "SOMBRA",
+        "coste": 3,
+        "fuerza": 3,
+        "edicion": "TIERRA_AUSTRAL",
+        "era": "HELNOR"
+      }
+    },
+    "variant": {
+      "language": "ES",
+      "finish": "NORMAL",
+      "externalIds": { "torPath": "tierra-austral/la-mayoria" }
+    }
+  }
+}

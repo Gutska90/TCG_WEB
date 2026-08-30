@@ -1,0 +1,34 @@
+{
+  "source": "bandai-one-piece-cardgame",
+  "sourceUrl": "https://en.onepiece-cardgame.com/cardlist/?search=true",
+  "retrievedAt": "2026-08-30T20:00:00.000Z",
+  "externalId": "OP01-029",
+  "verified": true,
+  "sourceQuality": "CURATED_VERIFIED",
+  "gameSlug": "one-piece",
+  "data": {
+    "set": { "code": "OP01", "slug": "op01", "name": "Romance Dawn" },
+    "card": {
+      "name": "Gum-Gum Pistol",
+      "number": "OP01-029",
+      "rarity": "C",
+      "supertype": "Event",
+      "imageUrl": null,
+      "attributes": {
+        "source": "bandai-one-piece-cardgame",
+        "sourceQuality": "CURATED_VERIFIED",
+        "sourceUrl": "https://en.onepiece-cardgame.com/cardlist/?search=true",
+        "sourceId": "OP01-029",
+        "sourceRetrievedAt": "2026-08-30T20:00:00.000Z",
+        "verified": true,
+        "cardType": "EVENT",
+        "colors": ["RED"]
+      }
+    },
+    "variant": {
+      "language": "EN",
+      "finish": "NORMAL",
+      "externalIds": { "bandaiNumber": "OP01-029" }
+    }
+  }
+}

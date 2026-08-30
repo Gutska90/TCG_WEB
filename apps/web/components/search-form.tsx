@@ -15,11 +15,17 @@ export function SearchForm({
   values,
   compact = false,
   initialMeta = null,
+  action = "/buscar",
+  lockGame = false,
+  lockSet = false,
 }: {
   games?: GameView[];
   values?: SearchCardsInput;
   compact?: boolean;
   initialMeta?: GameFiltersView | null;
+  action?: string;
+  lockGame?: boolean;
+  lockSet?: boolean;
 }) {
   if (compact) {
     return (
@@ -37,17 +43,32 @@ export function SearchForm({
     );
   }
 
-  return <FullSearchForm games={games ?? []} values={values ?? {}} initialMeta={initialMeta} />;
+  return (
+    <FullSearchForm
+      games={games ?? []}
+      values={values ?? {}}
+      initialMeta={initialMeta}
+      action={action}
+      lockGame={lockGame}
+      lockSet={lockSet}
+    />
+  );
 }
 
 function FullSearchForm({
   games,
   values,
   initialMeta,
+  action,
+  lockGame,
+  lockSet,
 }: {
   games: GameView[];
   values: SearchCardsInput;
   initialMeta: GameFiltersView | null;
+  action: string;
+  lockGame: boolean;
+  lockSet: boolean;
 }) {
   const [game, setGame] = useState(values.game ?? "");
   const [meta, setMeta] = useState<GameFiltersView | null>(initialMeta);
@@ -86,30 +107,34 @@ function FullSearchForm({
   );
 
   return (
-    <form action="/buscar" method="get" className="grid gap-4">
+    <form action={action} method="get" className="grid gap-4">
       <label className="text-sm">
         Nombre o número
         <SearchInput id="q" name="q" defaultValue={values.q ?? ""} className="mt-1" placeholder="Nombre, número o set" />
       </label>
-      <label className="text-sm">
-        Juego
-        <select
-          name="game"
-          value={game}
-          onChange={(event) => {
-            setGame(event.target.value);
-            setSelected({});
-          }}
-          className={`mt-1 ${controlClassName}`}
-        >
-          <option value="">Todos</option>
-          {games.map((row) => (
-            <option key={row.id} value={row.slug}>
-              {row.name}
-            </option>
-          ))}
-        </select>
-      </label>
+      {lockGame && values.game ? <input type="hidden" name="game" value={values.game} /> : null}
+      {lockSet && values.set ? <input type="hidden" name="set" value={values.set} /> : null}
+      {lockGame ? null : (
+        <label className="text-sm">
+          Juego
+          <select
+            name="game"
+            value={game}
+            onChange={(event) => {
+              setGame(event.target.value);
+              setSelected({});
+            }}
+            className={`mt-1 ${controlClassName}`}
+          >
+            <option value="">Todos</option>
+            {games.map((row) => (
+              <option key={row.id} value={row.slug}>
+                {row.name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
       {meta ? (
         <>
           {meta.support === "PARTIAL" ? (
@@ -117,27 +142,67 @@ function FullSearchForm({
           ) : null}
           <fieldset className="grid gap-3">
             <legend className="text-xs font-medium tracking-wide text-text-muted uppercase">Filtros de carta</legend>
-            {cardFilters.map((filter) => (
-              <FilterControl
-                key={filter.key}
-                filter={filter}
-                values={values}
-                selected={selected}
-                onSelected={setSelected}
-              />
-            ))}
+            {cardFilters
+              .filter((filter) => (filter.tier ?? "PRIMARY") === "PRIMARY")
+              .map((filter) => (
+                <FilterControl
+                  key={filter.key}
+                  filter={filter}
+                  values={values}
+                  selected={selected}
+                  onSelected={setSelected}
+                />
+              ))}
           </fieldset>
+          {cardFilters.some((filter) => filter.tier === "ADVANCED") ? (
+            <details className="grid gap-3">
+              <summary className="cursor-pointer text-sm">Más filtros</summary>
+              <div className="mt-3 grid gap-3">
+                {cardFilters
+                  .filter((filter) => filter.tier === "ADVANCED")
+                  .map((filter) => (
+                    <FilterControl
+                      key={filter.key}
+                      filter={filter}
+                      values={values}
+                      selected={selected}
+                      onSelected={setSelected}
+                    />
+                  ))}
+              </div>
+            </details>
+          ) : null}
           <fieldset className="grid gap-3">
             <legend className="text-xs font-medium tracking-wide text-text-muted uppercase">Compra</legend>
-            {marketFilters.map((filter) => (
-              <FilterControl
-                key={filter.key}
-                filter={filter}
-                values={values}
-                selected={selected}
-                onSelected={setSelected}
-              />
-            ))}
+            {marketFilters
+              .filter((filter) => (filter.tier ?? "PRIMARY") === "PRIMARY")
+              .map((filter) => (
+                <FilterControl
+                  key={filter.key}
+                  filter={filter}
+                  values={values}
+                  selected={selected}
+                  onSelected={setSelected}
+                />
+              ))}
+            {marketFilters.some((filter) => filter.tier === "ADVANCED") ? (
+              <details>
+                <summary className="cursor-pointer text-sm">Más filtros de compra</summary>
+                <div className="mt-3 grid gap-3">
+                  {marketFilters
+                    .filter((filter) => filter.tier === "ADVANCED")
+                    .map((filter) => (
+                      <FilterControl
+                        key={filter.key}
+                        filter={filter}
+                        values={values}
+                        selected={selected}
+                        onSelected={setSelected}
+                      />
+                    ))}
+                </div>
+              </details>
+            ) : null}
           </fieldset>
         </>
       ) : (
@@ -382,6 +447,7 @@ function toDef(filter: GameFilterView) {
     source: { kind: "json" as const, path: filter.key },
     order: filter.order,
     visibleWhen: filter.visibleWhen,
+    tier: filter.tier,
   };
 }
 

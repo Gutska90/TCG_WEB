@@ -24,6 +24,8 @@ export type ScryfallCard = {
   finishes?: string[];
   image_uris?: { small?: string; normal?: string };
   card_faces?: Array<{ image_uris?: { normal?: string } }>;
+  uri?: string;
+  scryfall_uri?: string;
 };
 
 const LANG: Record<string, CardLanguage> = {
@@ -38,6 +40,26 @@ const LANG: Record<string, CardLanguage> = {
   de: "DE",
   it: "IT",
 };
+
+const SUPERTYPES = new Set(["BASIC", "HOST", "LEGENDARY", "ONGOING", "SNOW", "WORLD"]);
+const CARD_TYPES = new Set([
+  "ARTIFACT",
+  "BATTLE",
+  "CONSPIRACY",
+  "CREATURE",
+  "DUNGEON",
+  "ENCHANTMENT",
+  "INSTANT",
+  "KINDRED",
+  "LAND",
+  "PHENOMENON",
+  "PLANE",
+  "PLANESWALKER",
+  "SCHEME",
+  "SORCERY",
+  "TRIBAL",
+  "VANGUARD",
+]);
 
 export function mapScryfallLanguage(lang: string): CardLanguage {
   return LANG[lang] ?? "EN";
@@ -64,6 +86,35 @@ export function mapScryfallFinishes(card: ScryfallCard): CardFinish[] {
 
 export function scryfallImageUrl(card: ScryfallCard): string | null {
   return card.image_uris?.normal ?? card.card_faces?.[0]?.image_uris?.normal ?? null;
+}
+
+export function parseScryfallTypeLine(typeLine: string): {
+  cardTypes: string[];
+  supertypes: string[];
+  subtypes: string[];
+} {
+  const [typeSide, subtypeSide] = typeLine.split("—").map((part) => part.trim());
+  const tokens = (typeSide ?? "").split(/\s+/).filter(Boolean);
+  const supertypes: string[] = [];
+  const cardTypes: string[] = [];
+  for (const token of tokens) {
+    const code = token.toUpperCase();
+    if (SUPERTYPES.has(code)) supertypes.push(code);
+    else cardTypes.push(CARD_TYPES.has(code) ? code : code);
+  }
+  const subtypes = subtypeSide
+    ? subtypeSide
+        .split(/\s+/)
+        .filter(Boolean)
+        .map((value) => value.toUpperCase())
+    : [];
+  return { cardTypes, supertypes, subtypes };
+}
+
+export function scryfallNumericStat(value: string | undefined | null): number | null {
+  if (value == null || value === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 export function mapScryfallCard(card: ScryfallCard): {
@@ -94,10 +145,7 @@ export function mapScryfallCard(card: ScryfallCard): {
   }
 
   const typeLine = card.type_line ?? "";
-  const [typeSide, subtypeSide] = typeLine.split("—").map((part) => part.trim());
-  const types = (typeSide ?? "").split(/\s+/).filter(Boolean);
-  const cardType = types.find((type) => !["Legendary", "Basic", "Snow", "World", "Ongoing"].includes(type)) ?? types[0] ?? "Unknown";
-  const subtypes = subtypeSide ? subtypeSide.split(/\s+/).filter(Boolean) : [];
+  const parsed = parseScryfallTypeLine(typeLine);
   const legalities = Object.entries(card.legalities ?? {})
     .filter(([, status]) => status === "legal")
     .map(([format]) => format);
@@ -107,23 +155,30 @@ export function mapScryfallCard(card: ScryfallCard): {
     slug: slugifyStable(card.name, "card"),
     name: card.name,
     rarity: card.rarity,
-    supertype: typeSide || "Unknown",
+    supertype: typeLine.split("—")[0]?.trim() || "Unknown",
     imageUrl: scryfallImageUrl(card),
     attributes: {
       source: "scryfall",
+      sourceQuality: "VERIFIED_PROVIDER",
+      sourceUrl: card.scryfall_uri ?? card.uri ?? `https://api.scryfall.com/cards/${card.id}`,
+      sourceId: card.id,
+      sourceRetrievedAt: new Date().toISOString(),
+      verified: true,
       manaCost: card.mana_cost ?? null,
       manaValue: card.cmc ?? null,
       cmc: card.cmc ?? null,
       colors: card.colors ?? [],
       colorIdentity: card.color_identity ?? card.colors ?? [],
-      cardType,
-      subtypes,
-      power: card.power ?? null,
-      toughness: card.toughness ?? null,
+      cardTypes: parsed.cardTypes,
+      supertypes: parsed.supertypes,
+      subtypes: parsed.subtypes,
+      typeLine: typeLine || null,
+      powerText: card.power ?? null,
+      toughnessText: card.toughness ?? null,
+      powerNumeric: scryfallNumericStat(card.power),
+      toughnessNumeric: scryfallNumericStat(card.toughness),
       keywords: card.keywords ?? [],
       legalities,
-      oracleText: card.oracle_text ?? null,
-      typeLine: typeLine || null,
     },
     variants,
   };

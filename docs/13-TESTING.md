@@ -110,7 +110,7 @@ Postgres debe estar arriba (`DATABASE_URL`). CI corre migrate + ambos.
 - B5: unit `ErrorTrackingService` / `RedisSchedulerLock`; `assertErrorTrackingConfig`; Redis no se exige en CI. Dump `pnpm db:backup` no corre en CI.
 - B8: in-app de orden (`SALE_MADE` / `PURCHASE_MADE` / envío / cancel / disputa / rating) con `safeEmit` post-commit; integración `notifications.integration.spec.ts`; E2E buyer ve Compra confirmada / Nueva venta. `pnpm staging:preflight` (operador, no CI). Push diferido. Testers invitados = operador.
 
-Casos CATALOG.1: unit `catalog-filters.spec.ts` (visibleWhen, cross-game, `INVALID_FILTER` / `FILTER_NOT_SUPPORTED_FOR_GAME`, normalización). Integración `catalog-filters.integration.spec.ts` (Fire+Stage2+HP, Instant+MV, DARK Dragon, Aliado, rechazo cross-game). E2E `e2e/game-filters.spec.ts`.
+Casos CATALOG.1/2: unit `catalog-filters.spec.ts`, `catalog-real-taxonomy.spec.ts`, importers Scryfall/Pokémon. Integración `catalog-filters.integration.spec.ts` + `catalog-real-taxonomy.integration.spec.ts` (Venusaur Grass, Blue-Eyes LIGHT, Mitra ANCESTRAL, Shanks RED Leader, Agumon ROOKIE, GD01-001). E2E `e2e/game-filters.spec.ts` (showcase Ember Pup; `SHOW_SYNTHETIC_CATALOG` default true). CI no llama APIs de catálogo.
 
 ## Datos de test
 

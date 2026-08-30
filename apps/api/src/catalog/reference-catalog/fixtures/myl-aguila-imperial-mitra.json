@@ -1,0 +1,38 @@
+{
+  "source": "tor.myl.cl",
+  "sourceUrl": "https://tor.myl.cl/carta/aguila-imperial/mitra",
+  "retrievedAt": "2026-08-30T20:00:00.000Z",
+  "externalId": "aguila-imperial/mitra",
+  "verified": true,
+  "sourceQuality": "CURATED_VERIFIED",
+  "gameSlug": "mitos-y-leyendas",
+  "data": {
+    "set": { "code": "AI", "slug": "aguila-imperial", "name": "Águila Imperial" },
+    "card": {
+      "name": "Mitra",
+      "number": "Mitra",
+      "rarity": "Ultra Real",
+      "supertype": "Aliado",
+      "imageUrl": null,
+      "attributes": {
+        "source": "tor.myl.cl",
+        "sourceQuality": "CURATED_VERIFIED",
+        "sourceUrl": "https://tor.myl.cl/carta/aguila-imperial/mitra",
+        "sourceId": "aguila-imperial/mitra",
+        "sourceRetrievedAt": "2026-08-30T20:00:00.000Z",
+        "verified": true,
+        "cardType": "ALIADO",
+        "raza": "ANCESTRAL",
+        "coste": 4,
+        "fuerza": 2,
+        "edicion": "AGUILA_IMPERIAL",
+        "era": "IMPERIO"
+      }
+    },
+    "variant": {
+      "language": "ES",
+      "finish": "NORMAL",
+      "externalIds": { "torPath": "aguila-imperial/mitra" }
+    }
+  }
+}

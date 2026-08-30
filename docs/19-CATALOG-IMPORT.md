@@ -7,16 +7,16 @@ El catálogo es el corazón. Se **importa**; no se escribe a mano carta por cart
 1. Fuentes **públicas o licenciables**. Atribuir en `CardVariant.externalIds` y en `/legal/fuentes`.
 2. **Prohibido** scrapear TCGMatch, TCGPlayer storefront, Facebook, etc.
 3. Idempotente: re-correr un set no duplica cartas (`unique(set.gameId, set.code)`, `unique(setId, number, name)` — ajustar si el publisher usa números repetidos).
-4. Game-specific → `Card.attributes` JSON (contrato CATALOG.1). El importer conoce el juego; search/UI leen `GameFilterDefinition`.
+4. Game-specific → `Card.attributes` JSON (contrato CATALOG.1/2). El importer conoce el juego; search/UI leen `GameFilterDefinition`.
 5. Imágenes: respetar ToS de cada API. Si no se puede redistribuir el arte, guardar URL de origen o placeholder.
 
 ## TCG Fase 1 — fuentes
 
 | Juego | slug | Fuente primaria | Notas |
 |-------|------|-----------------|-------|
-| Magic: The Gathering | `magic` | [Scryfall API](https://scryfall.com/docs/api) | Mejor calidad. Respetar rate limit. `externalIds.scryfallId` |
-| Pokémon | `pokemon` | [Pokémon TCG API](https://docs.pokemontcg.io/) | `externalIds.pokemonTcgApiId`. Verificar ToS de imágenes |
-| One Piece | `one-piece` | Definir en Fase 2 (API comunitaria documentada o dataset propio curado) | No bloquear Magic+Pokémon si One Piece tarda |
+| Magic: The Gathering | `magic` | [Scryfall API](https://scryfall.com/docs/api) | `pnpm catalog:import-scryfall -- mh3`. `externalIds.scryfallId` |
+| Pokémon | `pokemon` | [Pokémon TCG API](https://docs.pokemontcg.io/) | `pnpm catalog:import-pokemon -- xy1`. `POKEMON_TCG_API_KEY` opcional. `externalIds.pokemonTcgApiId` |
+| One Piece / Yu-Gi-Oh! / MyL / Digimon / Gundam | ver [REAL-DATA-SOURCES](catalog/REAL-DATA-SOURCES.md) | curated `pnpm catalog:seed-reference` | Sin scrape masivo. PARTIAL. |
 
 TCG posteriores (Yu-Gi-Oh!, Mitos y Leyendas, Lorcana, Digimon, Riftbound, FaB, Gundam): mismo patrón, **nuevo importer**, cero cambios de esquema.
 
@@ -48,8 +48,10 @@ Slugs implementados en Fase 2. Reimportar un set reutiliza el slug existente (`u
 
 ```bash
 pnpm catalog:seed
-# opcional, llama Scryfall (rate limit ~80ms entre páginas):
+pnpm catalog:seed-reference
 pnpm catalog:import-scryfall -- mh3
+pnpm catalog:import-pokemon -- xy1
+pnpm catalog:reference:refresh -- --game pokemon
 ```
 
 ## Seed local (Fase 2)

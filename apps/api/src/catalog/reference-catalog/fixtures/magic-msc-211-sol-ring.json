@@ -1,0 +1,47 @@
+{
+  "source": "scryfall",
+  "sourceUrl": "https://api.scryfall.com/cards/msc/211",
+  "retrievedAt": "2026-08-30T20:00:00.000Z",
+  "externalId": "91fdb56b-54d5-4272-8319-505ff987fe9b",
+  "verified": true,
+  "sourceQuality": "VERIFIED_PROVIDER",
+  "gameSlug": "magic",
+  "data": {
+    "set": { "code": "MSC", "slug": "msc", "name": "Marvel Super Heroes Commander" },
+    "card": {
+      "name": "Sol Ring",
+      "number": "211",
+      "rarity": "uncommon",
+      "supertype": "Artifact",
+      "imageUrl": "https://cards.scryfall.io/normal/front/9/1/91fdb56b-54d5-4272-8319-505ff987fe9b.jpg?1783903215",
+      "attributes": {
+        "source": "scryfall",
+        "sourceQuality": "VERIFIED_PROVIDER",
+        "sourceUrl": "https://scryfall.com/card/msc/211/sol-ring",
+        "sourceId": "91fdb56b-54d5-4272-8319-505ff987fe9b",
+        "sourceRetrievedAt": "2026-08-30T20:00:00.000Z",
+        "verified": true,
+        "manaCost": "{1}",
+        "manaValue": 1,
+        "cmc": 1,
+        "colors": [],
+        "colorIdentity": [],
+        "cardTypes": ["ARTIFACT"],
+        "supertypes": [],
+        "subtypes": [],
+        "typeLine": "Artifact",
+        "powerText": null,
+        "toughnessText": null,
+        "powerNumeric": null,
+        "toughnessNumeric": null,
+        "keywords": [],
+        "legalities": ["commander", "predh"]
+      }
+    },
+    "variant": {
+      "language": "EN",
+      "finish": "NORMAL",
+      "externalIds": { "scryfallId": "91fdb56b-54d5-4272-8319-505ff987fe9b" }
+    }
+  }
+}

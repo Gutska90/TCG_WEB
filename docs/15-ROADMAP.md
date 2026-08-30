@@ -32,6 +32,7 @@ FASE 13   Historial de precios           ✓
 FASE 14   Wishlist + alertas             ✓
 
 CATALOG.1 Game-Specific Dynamic Filters  ✓
+CATALOG.2 Real Data & Taxonomy Hardening ✓
 UI.1      Visual Refresh                 ✓
 PS        Pre-Staging Readiness          ✓
 
@@ -301,6 +302,14 @@ Wishlist privada (no favoritos ni colección). Precio objetivo CLP, alerta `WISH
 Filtros de búsqueda por `game.slug` con `Card.attributes` JSON validado. Sin columnas Prisma por TCG. Metadata `GET /v1/games/:slug/filters`. Search `attr.*` con whitelist. Support **PARTIAL** mientras no existan importers oficiales (Pokémon API, Konami, MyL, Digimon, Gundam). Doc: [catalog/GAME-FILTERS](catalog/GAME-FILTERS.md), [catalog/CARD-ATTRIBUTES](catalog/CARD-ATTRIBUTES.md).
 
 **No incluido:** Scanner, Deck Builder, facet counts, Digimon/Gundam seed.
+
+**Estado: listo.** Siguiente: **CATALOG.2** (hecho). No inicia Fase 15.
+
+## CATALOG.2 — Real Data & Taxonomy Hardening ✓
+
+Corrige taxonomías de CATALOG.1 con data real (fixtures verificadas + Pokémon TCG API importer + Scryfall P/T y `cardTypes[]`). Showcase ficticio se marca `SYNTHETIC` y no prueba filtros. Support sigue **PARTIAL**. Doc: [catalog/GAME-FILTERS](catalog/GAME-FILTERS.md), [catalog/CARD-ATTRIBUTES](catalog/CARD-ATTRIBUTES.md), [catalog/REAL-DATA-SOURCES](catalog/REAL-DATA-SOURCES.md), [catalog/CATALOG2-AUDIT](catalog/CATALOG2-AUDIT.md).
+
+**No incluido:** Scanner, Deck Builder, import masivo production, FULL support, legality MyL.
 
 **Estado: listo.** No inicia Fase 15.
 

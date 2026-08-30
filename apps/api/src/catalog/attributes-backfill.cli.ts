@@ -19,20 +19,34 @@ function asRecord(value: Prisma.JsonValue): Record<string, unknown> {
 
 function normalize(gameSlug: string, attributes: Record<string, unknown>, supertype: string): Record<string, unknown> {
   const next = { ...attributes };
+  if (gameSlug === "pokemon") {
+    if (Array.isArray(next.pokemonType) && !next.pokemonTypes) next.pokemonTypes = next.pokemonType;
+    if (!next.cardType && /pokémon|pokemon/i.test(supertype)) next.cardType = "POKEMON";
+  }
   if (gameSlug === "magic") {
     if (next.manaValue == null && typeof next.cmc === "number") next.manaValue = next.cmc;
-    if (!next.cardType && supertype) {
-      const first = supertype.split(/\s+/).find((part) => !["Legendary", "Basic", "Snow"].includes(part));
-      if (first) next.cardType = first;
+    if (!next.cardTypes && typeof next.cardType === "string") next.cardTypes = [String(next.cardType).toUpperCase()];
+    if (typeof next.power === "string" && next.powerText == null) next.powerText = next.power;
+    if (typeof next.toughness === "string" && next.toughnessText == null) next.toughnessText = next.toughness;
+    if (next.powerNumeric == null && typeof next.power === "string") {
+      const numeric = Number(next.power);
+      if (Number.isFinite(numeric)) next.powerNumeric = numeric;
+    }
+    if (next.toughnessNumeric == null && typeof next.toughness === "string") {
+      const numeric = Number(next.toughness);
+      if (Number.isFinite(numeric)) next.toughnessNumeric = numeric;
     }
     if (!next.colorIdentity && Array.isArray(next.colors)) next.colorIdentity = next.colors;
   }
-  if (gameSlug === "pokemon" && !next.cardType && /pokémon|pokemon/i.test(supertype)) {
-    next.cardType = "POKEMON";
+  if (gameSlug === "yugioh") {
+    if (!next.category) {
+      const map: Record<string, string> = { Monster: "MONSTER", Spell: "SPELL", Trap: "TRAP" };
+      if (map[supertype]) next.category = map[supertype];
+    }
+    if (Array.isArray(next.cardTypes) && !next.mechanics) next.mechanics = next.cardTypes;
   }
-  if (gameSlug === "yugioh" && !next.category) {
-    const map: Record<string, string> = { Monster: "MONSTER", Spell: "SPELL", Trap: "TRAP" };
-    if (map[supertype]) next.category = map[supertype];
+  if (gameSlug === "one-piece" && typeof next.color === "string" && !next.colors) {
+    next.colors = [next.color];
   }
   if (gameSlug === "mitos-y-leyendas" && !next.cardType) {
     const map: Record<string, string> = {

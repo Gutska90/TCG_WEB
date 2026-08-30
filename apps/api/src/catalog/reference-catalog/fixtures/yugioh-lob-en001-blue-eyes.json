@@ -1,0 +1,39 @@
+{
+  "source": "konami-card-database",
+  "sourceUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&keyword=Blue-Eyes%20White%20Dragon",
+  "retrievedAt": "2026-08-30T20:00:00.000Z",
+  "externalId": "LOB-EN001",
+  "verified": true,
+  "sourceQuality": "CURATED_VERIFIED",
+  "gameSlug": "yugioh",
+  "data": {
+    "set": { "code": "LOB", "slug": "lob", "name": "Legend of Blue Eyes White Dragon" },
+    "card": {
+      "name": "Blue-Eyes White Dragon",
+      "number": "LOB-EN001",
+      "rarity": "Ultra Rare",
+      "supertype": "Monster",
+      "imageUrl": null,
+      "attributes": {
+        "source": "konami-card-database",
+        "sourceQuality": "CURATED_VERIFIED",
+        "sourceUrl": "https://www.db.yugioh-card.com/yugiohdb/card_search.action?ope=1&keyword=Blue-Eyes%20White%20Dragon",
+        "sourceId": "89631139",
+        "sourceRetrievedAt": "2026-08-30T20:00:00.000Z",
+        "verified": true,
+        "category": "MONSTER",
+        "attribute": "LIGHT",
+        "monsterType": ["DRAGON"],
+        "mechanics": ["NORMAL"],
+        "level": 8,
+        "atk": 3000,
+        "def": 2500
+      }
+    },
+    "variant": {
+      "language": "EN",
+      "finish": "NORMAL",
+      "externalIds": { "konamiPassword": "89631139", "setCode": "LOB-EN001" }
+    }
+  }
+}

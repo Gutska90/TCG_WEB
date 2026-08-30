@@ -28,6 +28,18 @@ async function scryfallGet<T>(url: string): Promise<T> {
   return (await res.json()) as T;
 }
 
+export async function fetchScryfallCard(setCode: string, collectorNumber: string): Promise<ScryfallCard> {
+  return scryfallGet<ScryfallCard>(
+    `https://api.scryfall.com/cards/${encodeURIComponent(setCode.toLowerCase())}/${encodeURIComponent(collectorNumber)}`,
+  );
+}
+
+export async function fetchScryfallCardNamed(name: string): Promise<ScryfallCard> {
+  return scryfallGet<ScryfallCard>(
+    `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}`,
+  );
+}
+
 export async function importScryfallSet(prisma: PrismaClient, setCode: string): Promise<{ cards: number }> {
   const code = setCode.toLowerCase();
   const remoteSet = await scryfallGet<ScryfallSet>(`https://api.scryfall.com/sets/${code}`);

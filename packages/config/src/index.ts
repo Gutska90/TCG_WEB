@@ -733,6 +733,7 @@ export type FeatureFlagSnapshot = {
   enableGoogleAuth: boolean;
   enableAppleAuth: boolean;
   authStubOauth: boolean;
+  showSyntheticCatalog: boolean;
 };
 
 export function loadFeatureFlags(env: NodeJS.Dict<string> = process.env): FeatureFlagSnapshot {
@@ -756,6 +757,7 @@ export function loadFeatureFlags(env: NodeJS.Dict<string> = process.env): Featur
     enableGoogleAuth: envFlag(env.ENABLE_GOOGLE_AUTH, false),
     enableAppleAuth: envFlag(env.ENABLE_APPLE_AUTH, false),
     authStubOauth: envFlag(env.AUTH_STUB_OAUTH, false),
+    showSyntheticCatalog: envFlag(env.SHOW_SYNTHETIC_CATALOG, true),
   };
 }
 
@@ -969,18 +971,22 @@ export function assertErrorTrackingConfig(env: NodeJS.Dict<string> = process.env
 
 export {
   CATALOG_FILTER_SUPPORTS,
+  CATALOG_FILTER_TIERS,
   CATALOG_FILTER_TYPES,
+  CATALOG_SOURCE_QUALITIES,
   COMMON_CARD_FILTERS,
   COMMON_MARKETPLACE_FILTERS,
   COMMON_ONLY_DEFINITION,
   GAME_FILTER_DEFINITIONS,
   SEARCH_SORTS,
+  SYNTHETIC_ATTRIBUTE_SOURCES,
   catalogFilterByKey,
   getGameFilterDefinition,
   isCommonSearchKey,
   isKnownCatalogAttrKey,
   isFilterVisible,
   isFilterVisible as filterIsVisible,
+  isSyntheticCardAttributes,
   labelForFilterValue,
   normalizeCatalogCode,
   presentAttributeFields,
@@ -990,10 +996,13 @@ export {
 export type {
   CatalogFilterDef,
   CatalogFilterGroup,
+  CatalogFilterRule,
   CatalogFilterSource,
   CatalogFilterSupport,
+  CatalogFilterTier,
   CatalogFilterType,
   CatalogFilterVisibleWhen,
+  CatalogSourceQuality,
   GameFilterDefinition,
   SearchSort,
 } from "./catalog-filters";

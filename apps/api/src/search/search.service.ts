@@ -6,7 +6,7 @@ import type { SearchCardsQuery } from "@tcg/validation";
 import { PrismaService } from "../prisma/prisma.service";
 import { MetricsService } from "../observability/metrics.service";
 import { escapeLike, hasSearchCriteria } from "./search.util";
-import { assertSearchFilters, attributeWhereParts, jsonSortExpression } from "./search-filters";
+import { assertSearchFilters, attributeWhereParts, catalogVisibilitySql, jsonSortExpression } from "./search-filters";
 
 @Injectable()
 export class SearchService {
@@ -94,6 +94,7 @@ function buildWhere(query: SearchCardsQuery): Prisma.Sql {
   if (query.game) {
     parts.push(Prisma.sql`g.slug = ${query.game}`);
   }
+  parts.push(...catalogVisibilitySql());
   if (query.set) {
     parts.push(Prisma.sql`(s.slug = ${query.set} OR lower(s.code) = lower(${query.set}))`);
   }

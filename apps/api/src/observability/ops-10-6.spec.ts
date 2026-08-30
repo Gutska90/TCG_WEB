@@ -66,6 +66,7 @@ describe("feature flags and kill switches", () => {
     expect(flags.enableGoogleAuth).toBe(false);
     expect(flags.enableAppleAuth).toBe(false);
     expect(flags.authStubOauth).toBe(false);
+    expect(flags.showSyntheticCatalog).toBe(true);
     expect(flags.enableRealPayments).toBe(false);
     expect(flags.errorTrackingEnabled).toBe(false);
     expect(flags.refundRetryJobEnabled).toBe(false);

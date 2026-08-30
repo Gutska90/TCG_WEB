@@ -1,8 +1,21 @@
-# Card.attributes contract (CATALOG.1)
+# Card.attributes contract (CATALOG.1 + CATALOG.2)
 
-`Card.attributes` is JSONB, default `{}`. Codes are canonical (e.g. `FIRE`, `MONSTER`, `ALIADO`). Labels es-CL live in `GameFilterDefinition`, not in the row.
+`Card.attributes` is JSONB, default `{}`. Codes are canonical (`FIRE`, `MONSTER`, `ALIADO`). Labels es-CL live in `GameFilterDefinition`.
 
-Validation: `packages/validation/src/card-attributes.ts` (Zod, passthrough unknown keys). Importers should parse before persist. Extra keys are reported by `inspectCardAttributes` / `GET /v1/admin/catalog/cards/:id/attributes` (read-only).
+Validation: `packages/validation/src/card-attributes.ts` (Zod, passthrough). Extra keys are reported by `inspectCardAttributes`.
+
+Provenance on every imported/reference card:
+
+| Key | Meaning |
+|-----|---------|
+| `source` | provider id (`pokemon-tcg-api`, `scryfall`, `tor.myl.cl`, …) |
+| `sourceQuality` | `VERIFIED_PROVIDER` \| `CURATED_VERIFIED` \| `SYNTHETIC` |
+| `sourceUrl` | fetch URL |
+| `sourceId` | provider id (not the printed name) |
+| `sourceRetrievedAt` | ISO time |
+| `verified` | true for reference/provider data |
+
+`CardVariant.externalIds` holds provider ids (`pokemonTcgApiId`, `scryfallId`, `konamiPassword`, `bandaiNumber`, `torPath`).
 
 ## Common columns (not JSON)
 
@@ -12,20 +25,20 @@ Validation: `packages/validation/src/card-attributes.ts` (Zod, passthrough unkno
 | language, finish, finishDetail | `CardVariant` |
 | condition, price, stock | `Listing` |
 
-Do not store condition/price/seller in `attributes`.
-
 ## Per-game keys (omit if the source has no value)
 
-**Pokémon:** `cardType`, `pokemonType[]`, `stage`, `hp`, `regulationMark`, `ruleBox[]`
+**Pokémon:** `cardType` POKEMON/TRAINER/ENERGY, `subtypes[]`, `pokemonTypes[]` (Pokémon cards only in UI), `hp`, `evolvesFrom`, `evolvesTo[]`, `regulationMark`, `retreatCost`, `weaknesses[]` / `weaknessTypes[]`, `resistances[]`, `attackCosts[]`, `maxAttackEnergyCost`, `illustrator`, `legalities[]`. Do not persist attack text.
 
-**Yu-Gi-Oh!:** `category`, `attribute`, `monsterType[]`, `cardTypes[]`, `level`, `atk`, `def`, `pendulumScale`, `linkRating`, `spellTrapIcon`
+**Yu-Gi-Oh!:** `category`, `attribute`, `monsterType[]`, `mechanics[]` (NORMAL/EFFECT/XYZ/LINK/…), `level`, `rank`, `atk`, `def`, `pendulumScale`, `linkRating`, `linkMarkers[]`, `spellTrapIcon`. Level and Rank are separate.
 
-**Magic:** `manaCost`, `manaValue` (and legacy `cmc`), `colors[]`, `colorIdentity[]`, `cardType`, `subtypes[]`, `power`, `toughness`, `keywords[]`, `legalities[]`, `oracleText`, `typeLine`
+**Magic:** `cardTypes[]` (ARTIFACT+CREATURE), `supertypes[]`, `subtypes[]`, `typeLine`, `powerText`/`toughnessText`, `powerNumeric`/`toughnessNumeric` only when `Number(value)` is finite, `colors[]`, `colorIdentity[]`, `manaValue`, `manaCost`, `keywords[]`, `legalities[]`. Do not store full oracle text in reference fixtures.
 
-**Mitos y Leyendas:** `cardType` (ALIADO/TALISMAN/TOTEM/ARMA/ORO/MONUMENTO), `raza` (códigos canónicos demo `ANDINO`/`COSTERO`/`AUSTRAL`, no razas oficiales), `coste`, `fuerza`, `era`, `legalidad`
+**Mitos y Leyendas:** `cardType` ALIADO/TALISMAN/TOTEM/ARMA/ORO (MONUMENTO only if the product uses it), `raza` from catalog (ANCESTRAL, SOMBRA, … — never ANDINO/COSTERO/AUSTRAL), `coste`, `fuerza`, `keywords[]`, `edicion`, `era`. Rarity/frecuencia stays `Card.rarity`. Do not store unversioned `legalidad`.
 
-**One Piece:** `cardType`, `color`, `cost`, `power`, `attribute`
+**One Piece:** `cardType` LEADER/CHARACTER/EVENT/STAGE, `colors[]`, `cost`, `power`, `counter`, `life`, `attribute`, `traits[]`, `blockIcon`, `illustrationType`, `trigger`.
 
-**Digimon / Gundam:** schemas exist; no importer yet. Do not invent values.
+**Digimon:** `colors[]`, `cardType`, `level`, `playCost`, `dp`, `form`, `attribute`, `traits[]`, `digivolutionRequirements[]`.
 
-`source` records origin (`scryfall`, `showcase-seed`, `seed`).
+**Gundam:** `cardType`, `color`, `level`, `cost`, `ap`, `hp`, `zones[]`, `sourceTitle`, `traits[]`, `linkConditions[]`, `alternateArt`.
+
+Showcase demo cards use `source: synthetic-showcase` and `sourceQuality: SYNTHETIC`. They are not proof of taxonomy.

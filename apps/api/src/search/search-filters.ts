@@ -4,6 +4,7 @@ import {
   getGameFilterDefinition,
   isCommonSearchKey,
   isKnownCatalogAttrKey,
+  loadFeatureFlags,
   normalizeCatalogCode,
   resolveAttrFilterKey,
   sortAllowedForGame,
@@ -90,7 +91,7 @@ export function attributeWhereParts(query: SearchCardsQuery): Prisma.Sql[] {
       continue;
     }
     if (rawKey.endsWith("Min") || rawKey.endsWith("Max")) continue;
-    const normalized = values.map((value) => normalizeCatalogCode(value));
+    const normalized = values.map((value) => (/\s/.test(value) ? value : normalizeCatalogCode(value)));
     if (filter.source.array || filter.type === "MULTI_SELECT") {
       parts.push(jsonArrayContainsAny(filter.source.path, normalized));
     } else {
@@ -129,6 +130,16 @@ function jsonNumericRange(path: string, min: number | undefined, max: number | u
   if (min != null) parts.push(Prisma.sql`(c.attributes->>${path})::numeric >= ${min}`);
   if (max != null) parts.push(Prisma.sql`(c.attributes->>${path})::numeric <= ${max}`);
   return Prisma.sql`(${Prisma.join(parts, " AND ")})`;
+}
+
+export function catalogVisibilitySql(): Prisma.Sql[] {
+  if (loadFeatureFlags().showSyntheticCatalog) return [];
+  return [
+    Prisma.sql`(
+      COALESCE(c.attributes->>'sourceQuality', '') <> 'SYNTHETIC'
+      AND COALESCE(c.attributes->>'source', '') NOT IN ('synthetic-showcase', 'showcase-seed', 'seed')
+    )`,
+  ];
 }
 
 export function jsonSortExpression(filter: CatalogFilterDef | undefined): Prisma.Sql | null {

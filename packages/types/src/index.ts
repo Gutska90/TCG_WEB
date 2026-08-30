@@ -5,6 +5,7 @@ import type {
   CatalogFilterGroup,
   CatalogFilterSupport,
   CatalogFilterType,
+  CatalogFilterVisibleWhen,
   DisputeEvidenceType,
   DisputeReason,
   DisputeStatus,
@@ -361,10 +362,11 @@ export type GameFilterView = {
   label: string;
   group: CatalogFilterGroup;
   type: CatalogFilterType;
+  tier: "PRIMARY" | "ADVANCED";
   multi: boolean;
   range: boolean;
   order: number;
-  visibleWhen?: { key: string; oneOf: string[] };
+  visibleWhen?: CatalogFilterVisibleWhen;
   options: GameFilterOptionView[];
 };
 

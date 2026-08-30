@@ -4,6 +4,7 @@ import {
   GAME_FILTER_DEFINITIONS,
   getGameFilterDefinition,
   isFilterVisible,
+  isSyntheticCardAttributes,
   normalizeCatalogCode,
   presentAttributeFields,
   resolveAttrFilterKey,
@@ -13,7 +14,7 @@ import { inspectCardAttributes } from "@tcg/validation";
 import { assertSearchFilters } from "../search/search-filters";
 import { AppError } from "../common/errors/app-error";
 
-describe("CATALOG.1 filter definitions", () => {
+describe("CATALOG.1/2 filter definitions", () => {
   it("does not mark any game FULL without a complete importer", () => {
     for (const definition of Object.values(GAME_FILTER_DEFINITIONS)) {
       expect(definition.support).toBe("PARTIAL");
@@ -25,12 +26,18 @@ describe("CATALOG.1 filter definitions", () => {
     expect(normalizeCatalogCode("fire")).toBe("FIRE");
   });
 
-  it("hides HP unless Pokémon card type is selected", () => {
+  it("hides HP unless Pokémon card type is selected, including Energy", () => {
     const hp = getGameFilterDefinition("pokemon").filters.find((filter) => filter.key === "hp");
     expect(hp).toBeTruthy();
     expect(isFilterVisible(hp!, {})).toBe(false);
     expect(isFilterVisible(hp!, { cardType: ["POKEMON"] })).toBe(true);
     expect(isFilterVisible(hp!, { cardType: ["TRAINER"] })).toBe(false);
+    expect(isFilterVisible(hp!, { cardType: ["ENERGY"] })).toBe(false);
+  });
+
+  it("does not invent MyL demo races as labels", () => {
+    const raza = getGameFilterDefinition("mitos-y-leyendas").filters.find((filter) => filter.key === "raza");
+    expect(raza?.labels).toBeUndefined();
   });
 
   it("rejects a Pokémon filter on Magic", () => {
@@ -115,7 +122,7 @@ describe("CATALOG.1 filter definitions", () => {
         pageSize: 20,
         sort: "relevance",
         game: "mitos-y-leyendas",
-        attrs: { cardType: ["ALIADO"], raza: ["Andino"], costeMax: ["3"] },
+        attrs: { cardType: ["ALIADO"], raza: ["ANCESTRAL"], costeMax: ["3"] },
       }),
     ).not.toThrow();
   });
@@ -150,6 +157,16 @@ describe("CATALOG.1 filter definitions", () => {
     expect(isFilterVisible(atk!, { category: ["MONSTER"] })).toBe(true);
   });
 
+  it("hides DEF for Link and Rank unless XYZ", () => {
+    const def = getGameFilterDefinition("yugioh").filters.find((filter) => filter.key === "def");
+    const rank = getGameFilterDefinition("yugioh").filters.find((filter) => filter.key === "rank");
+    const level = getGameFilterDefinition("yugioh").filters.find((filter) => filter.key === "level");
+    expect(isFilterVisible(def!, { category: ["MONSTER"], mechanics: ["LINK"] })).toBe(false);
+    expect(isFilterVisible(rank!, { category: ["MONSTER"] })).toBe(false);
+    expect(isFilterVisible(rank!, { category: ["MONSTER"], mechanics: ["XYZ"] })).toBe(true);
+    expect(isFilterVisible(level!, { category: ["MONSTER"], mechanics: ["XYZ"] })).toBe(false);
+  });
+
   it("maps hpMin to the hp range filter", () => {
     const def = getGameFilterDefinition("pokemon");
     expect(resolveAttrFilterKey(def, "hpMin")?.key).toBe("hp");
@@ -162,12 +179,23 @@ describe("CATALOG.1 filter definitions", () => {
 
   it("presents Pokémon fields and skips empty JSON", () => {
     expect(
-      presentAttributeFields("pokemon", { cardType: "POKEMON", pokemonType: ["FIRE"], hp: 60, source: "showcase-seed" }),
+      presentAttributeFields("pokemon", {
+        cardType: "POKEMON",
+        pokemonType: ["FIRE"],
+        hp: 60,
+        source: "synthetic-showcase",
+      }),
     ).toEqual([
       { key: "cardType", label: "Tipo de carta", value: "Pokémon" },
-      { key: "pokemonType", label: "Tipo", value: "Fuego" },
+      { key: "pokemonTypes", label: "Tipo", value: "Fuego" },
       { key: "hp", label: "HP", value: "60" },
     ]);
+  });
+
+  it("marks showcase attributes as synthetic", () => {
+    expect(isSyntheticCardAttributes({ source: "synthetic-showcase" })).toBe(true);
+    expect(isSyntheticCardAttributes({ sourceQuality: "SYNTHETIC" })).toBe(true);
+    expect(isSyntheticCardAttributes({ source: "pokemon-tcg-api", sourceQuality: "VERIFIED_PROVIDER" })).toBe(false);
   });
 
   it("inspects attributes without inventing unknown keys", () => {

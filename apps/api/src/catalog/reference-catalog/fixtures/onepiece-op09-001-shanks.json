@@ -1,0 +1,39 @@
+{
+  "source": "bandai-one-piece-cardgame",
+  "sourceUrl": "https://en.onepiece-cardgame.com/cardlist/?search=true",
+  "retrievedAt": "2026-08-30T20:00:00.000Z",
+  "externalId": "OP09-001",
+  "verified": true,
+  "sourceQuality": "CURATED_VERIFIED",
+  "gameSlug": "one-piece",
+  "data": {
+    "set": { "code": "OP09", "slug": "op09", "name": "Emperors in the New World" },
+    "card": {
+      "name": "Shanks",
+      "number": "OP09-001",
+      "rarity": "L",
+      "supertype": "Leader",
+      "imageUrl": null,
+      "attributes": {
+        "source": "bandai-one-piece-cardgame",
+        "sourceQuality": "CURATED_VERIFIED",
+        "sourceUrl": "https://en.onepiece-cardgame.com/feature/deck/deck_080.php",
+        "sourceId": "OP09-001",
+        "sourceRetrievedAt": "2026-08-30T20:00:00.000Z",
+        "verified": true,
+        "cardType": "LEADER",
+        "colors": ["RED"],
+        "power": 5000,
+        "life": 5,
+        "attribute": "SLASH",
+        "traits": ["The Four Emperors", "Red-Haired Pirates"],
+        "blockIcon": "3"
+      }
+    },
+    "variant": {
+      "language": "EN",
+      "finish": "NORMAL",
+      "externalIds": { "bandaiNumber": "OP09-001" }
+    }
+  }
+}

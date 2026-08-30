@@ -1,0 +1,47 @@
+{
+  "source": "scryfall",
+  "sourceUrl": "https://api.scryfall.com/cards/mkm/218",
+  "retrievedAt": "2026-08-30T20:00:00.000Z",
+  "externalId": "4101e3fe-b0e7-4f0f-b9ac-9b61a4d628b3",
+  "verified": true,
+  "sourceQuality": "VERIFIED_PROVIDER",
+  "gameSlug": "magic",
+  "data": {
+    "set": { "code": "MKM", "slug": "mkm", "name": "Murders at Karlov Manor" },
+    "card": {
+      "name": "Lightning Helix",
+      "number": "218",
+      "rarity": "uncommon",
+      "supertype": "Instant",
+      "imageUrl": "https://cards.scryfall.io/normal/front/4/1/4101e3fe-b0e7-4f0f-b9ac-9b61a4d628b3.jpg?1783912843",
+      "attributes": {
+        "source": "scryfall",
+        "sourceQuality": "VERIFIED_PROVIDER",
+        "sourceUrl": "https://scryfall.com/card/mkm/218/lightning-helix",
+        "sourceId": "4101e3fe-b0e7-4f0f-b9ac-9b61a4d628b3",
+        "sourceRetrievedAt": "2026-08-30T20:00:00.000Z",
+        "verified": true,
+        "manaCost": "{R}{W}",
+        "manaValue": 2,
+        "cmc": 2,
+        "colors": ["R", "W"],
+        "colorIdentity": ["R", "W"],
+        "cardTypes": ["INSTANT"],
+        "supertypes": [],
+        "subtypes": [],
+        "typeLine": "Instant",
+        "powerText": null,
+        "toughnessText": null,
+        "powerNumeric": null,
+        "toughnessNumeric": null,
+        "keywords": [],
+        "legalities": ["standard", "historic", "timeless", "gladiator", "pioneer", "modern", "legacy", "vintage", "commander", "oathbreaker", "standardbrawl", "brawl", "duel"]
+      }
+    },
+    "variant": {
+      "language": "EN",
+      "finish": "NORMAL",
+      "externalIds": { "scryfallId": "4101e3fe-b0e7-4f0f-b9ac-9b61a4d628b3" }
+    }
+  }
+}

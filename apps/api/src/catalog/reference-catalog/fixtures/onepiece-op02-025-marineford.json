@@ -1,0 +1,34 @@
+{
+  "source": "bandai-one-piece-cardgame",
+  "sourceUrl": "https://en.onepiece-cardgame.com/cardlist/?search=true",
+  "retrievedAt": "2026-08-30T20:00:00.000Z",
+  "externalId": "OP02-025",
+  "verified": true,
+  "sourceQuality": "CURATED_VERIFIED",
+  "gameSlug": "one-piece",
+  "data": {
+    "set": { "code": "OP02", "slug": "op02", "name": "Paramount War" },
+    "card": {
+      "name": "Marineford",
+      "number": "OP02-025",
+      "rarity": "C",
+      "supertype": "Stage",
+      "imageUrl": null,
+      "attributes": {
+        "source": "bandai-one-piece-cardgame",
+        "sourceQuality": "CURATED_VERIFIED",
+        "sourceUrl": "https://en.onepiece-cardgame.com/cardlist/?search=true",
+        "sourceId": "OP02-025",
+        "sourceRetrievedAt": "2026-08-30T20:00:00.000Z",
+        "verified": true,
+        "cardType": "STAGE",
+        "colors": ["RED"]
+      }
+    },
+    "variant": {
+      "language": "EN",
+      "finish": "NORMAL",
+      "externalIds": { "bandaiNumber": "OP02-025" }
+    }
+  }
+}

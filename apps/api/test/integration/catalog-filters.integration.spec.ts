@@ -38,7 +38,7 @@ describe("CATALOG.1 game filters (postgres)", () => {
         name: `Filter Ember ${suffix}`,
         rarity: "Rare",
         supertype: "Pokémon",
-        attributes: { cardType: "POKEMON", pokemonType: ["FIRE"], stage: "STAGE_2", hp: 140 },
+        attributes: { cardType: "POKEMON", pokemonTypes: ["FIRE"], pokemonType: ["FIRE"], hp: 140 },
       },
     });
     const magicSet = await seedCanonical(prisma, {
@@ -50,7 +50,7 @@ describe("CATALOG.1 game filters (postgres)", () => {
         name: `Filter Instant ${suffix}`,
         rarity: "Common",
         supertype: "Instant",
-        attributes: { cardType: "Instant", colors: ["U"], manaValue: 2 },
+        attributes: { cardTypes: ["INSTANT"], colors: ["U"], manaValue: 2 },
       },
     });
     const ygoSet = await seedCanonical(prisma, {
@@ -66,6 +66,7 @@ describe("CATALOG.1 game filters (postgres)", () => {
           category: "MONSTER",
           attribute: "DARK",
           monsterType: ["DRAGON"],
+          mechanics: ["FUSION"],
           cardTypes: ["FUSION"],
           atk: 2800,
         },
@@ -80,7 +81,7 @@ describe("CATALOG.1 game filters (postgres)", () => {
         name: `Filter Aliado ${suffix}`,
         rarity: "Common",
         supertype: "Aliado",
-        attributes: { cardType: "ALIADO", raza: "ANDINO", coste: 2, fuerza: 2 },
+        attributes: { cardType: "ALIADO", raza: "ANCESTRAL", coste: 2, fuerza: 2 },
       },
     });
     createdSetIds.push(pokemonSet, magicSet, ygoSet, mylSet);
@@ -91,7 +92,7 @@ describe("CATALOG.1 game filters (postgres)", () => {
       sort: "relevance",
       game: "pokemon",
       set: `c1-poke-${suffix}`,
-      attrs: { pokemonType: ["FIRE"], stage: ["STAGE_2"] },
+      attrs: { pokemonType: ["FIRE"], hpMin: ["100"] },
     });
     expect(fire.items.map((row) => row.name)).toEqual([`Filter Ember ${suffix}`]);
 
@@ -132,7 +133,7 @@ describe("CATALOG.1 game filters (postgres)", () => {
       sort: "relevance",
       game: "mitos-y-leyendas",
       set: `c1-myl-${suffix}`,
-      attrs: { cardType: ["ALIADO"], raza: ["Andino"] },
+      attrs: { cardType: ["ALIADO"], raza: ["Ancestral"] },
     });
     expect(aliado.items.map((row) => row.name)).toEqual([`Filter Aliado ${suffix}`]);
 

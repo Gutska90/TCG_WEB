@@ -162,6 +162,7 @@ export {
   onePieceCardAttributesSchema,
   digimonCardAttributesSchema,
   gundamCardAttributesSchema,
+  REQUIRED_FILTER_PATHS,
   type AttributeInspectResult,
 } from "./card-attributes";
 

@@ -1,0 +1,34 @@
+{
+  "source": "tor.myl.cl",
+  "sourceUrl": "https://tor.myl.cl/carta/espada-sagrada/stonehenge",
+  "retrievedAt": "2026-08-30T20:00:00.000Z",
+  "externalId": "espada-sagrada/stonehenge",
+  "verified": true,
+  "sourceQuality": "CURATED_VERIFIED",
+  "gameSlug": "mitos-y-leyendas",
+  "data": {
+    "set": { "code": "ES", "slug": "espada-sagrada", "name": "Espada Sagrada" },
+    "card": {
+      "name": "Stonehenge",
+      "number": "Stonehenge",
+      "rarity": "Real",
+      "supertype": "Tótem",
+      "imageUrl": null,
+      "attributes": {
+        "source": "tor.myl.cl",
+        "sourceQuality": "CURATED_VERIFIED",
+        "sourceUrl": "https://tor.myl.cl/carta/espada-sagrada/stonehenge",
+        "sourceId": "espada-sagrada/stonehenge",
+        "sourceRetrievedAt": "2026-08-30T20:00:00.000Z",
+        "verified": true,
+        "cardType": "TOTEM",
+        "edicion": "ESPADA_SAGRADA"
+      }
+    },
+    "variant": {
+      "language": "ES",
+      "finish": "NORMAL",
+      "externalIds": { "torPath": "espada-sagrada/stonehenge" }
+    }
+  }
+}

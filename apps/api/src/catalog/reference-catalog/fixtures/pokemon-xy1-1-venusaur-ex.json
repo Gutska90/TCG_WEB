@@ -1,0 +1,51 @@
+{
+  "source": "pokemon-tcg-api",
+  "sourceUrl": "https://api.pokemontcg.io/v2/cards/xy1-1",
+  "retrievedAt": "2026-08-30T20:00:00.000Z",
+  "externalId": "xy1-1",
+  "verified": true,
+  "sourceQuality": "VERIFIED_PROVIDER",
+  "gameSlug": "pokemon",
+  "data": {
+    "set": { "code": "XY1", "slug": "xy1", "name": "XY" },
+    "card": {
+      "name": "Venusaur-EX",
+      "number": "1",
+      "rarity": "Rare Holo EX",
+      "supertype": "Pokémon",
+      "imageUrl": "https://images.pokemontcg.io/xy1/1_hires.png",
+      "attributes": {
+        "source": "pokemon-tcg-api",
+        "sourceQuality": "VERIFIED_PROVIDER",
+        "sourceUrl": "https://api.pokemontcg.io/v2/cards/xy1-1",
+        "sourceId": "xy1-1",
+        "sourceRetrievedAt": "2026-08-30T20:00:00.000Z",
+        "verified": true,
+        "cardType": "POKEMON",
+        "subtypes": ["BASIC", "EX"],
+        "pokemonTypes": ["GRASS"],
+        "pokemonType": ["GRASS"],
+        "hp": 180,
+        "evolvesFrom": null,
+        "evolvesTo": ["M Venusaur-EX"],
+        "retreatCost": 4,
+        "weaknesses": [{ "type": "FIRE", "value": "×2" }],
+        "resistances": [],
+        "weaknessTypes": ["FIRE"],
+        "resistanceTypes": [],
+        "attackCosts": [
+          ["GRASS", "COLORLESS", "COLORLESS"],
+          ["GRASS", "GRASS", "COLORLESS", "COLORLESS"]
+        ],
+        "maxAttackEnergyCost": 4,
+        "illustrator": "Eske Yoshinob",
+        "legalities": ["unlimited", "expanded"]
+      }
+    },
+    "variant": {
+      "language": "EN",
+      "finish": "NORMAL",
+      "externalIds": { "pokemonTcgApiId": "xy1-1" }
+    }
+  }
+}

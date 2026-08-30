@@ -113,6 +113,8 @@ SMTP_HOST / SMTP_PORT / SMTP_SECURE / SMTP_USER / SMTP_PASS
 EXPO_ACCESS_TOKEN         # push, fase 11
 
 ENABLE_REAL_PAYMENTS / ENABLE_PAYOUTS / ENABLE_* (features futuras)
+SHOW_SYNTHETIC_CATALOG       # default true (e2e/showcase). false en staging público oculta sourceQuality=SYNTHETIC
+POKEMON_TCG_API_KEY          # opcional; solo API, nunca frontend
 REAL_PAYMENTS_LEGAL_APPROVED   # solo true fuera del repo, tras revisión legal
 DISABLE_CHECKOUT / DISABLE_NEW_LISTINGS / DISABLE_PAYOUTS / DISABLE_REFUNDS_AUTOMATION
 JOBS_ENABLED / ENABLE_REFUND_RETRY_JOB / ERROR_TRACKING_ENABLED

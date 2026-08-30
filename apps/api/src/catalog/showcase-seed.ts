@@ -1,5 +1,5 @@
 import { LEGAL } from "@tcg/config";
-import type { PrismaClient } from "@prisma/client";
+import { Prisma, type PrismaClient } from "@prisma/client";
 import * as argon2 from "argon2";
 import { slugifyStable } from "./slug";
 
@@ -211,6 +211,38 @@ async function upsertSeller(
   return user;
 }
 
+function syntheticAttributes(attributes: Record<string, unknown> | undefined): Record<string, unknown> {
+  const next: Record<string, unknown> = { ...(attributes ?? {}) };
+  if (Array.isArray(next.pokemonType) && !next.pokemonTypes) next.pokemonTypes = next.pokemonType;
+  if (typeof next.stage === "string" && !next.subtypes) {
+    next.subtypes = [String(next.stage)];
+  }
+  if (typeof next.cardType === "string" && !next.cardTypes) {
+    const type = String(next.cardType);
+    if (["Creature", "Instant", "Artifact", "Enchantment", "Land", "Sorcery"].includes(type)) {
+      next.cardTypes = [type.toUpperCase()];
+    }
+  }
+  if (typeof next.power === "string") {
+    next.powerText = next.power;
+    const numeric = Number(next.power);
+    if (Number.isFinite(numeric)) next.powerNumeric = numeric;
+  }
+  if (typeof next.toughness === "string") {
+    next.toughnessText = next.toughness;
+    const numeric = Number(next.toughness);
+    if (Number.isFinite(numeric)) next.toughnessNumeric = numeric;
+  }
+  if (Array.isArray(next.cardTypes) && !next.mechanics) next.mechanics = next.cardTypes;
+  if (typeof next.color === "string" && !next.colors) next.colors = [next.color];
+  return {
+    source: "synthetic-showcase",
+    sourceQuality: "SYNTHETIC",
+    verified: false,
+    ...next,
+  };
+}
+
 async function upsertShowcaseCard(
   prisma: PrismaClient,
   setId: string,
@@ -224,7 +256,7 @@ async function upsertShowcaseCard(
       number: cardInput.number,
       rarity: cardInput.rarity,
       supertype: cardInput.supertype,
-      attributes: { source: "showcase-seed", ...cardInput.attributes },
+      attributes: syntheticAttributes(cardInput.attributes) as Prisma.InputJsonValue,
     },
     create: {
       setId,
@@ -233,7 +265,7 @@ async function upsertShowcaseCard(
       name: cardInput.name,
       rarity: cardInput.rarity,
       supertype: cardInput.supertype,
-      attributes: { source: "showcase-seed", ...cardInput.attributes },
+      attributes: syntheticAttributes(cardInput.attributes) as Prisma.InputJsonValue,
     },
   });
   const variant = await prisma.cardVariant.upsert({

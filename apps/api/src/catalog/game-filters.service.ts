@@ -9,6 +9,7 @@ import {
 import type { GameFiltersView, GameFilterOptionView, GameFilterView } from "@tcg/types";
 import { PrismaService } from "../prisma/prisma.service";
 import { CatalogService } from "./catalog.service";
+import { catalogVisibilitySql } from "../search/search-filters";
 
 @Injectable()
 export class GameFiltersService {
@@ -24,12 +25,13 @@ export class GameFiltersService {
     const filters: GameFilterView[] = definition.filters
       .filter((filter) => filter.key !== "q")
       .map((filter) => {
-        const options = optionMap.get(filter.key) ?? staticOptions(filter);
+        const options = optionMap.get(filter.key) ?? [];
         return {
           key: filter.key,
           label: filter.label,
           group: filter.group,
           type: filter.type,
+          tier: filter.tier ?? "PRIMARY",
           multi: Boolean(filter.multi || filter.type === "MULTI_SELECT"),
           range: Boolean(filter.range || filter.type === "NUMBER_RANGE"),
           order: filter.order,
@@ -37,7 +39,7 @@ export class GameFiltersService {
           options,
         };
       })
-      .filter((filter) => shouldExposeFilter(filter, definition.filters, optionMap));
+      .filter((filter) => shouldExposeFilter(filter, optionMap));
 
     return {
       game: { id: game.id, slug: game.slug, name: game.name },
@@ -48,16 +50,23 @@ export class GameFiltersService {
     };
   }
 
+  private visibilityAnd(): Prisma.Sql {
+    const parts = catalogVisibilitySql();
+    if (parts.length === 0) return Prisma.sql`TRUE`;
+    return Prisma.join(parts, " AND ");
+  }
+
   private async loadOptions(slug: string, filters: CatalogFilterDef[]): Promise<Map<string, GameFilterOptionView[]>> {
     const map = new Map<string, GameFilterOptionView[]>();
+    const visibility = this.visibilityAnd();
     const [sets, rarities, supertypes] = await Promise.all([
       this.prisma.tcgSet.findMany({
         where: { game: { slug, isActive: true } },
         orderBy: [{ releasedAt: "desc" }, { name: "asc" }],
         select: { slug: true, name: true, code: true },
       }),
-      this.distinctColumn(slug, Prisma.sql`c.rarity`),
-      this.distinctColumn(slug, Prisma.sql`c.supertype`),
+      this.distinctColumn(slug, Prisma.sql`c.rarity`, visibility),
+      this.distinctColumn(slug, Prisma.sql`c.supertype`, visibility),
     ]);
     map.set(
       "set",
@@ -69,8 +78,8 @@ export class GameFiltersService {
     for (const filter of filters) {
       if (filter.source.kind !== "json") continue;
       const values = filter.source.array
-        ? await this.distinctJsonArray(slug, filter.source.path)
-        : await this.distinctJsonText(slug, filter.source.path);
+        ? await this.distinctJsonArray(slug, filter.source.path, visibility)
+        : await this.distinctJsonText(slug, filter.source.path, visibility);
       map.set(
         filter.key,
         values.map((value) => ({ value, label: labelForFilterValue(filter, value) })),
@@ -79,20 +88,20 @@ export class GameFiltersService {
     return map;
   }
 
-  private async distinctColumn(slug: string, column: Prisma.Sql): Promise<string[]> {
+  private async distinctColumn(slug: string, column: Prisma.Sql, visibility: Prisma.Sql): Promise<string[]> {
     const rows = await this.prisma.$queryRaw<Array<{ value: string }>>(Prisma.sql`
       SELECT DISTINCT ${column} AS value
       FROM cards c
       INNER JOIN sets s ON s.id = c.set_id
       INNER JOIN tcg_games g ON g.id = s.game_id
-      WHERE g.slug = ${slug} AND g.is_active = true AND ${column} <> ''
+      WHERE g.slug = ${slug} AND g.is_active = true AND ${column} <> '' AND ${visibility}
       ORDER BY 1
       LIMIT 80
     `);
     return rows.map((row) => row.value).filter(Boolean);
   }
 
-  private async distinctJsonText(slug: string, path: string): Promise<string[]> {
+  private async distinctJsonText(slug: string, path: string, visibility: Prisma.Sql): Promise<string[]> {
     const rows = await this.prisma.$queryRaw<Array<{ value: string | null }>>(Prisma.sql`
       SELECT DISTINCT c.attributes->>${path} AS value
       FROM cards c
@@ -103,13 +112,14 @@ export class GameFiltersService {
         AND jsonb_exists(c.attributes, ${path})
         AND jsonb_typeof(c.attributes->${path}) <> 'null'
         AND c.attributes->>${path} <> ''
+        AND ${visibility}
       ORDER BY 1
       LIMIT 80
     `);
     return rows.map((row) => row.value).filter((value): value is string => Boolean(value));
   }
 
-  private async distinctJsonArray(slug: string, path: string): Promise<string[]> {
+  private async distinctJsonArray(slug: string, path: string, visibility: Prisma.Sql): Promise<string[]> {
     const rows = await this.prisma.$queryRaw<Array<{ value: string | null }>>(Prisma.sql`
       SELECT DISTINCT jsonb_array_elements_text(c.attributes->${path}) AS value
       FROM cards c
@@ -118,6 +128,7 @@ export class GameFiltersService {
       WHERE g.slug = ${slug}
         AND g.is_active = true
         AND jsonb_typeof(c.attributes->${path}) = 'array'
+        AND ${visibility}
       ORDER BY 1
       LIMIT 80
     `);
@@ -125,16 +136,7 @@ export class GameFiltersService {
   }
 }
 
-function staticOptions(filter: CatalogFilterDef): GameFilterOptionView[] {
-  if (!filter.labels) return [];
-  return Object.entries(filter.labels).map(([value, label]) => ({ value, label }));
-}
-
-function shouldExposeFilter(
-  filter: GameFilterView,
-  defs: CatalogFilterDef[],
-  optionMap: Map<string, GameFilterOptionView[]>,
-): boolean {
+function shouldExposeFilter(filter: GameFilterView, optionMap: Map<string, GameFilterOptionView[]>): boolean {
   if (filter.type === "TEXT" || filter.type === "NUMBER_RANGE" || filter.type === "BOOLEAN") return true;
   if (filter.key === "language" || filter.key === "finish" || filter.key === "condition") return true;
   if (filter.key === "price" || filter.key === "hasListings") return true;
@@ -143,7 +145,5 @@ function shouldExposeFilter(
   if (filter.type === "SELECT" || filter.type === "MULTI_SELECT") {
     if (options.length === 0) return false;
   }
-  const def = defs.find((item) => item.key === filter.key);
-  if (def?.visibleWhen && options.length === 0) return false;
   return true;
 }

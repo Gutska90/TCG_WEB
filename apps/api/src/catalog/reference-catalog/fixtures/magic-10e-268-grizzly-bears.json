@@ -1,0 +1,47 @@
+{
+  "source": "scryfall",
+  "sourceUrl": "https://api.scryfall.com/cards/10e/268",
+  "retrievedAt": "2026-08-30T20:00:00.000Z",
+  "externalId": "409f9b88-f03e-40b6-9883-68c14c37c0de",
+  "verified": true,
+  "sourceQuality": "VERIFIED_PROVIDER",
+  "gameSlug": "magic",
+  "data": {
+    "set": { "code": "10E", "slug": "10e", "name": "Tenth Edition" },
+    "card": {
+      "name": "Grizzly Bears",
+      "number": "268",
+      "rarity": "common",
+      "supertype": "Creature",
+      "imageUrl": "https://cards.scryfall.io/normal/front/4/0/409f9b88-f03e-40b6-9883-68c14c37c0de.jpg?1783943001",
+      "attributes": {
+        "source": "scryfall",
+        "sourceQuality": "VERIFIED_PROVIDER",
+        "sourceUrl": "https://scryfall.com/card/10e/268/grizzly-bears",
+        "sourceId": "409f9b88-f03e-40b6-9883-68c14c37c0de",
+        "sourceRetrievedAt": "2026-08-30T20:00:00.000Z",
+        "verified": true,
+        "manaCost": "{1}{G}",
+        "manaValue": 2,
+        "cmc": 2,
+        "colors": ["G"],
+        "colorIdentity": ["G"],
+        "cardTypes": ["CREATURE"],
+        "supertypes": [],
+        "subtypes": ["BEAR"],
+        "typeLine": "Creature — Bear",
+        "powerText": "2",
+        "toughnessText": "2",
+        "powerNumeric": 2,
+        "toughnessNumeric": 2,
+        "keywords": [],
+        "legalities": ["historic", "timeless", "gladiator", "modern", "legacy", "pauper", "vintage", "penny", "commander", "oathbreaker", "brawl", "paupercommander", "duel", "premodern", "predh"]
+      }
+    },
+    "variant": {
+      "language": "EN",
+      "finish": "NORMAL",
+      "externalIds": { "scryfallId": "409f9b88-f03e-40b6-9883-68c14c37c0de" }
+    }
+  }
+}

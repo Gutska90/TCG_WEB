@@ -1,0 +1,41 @@
+{
+  "source": "bandai-digimon-card-game",
+  "sourceUrl": "https://world.digimoncard.com/cardlist/?search=true",
+  "retrievedAt": "2026-08-30T20:00:00.000Z",
+  "externalId": "BT14-007",
+  "verified": true,
+  "sourceQuality": "CURATED_VERIFIED",
+  "gameSlug": "digimon",
+  "data": {
+    "set": { "code": "BT14", "slug": "bt14", "name": "Blast Ace" },
+    "card": {
+      "name": "Agumon",
+      "number": "BT14-007",
+      "rarity": "SR",
+      "supertype": "Digimon",
+      "imageUrl": null,
+      "attributes": {
+        "source": "bandai-digimon-card-game",
+        "sourceQuality": "CURATED_VERIFIED",
+        "sourceUrl": "https://world.digimoncard.com/cardlist/?search=true",
+        "sourceId": "BT14-007",
+        "sourceRetrievedAt": "2026-08-30T20:00:00.000Z",
+        "verified": true,
+        "colors": ["RED"],
+        "cardType": "DIGIMON",
+        "level": 3,
+        "playCost": 3,
+        "dp": 1000,
+        "form": "ROOKIE",
+        "attribute": "VACCINE",
+        "traits": ["REPTILE"],
+        "digivolutionRequirements": [{ "color": "RED", "cost": 0, "fromLevel": 2 }]
+      }
+    },
+    "variant": {
+      "language": "EN",
+      "finish": "NORMAL",
+      "externalIds": { "bandaiNumber": "BT14-007" }
+    }
+  }
+}

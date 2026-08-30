@@ -32,6 +32,7 @@ export default function SearchScreen() {
   const [priceMin, setPriceMin] = useState("");
   const [priceMax, setPriceMax] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const dq = useDebounce(q, 300);
   const games = useQuery({ queryKey: ["games"], queryFn: fetchGames });
   const filters = useQuery({
@@ -58,10 +59,13 @@ export default function SearchScreen() {
         source: { kind: "json", path: filter.key },
         order: filter.order,
         visibleWhen: filter.visibleWhen,
+        tier: filter.tier,
       },
       selected,
     ),
   );
+  const primaryFilters = visibleFilters.filter((filter) => (filter.tier ?? "PRIMARY") === "PRIMARY");
+  const advancedFilters = visibleFilters.filter((filter) => filter.tier === "ADVANCED");
   const selectedCount = Object.values(attrs).filter(Boolean).length + (priceMin || priceMax ? 1 : 0) + (game ? 1 : 0);
 
   const queryString = useMemo(() => {
@@ -118,7 +122,7 @@ export default function SearchScreen() {
       {showFilters ? (
         <View style={{ gap: 8, marginBottom: 8 }}>
           <GamePicker games={games.data ?? []} value={game} onChange={(slug) => { setGame(slug); setAttrs({}); }} />
-          {visibleFilters.map((filter) => (
+          {primaryFilters.map((filter) => (
             <MetadataField
               key={filter.key}
               filter={filter}
@@ -130,6 +134,25 @@ export default function SearchScreen() {
               onPriceMax={setPriceMax}
             />
           ))}
+          {advancedFilters.length > 0 ? (
+            <Pressable onPress={() => setShowAdvanced((value) => !value)} accessibilityRole="button" accessibilityLabel="Más filtros">
+              <Text style={{ color: colors.muted }}>{showAdvanced ? "Ocultar más filtros" : "Más filtros"}</Text>
+            </Pressable>
+          ) : null}
+          {showAdvanced
+            ? advancedFilters.map((filter) => (
+                <MetadataField
+                  key={filter.key}
+                  filter={filter}
+                  attrs={attrs}
+                  onChange={(key, value) => setAttrs((current) => ({ ...current, [key]: value }))}
+                  priceMin={priceMin}
+                  priceMax={priceMax}
+                  onPriceMin={setPriceMin}
+                  onPriceMax={setPriceMax}
+                />
+              ))
+            : null}
           <Pressable
             onPress={() => {
               setAttrs({});
