@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { resolve } from "node:path";
 import { config as loadEnv } from "dotenv";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { ERROR_CODES } from "@tcg/config";
+import { ERROR_CODES, LAUNCH_PROMO_INACTIVE, quoteMarketplaceFee } from "@tcg/config";
 import { AppError } from "../../src/common/errors/app-error";
 import { backfillLedger } from "../../src/ledger/backfill";
 import { LedgerAdjustmentService } from "../../src/ledger/ledger-adjustment.service";
@@ -14,8 +14,14 @@ import { createMoneyServices } from "./helpers/money-stack";
 
 loadEnv({ path: resolve(__dirname, "../../../../.env") });
 
-const NET = 73_600;
-const FEE = 6_400;
+const SUBTOTAL_CLP = 80_000;
+const feeQuote = quoteMarketplaceFee({
+  plan: "FREE",
+  orderSubtotalClp: SUBTOTAL_CLP,
+  promoWindow: LAUNCH_PROMO_INACTIVE,
+});
+const FEE = feeQuote.platformFeeClp;
+const NET = SUBTOTAL_CLP - FEE;
 
 function actor(id: string, roles: RequestUser["roles"] = ["USER"]): RequestUser {
   return {
@@ -82,7 +88,7 @@ describe("Fase 10C ledger + payouts (postgres)", () => {
           sellerId: sale.sellerId,
           orderId: sale.orderId,
           paymentId: payment.id,
-          totalClp: 80_000,
+          totalClp: SUBTOTAL_CLP,
           commissionClp: FEE,
         });
       });
@@ -259,7 +265,7 @@ describe("Fase 10C ledger + payouts (postgres)", () => {
           orderId: sale.orderId,
           paymentId: payment.id,
           refundId: refund.id,
-          totalClp: 80_000,
+          totalClp: SUBTOTAL_CLP,
           commissionClp: FEE,
         });
       });
