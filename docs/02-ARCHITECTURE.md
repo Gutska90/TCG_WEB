@@ -8,7 +8,7 @@ Orden obligatorio de implementación:
 REQUERIMIENTOS → MODELO DE DATOS → API → AUTENTICACIÓN → MARKETPLACE → WEB → MOBILE
 ```
 
-Prohibido: construir pantallas que inventen el modelo. Si una pantalla necesita un campo que no está en [03-DATABASE](03-DATABASE.md) ni en [04-API](04-API.md), primero se actualiza la especificación.
+El catálogo es agnóstico al juego (`TcgGame → Set → Card → CardVariant`). Los atributos de reglas van en `Card.attributes` JSON; los filtros de búsqueda son por slug ([catalog/GAME-FILTERS](catalog/GAME-FILTERS.md)).
 
 ## Diagrama lógico
 

@@ -31,6 +31,7 @@ FASE 12   Colecciones                    ✓
 FASE 13   Historial de precios           ✓
 FASE 14   Wishlist + alertas             ✓
 
+CATALOG.1 Game-Specific Dynamic Filters  ✓
 UI.1      Visual Refresh                 ✓
 PS        Pre-Staging Readiness          ✓
 
@@ -293,7 +294,15 @@ Wishlist privada (no favoritos ni colección). Precio objetivo CLP, alerta `WISH
 
 **No incluido (Fase 15+):** scanner, push tokens, tiendas, subastas.
 
-**Estado: listo.** Siguiente: **UI.1 Visual Refresh** (hecho). Luego B0–B8. Fases 15–20 congeladas hasta cerrar B8.
+**Estado: listo.** Siguiente: **UI.1 Visual Refresh** (hecho). **CATALOG.1** filtros por juego (hecho). Luego B0–B8. Fases 15–20 congeladas hasta cerrar B8.
+
+## CATALOG.1 — Game-Specific Dynamic Filters ✓
+
+Filtros de búsqueda por `game.slug` con `Card.attributes` JSON validado. Sin columnas Prisma por TCG. Metadata `GET /v1/games/:slug/filters`. Search `attr.*` con whitelist. Support **PARTIAL** mientras no existan importers oficiales (Pokémon API, Konami, MyL, Digimon, Gundam). Doc: [catalog/GAME-FILTERS](catalog/GAME-FILTERS.md), [catalog/CARD-ATTRIBUTES](catalog/CARD-ATTRIBUTES.md).
+
+**No incluido:** Scanner, Deck Builder, facet counts, Digimon/Gundam seed.
+
+**Estado: listo.** No inicia Fase 15.
 
 ## UI.1 — Visual Refresh ✓
 

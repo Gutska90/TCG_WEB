@@ -468,7 +468,7 @@ model TcgSet {
   @@map("sets")
 }
 
-/// Índices GIN `immutable_unaccent_lower` (pg_trgm) están en la migración Fase 3; Prisma no los modela.
+/// Índices GIN `immutable_unaccent_lower` (pg_trgm) están en la migración Fase 3; GIN de `attributes` en CATALOG.1. Prisma no los modela.
 model Card {
   id         String   @id @default(uuid()) @db.Uuid
   setId      String   @map("set_id") @db.Uuid
@@ -477,6 +477,7 @@ model Card {
   name       String
   rarity     String
   supertype  String
+  /// Game-specific fields (validated per slug). Do not add pokemonHp / yugiohAtk columns.
   attributes Json     @default("{}")
   imageUrl   String?  @map("image_url")
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)

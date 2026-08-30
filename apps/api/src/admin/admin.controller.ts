@@ -47,6 +47,7 @@ import { SellerBalanceService } from "../ledger/seller-balance.service";
 import { PayoutsService } from "../payouts/payouts.service";
 import { MetricsService } from "../observability/metrics.service";
 import { SellerPlanService } from "../seller-plans/seller-plan.service";
+import { CatalogService } from "../catalog/catalog.service";
 
 @Controller("v1/admin")
 @Roles(...ADMIN_OPS_ROLES)
@@ -60,6 +61,7 @@ export class AdminController {
     private readonly adjustments: LedgerAdjustmentService,
     private readonly metrics: MetricsService,
     private readonly sellerPlans: SellerPlanService,
+    private readonly catalog: CatalogService,
   ) {}
 
   @Get("dashboard")
@@ -267,6 +269,11 @@ export class AdminController {
       startsAt: body.startsAt ? new Date(body.startsAt) : undefined,
       endsAt: body.endsAt ? new Date(body.endsAt) : undefined,
     });
+  }
+
+  @Get("catalog/cards/:id/attributes")
+  cardAttributes(@Param("id", new ZodPipe(uuidParamSchema)) id: string) {
+    return this.catalog.inspectCardAttributes(id);
   }
 
   @Get("ledger")

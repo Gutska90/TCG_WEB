@@ -7,7 +7,7 @@ El catálogo es el corazón. Se **importa**; no se escribe a mano carta por cart
 1. Fuentes **públicas o licenciables**. Atribuir en `CardVariant.externalIds` y en `/legal/fuentes`.
 2. **Prohibido** scrapear TCGMatch, TCGPlayer storefront, Facebook, etc.
 3. Idempotente: re-correr un set no duplica cartas (`unique(set.gameId, set.code)`, `unique(setId, number, name)` — ajustar si el publisher usa números repetidos).
-4. Game-specific → `Card.attributes` JSON. El importer conoce el juego; el resto de la app no.
+4. Game-specific → `Card.attributes` JSON (contrato CATALOG.1). El importer conoce el juego; search/UI leen `GameFilterDefinition`.
 5. Imágenes: respetar ToS de cada API. Si no se puede redistribuir el arte, guardar URL de origen o placeholder.
 
 ## TCG Fase 1 — fuentes

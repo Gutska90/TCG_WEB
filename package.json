@@ -32,6 +32,8 @@
     "db:backup": "bash scripts/backup-postgres.sh",
     "catalog:seed": "pnpm --filter @tcg/api catalog:seed",
     "catalog:import-scryfall": "pnpm --filter @tcg/api run catalog:import-scryfall --",
+    "catalog:attributes:audit": "pnpm --filter @tcg/api catalog:attributes:audit",
+    "catalog:attributes:backfill": "pnpm --filter @tcg/api catalog:attributes:backfill",
     "ledger:backfill": "pnpm --filter @tcg/api ledger:backfill",
     "recon:day": "pnpm --filter @tcg/api recon:day",
     "postinstall": "prisma generate"

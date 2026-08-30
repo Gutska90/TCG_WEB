@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CatalogRequestError, getCardBySlug } from "../../../../lib/catalog";
 import { CardActions } from "../../../../components/card-actions";
+import { CardAttributeFields } from "../../../../components/card-attribute-fields";
 import { CardImage } from "../../../../components/ui/product-card";
 import { Price } from "../../../../components/ui/price";
 
@@ -33,6 +34,7 @@ export default async function CardPage({
               {detail.set.name} · {detail.number} · {detail.rarity}
             </p>
             <p className="mt-1 text-sm text-text-muted">{detail.supertype}</p>
+            <CardAttributeFields fields={detail.attributeFields} />
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <div className="rounded-[16px] border border-border bg-surface p-4">
                 <p className="text-xs font-medium tracking-wide text-text-muted uppercase">Precio mercado</p>

@@ -2,6 +2,9 @@ import type {
   CardCondition,
   CardFinish,
   CardLanguage,
+  CatalogFilterGroup,
+  CatalogFilterSupport,
+  CatalogFilterType,
   DisputeEvidenceType,
   DisputeReason,
   DisputeStatus,
@@ -318,6 +321,12 @@ export type VariantView = {
   isDefault: boolean;
 };
 
+export type CardAttributeFieldView = {
+  key: string;
+  label: string;
+  value: string;
+};
+
 export type CardDetailView = {
   id: string;
   slug: string;
@@ -327,6 +336,7 @@ export type CardDetailView = {
   supertype: string;
   imageUrl: string | null;
   attributes: Record<string, unknown>;
+  attributeFields: CardAttributeFieldView[];
   game: Pick<GameView, "id" | "slug" | "name">;
   set: Pick<SetSummaryView, "id" | "code" | "slug" | "name">;
   variants: VariantView[];
@@ -337,6 +347,43 @@ export type CardDetailView = {
     avgListing: number | null;
     activeListings: number;
   };
+};
+
+export type GameFilterOptionView = {
+  value: string;
+  label: string;
+  /** Facet count when the API can compute it in batch; omitted in CATALOG.1 MVP. */
+  count?: number;
+};
+
+export type GameFilterView = {
+  key: string;
+  label: string;
+  group: CatalogFilterGroup;
+  type: CatalogFilterType;
+  multi: boolean;
+  range: boolean;
+  order: number;
+  visibleWhen?: { key: string; oneOf: string[] };
+  options: GameFilterOptionView[];
+};
+
+export type GameFiltersView = {
+  game: Pick<GameView, "id" | "slug" | "name">;
+  support: CatalogFilterSupport;
+  source: string;
+  missing: string[];
+  filters: GameFilterView[];
+};
+
+export type AdminCardAttributesView = {
+  cardId: string;
+  gameSlug: string;
+  raw: Record<string, unknown>;
+  validated: Record<string, unknown>;
+  unknownKeys: string[];
+  valid: boolean;
+  issues: Array<{ path: string; message: string }>;
 };
 
 export type VariantDetailView = {

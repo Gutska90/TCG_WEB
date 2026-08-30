@@ -581,6 +581,8 @@ export const ERROR_CODES = {
   ACCOUNT_DEACTIVATED: "ACCOUNT_DEACTIVATED",
   LAST_AUTH_METHOD: "LAST_AUTH_METHOD",
   PASSWORD_ALREADY_SET: "PASSWORD_ALREADY_SET",
+  INVALID_FILTER: "INVALID_FILTER",
+  FILTER_NOT_SUPPORTED_FOR_GAME: "FILTER_NOT_SUPPORTED_FOR_GAME",
 } as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
@@ -964,6 +966,37 @@ export function assertErrorTrackingConfig(env: NodeJS.Dict<string> = process.env
     throw new Error("ERROR_TRACKING_ENABLED=true requires SENTRY_DSN");
   }
 }
+
+export {
+  CATALOG_FILTER_SUPPORTS,
+  CATALOG_FILTER_TYPES,
+  COMMON_CARD_FILTERS,
+  COMMON_MARKETPLACE_FILTERS,
+  COMMON_ONLY_DEFINITION,
+  GAME_FILTER_DEFINITIONS,
+  SEARCH_SORTS,
+  catalogFilterByKey,
+  getGameFilterDefinition,
+  isCommonSearchKey,
+  isKnownCatalogAttrKey,
+  isFilterVisible,
+  isFilterVisible as filterIsVisible,
+  labelForFilterValue,
+  normalizeCatalogCode,
+  presentAttributeFields,
+  resolveAttrFilterKey,
+  sortAllowedForGame,
+} from "./catalog-filters";
+export type {
+  CatalogFilterDef,
+  CatalogFilterGroup,
+  CatalogFilterSource,
+  CatalogFilterSupport,
+  CatalogFilterType,
+  CatalogFilterVisibleWhen,
+  GameFilterDefinition,
+  SearchSort,
+} from "./catalog-filters";
 
 export {
   apiHelmetOptions,

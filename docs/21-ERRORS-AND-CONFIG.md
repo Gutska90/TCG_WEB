@@ -23,6 +23,8 @@ El cliente ramifica por `error.code`, no por el texto.
 | `ACCOUNT_BANNED` | 403 | |
 | `LAST_AUTH_METHOD` | 409 | unlink del último método |
 | `PASSWORD_ALREADY_SET` | 400 | cambio de password sin `currentPassword` |
+| `INVALID_FILTER` | 400 | filtro de búsqueda mal formado o sin juego |
+| `FILTER_NOT_SUPPORTED_FOR_GAME` | 400 | `attr.*` de otro TCG |
 | `OAUTH_NOT_CONFIGURED` | 400 | Google/Apple sin client id |
 | `SELLER_ONBOARDING_REQUIRED` | 403 | publicar |
 | `LISTING_INSUFFICIENT_STOCK` | 409 | cart/checkout |

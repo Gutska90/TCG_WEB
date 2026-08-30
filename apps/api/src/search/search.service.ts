@@ -1,11 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
-import { PLATFORM } from "@tcg/config";
+import { PLATFORM, getGameFilterDefinition } from "@tcg/config";
 import type { Paginated, SearchCardView } from "@tcg/types";
 import type { SearchCardsQuery } from "@tcg/validation";
 import { PrismaService } from "../prisma/prisma.service";
 import { MetricsService } from "../observability/metrics.service";
 import { escapeLike, hasSearchCriteria } from "./search.util";
+import { assertSearchFilters, attributeWhereParts, jsonSortExpression } from "./search-filters";
 
 @Injectable()
 export class SearchService {
@@ -18,6 +19,7 @@ export class SearchService {
     const started = Date.now();
     const page = query.page;
     const pageSize = query.pageSize ?? PLATFORM.searchPageSizeDefault;
+    assertSearchFilters(query);
     if (!hasSearchCriteria(query)) {
       this.metrics.observe("search_duration", Date.now() - started);
       return { items: [], page, pageSize, total: 0 };
@@ -95,6 +97,12 @@ function buildWhere(query: SearchCardsQuery): Prisma.Sql {
   if (query.set) {
     parts.push(Prisma.sql`(s.slug = ${query.set} OR lower(s.code) = lower(${query.set}))`);
   }
+  if (query.supertype) {
+    const like = escapeLike(query.supertype);
+    parts.push(
+      Prisma.sql`immutable_unaccent_lower(c.supertype) LIKE '%' || immutable_unaccent_lower(${like}) || '%' ESCAPE chr(92)`,
+    );
+  }
   if (query.rarity) {
     const like = escapeLike(query.rarity);
     parts.push(
@@ -117,21 +125,30 @@ function buildWhere(query: SearchCardsQuery): Prisma.Sql {
       )`,
     );
   }
-  if (query.priceMin != null || query.priceMax != null) {
+  if (query.priceMin != null || query.priceMax != null || query.condition || query.hasListings) {
     const min = query.priceMin ?? 1;
     const max = query.priceMax ?? 2_147_483_647;
+    const listingParts: Prisma.Sql[] = [
+      Prisma.sql`v.card_id = c.id`,
+      Prisma.sql`l.status = 'ACTIVE'`,
+      Prisma.sql`l.quantity > l.quantity_reserved`,
+    ];
+    if (query.priceMin != null || query.priceMax != null) {
+      listingParts.push(Prisma.sql`l.price_clp >= ${min}`);
+      listingParts.push(Prisma.sql`l.price_clp <= ${max}`);
+    }
+    if (query.condition) {
+      listingParts.push(Prisma.sql`l.condition::text = ${query.condition}`);
+    }
     parts.push(
       Prisma.sql`EXISTS (
         SELECT 1 FROM listings l
         INNER JOIN card_variants v ON v.id = l.variant_id
-        WHERE v.card_id = c.id
-          AND l.status = 'ACTIVE'
-          AND l.quantity > l.quantity_reserved
-          AND l.price_clp >= ${min}
-          AND l.price_clp <= ${max}
+        WHERE ${Prisma.join(listingParts, " AND ")}
       )`,
     );
   }
+  parts.push(...attributeWhereParts(query));
   return Prisma.sql`WHERE ${Prisma.join(parts, " AND ")}`;
 }
 
@@ -142,6 +159,19 @@ function buildOrderBy(query: SearchCardsQuery): Prisma.Sql {
       INNER JOIN card_variants v ON v.id = l.variant_id
       WHERE v.card_id = c.id AND l.status = 'ACTIVE' AND l.quantity > l.quantity_reserved
     ) ASC NULLS LAST, c.number ASC, c.id ASC`;
+  }
+  if (query.sort === "nameAsc") {
+    return Prisma.sql`ORDER BY c.name ASC, c.number ASC, c.id ASC`;
+  }
+  if (query.sort === "nameDesc") {
+    return Prisma.sql`ORDER BY c.name DESC, c.number ASC, c.id ASC`;
+  }
+  if (query.sort === "hp" || query.sort === "atk" || query.sort === "level" || query.sort === "manaValue") {
+    const filter = getGameFilterDefinition(query.game).filters.find((item) => item.sortKey === query.sort);
+    const expr = jsonSortExpression(filter);
+    if (expr) {
+      return Prisma.sql`ORDER BY ${expr} ASC NULLS LAST, c.number ASC, c.id ASC`;
+    }
   }
   if (query.sort === "releasedAt" || !query.q) {
     return Prisma.sql`ORDER BY s.released_at DESC NULLS LAST, c.number ASC, c.id ASC`;

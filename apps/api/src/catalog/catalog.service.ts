@@ -1,7 +1,8 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
-import { ERROR_CODES, PLATFORM } from "@tcg/config";
+import { ERROR_CODES, PLATFORM, presentAttributeFields } from "@tcg/config";
 import type {
+  AdminCardAttributesView,
   CardDetailView,
   CardSummaryView,
   GameView,
@@ -9,6 +10,7 @@ import type {
   SetSummaryView,
   VariantDetailView,
 } from "@tcg/types";
+import { inspectCardAttributes } from "@tcg/validation";
 import { AppError } from "../common/errors/app-error";
 import { PrismaService } from "../prisma/prisma.service";
 import { ListingsService } from "../listings/listings.service";
@@ -103,6 +105,31 @@ export class CatalogService {
       throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Carta no encontrada");
     }
     return toCardDetail(row, await this.market.summarizeForCard(row.id));
+  }
+
+
+  async inspectCardAttributes(id: string): Promise<AdminCardAttributesView> {
+    const row = await this.prisma.card.findUnique({
+      where: { id },
+      include: { set: { include: { game: true } } },
+    });
+    if (!row) {
+      throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Carta no encontrada");
+    }
+    const attributes =
+      row.attributes && typeof row.attributes === "object" && !Array.isArray(row.attributes)
+        ? (row.attributes as Record<string, unknown>)
+        : {};
+    const inspected = inspectCardAttributes(row.set.game.slug, attributes);
+    return {
+      cardId: row.id,
+      gameSlug: row.set.game.slug,
+      raw: attributes,
+      validated: inspected.parsed,
+      unknownKeys: inspected.unknownKeys,
+      valid: inspected.valid,
+      issues: inspected.issues,
+    };
   }
 
   async getCardBySlug(gameSlug: string, setSlug: string, cardSlug: string): Promise<CardDetailView> {
@@ -300,6 +327,7 @@ function toCardDetail(row: {
     supertype: row.supertype,
     imageUrl: row.imageUrl,
     attributes,
+    attributeFields: presentAttributeFields(row.set.game.slug, attributes),
     game: { id: row.set.game.id, slug: row.set.game.slug, name: row.set.game.name },
     set: { id: row.set.id, code: row.set.code, slug: row.set.slug, name: row.set.name },
     variants: row.variants.map((variant) => ({

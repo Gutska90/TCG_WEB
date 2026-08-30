@@ -28,6 +28,8 @@ describe("scryfall mapper", () => {
     expect(mapped.variants).toHaveLength(2);
     expect(mapped.variants.some((row) => row.isDefault && row.finish === "NORMAL")).toBe(true);
     expect(mapped.attributes.source).toBe("scryfall");
+    expect(mapped.attributes.manaValue).toBeNull();
+    expect(mapped.attributes.cardType).toBe("Instant");
     expect(mapped.variants[0]?.externalIds.scryfallId).toBe("scry-1");
   });
 });

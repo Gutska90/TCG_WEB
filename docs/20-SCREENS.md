@@ -20,7 +20,7 @@ Cada pantalla lista: fase, ruta, datos (API), acciones, vacío, error. Si la API
 | 2 | `/{game}/cartas` | cards paginadas del game | filtros set/rareza |
 | 2 | `/{game}/{set}` | set + cards | |
 | 2 | `/{game}/{set}/{card}` | card + variants | selector variante, favorito |
-| 3 | `/buscar` | search | query, filtros |
+| 3 | `/buscar` | search + `GET /v1/games/:slug/filters` | query, filtros por juego, URL compartible |
 | 4 | ficha + bloque vendedores | listings by variant | add cart |
 | 4 | `/listings/{id}` | listing | |
 | 4 | `/vendedores/{slug}` | user public + listings | |
@@ -65,7 +65,7 @@ Vacío paso 1: “No encontramos esa carta. Puedes reportarla.”
 
 ### Ficha de carta — bloques
 
-1. Arte / placeholder, nombre, set, número, rareza
+1. Arte / placeholder, nombre, set, número, rareza, atributos del TCG (no `{}`)
 2. Chips de variante (idioma, finish)
 3. Mercado: market, min, avg, #listings (0 en MVP 1)
 4. Acciones: Favorito, (Fase 4) Vender esta, (12) Colección, (14) Wishlist

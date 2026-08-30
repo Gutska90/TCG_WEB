@@ -4,12 +4,16 @@ import { paginationQuerySchema, variantPricesQuerySchema, type PaginationQuery, 
 import { Public } from "../common/decorators/public.decorator";
 import { ZodPipe } from "../common/pipes/zod-pipe";
 import { CatalogService } from "./catalog.service";
+import { GameFiltersService } from "./game-filters.service";
 
 @SkipThrottle()
 @Public()
 @Controller("v1")
 export class CatalogController {
-  constructor(private readonly catalog: CatalogService) {}
+  constructor(
+    private readonly catalog: CatalogService,
+    private readonly filters: GameFiltersService,
+  ) {}
 
   @Get("games")
   listGames() {
@@ -19,6 +23,11 @@ export class CatalogController {
   @Get("games/:slug")
   getGame(@Param("slug") slug: string) {
     return this.catalog.getGame(slug);
+  }
+
+  @Get("games/:slug/filters")
+  listGameFilters(@Param("slug") slug: string) {
+    return this.filters.forGame(slug);
   }
 
   @Get("games/:slug/sets")

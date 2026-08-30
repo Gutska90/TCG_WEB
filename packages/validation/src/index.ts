@@ -1,8 +1,6 @@
 import { z } from "zod";
 import {
   CARD_CONDITIONS,
-  CARD_FINISHES,
-  CARD_LANGUAGES,
   LISTING_STATUSES,
   ORDER_STATUSES,
   LEDGER_ENTRY_TYPES,
@@ -153,22 +151,19 @@ function emptyToUndefined(value: unknown): unknown {
   return value === "" || value === null ? undefined : value;
 }
 
-export const searchCardsQuerySchema = paginationQuerySchema.extend({
-  q: z.preprocess(emptyToUndefined, z.string().trim().max(120).optional()),
-  game: z.preprocess(emptyToUndefined, z.string().trim().max(80).optional()),
-  set: z.preprocess(emptyToUndefined, z.string().trim().max(80).optional()),
-  rarity: z.preprocess(emptyToUndefined, z.string().trim().max(80).optional()),
-  language: z.preprocess(emptyToUndefined, z.enum(CARD_LANGUAGES).optional()),
-  finish: z.preprocess(emptyToUndefined, z.enum(CARD_FINISHES).optional()),
-  sort: z.preprocess(
-    emptyToUndefined,
-    z.enum(["relevance", "releasedAt", "price"]).default("relevance"),
-  ),
-  priceMin: z.preprocess(emptyToUndefined, z.coerce.number().int().min(1).optional()),
-  priceMax: z.preprocess(emptyToUndefined, z.coerce.number().int().min(1).optional()),
-});
-
-export type SearchCardsQuery = z.infer<typeof searchCardsQuerySchema>;
+export { collectSearchQuery, searchCardsQuerySchema, type SearchCardsQuery } from "./search-query";
+export {
+  cardAttributesSchemaFor,
+  inspectCardAttributes,
+  magicCardAttributesSchema,
+  pokemonCardAttributesSchema,
+  yugiohCardAttributesSchema,
+  mylCardAttributesSchema,
+  onePieceCardAttributesSchema,
+  digimonCardAttributesSchema,
+  gundamCardAttributesSchema,
+  type AttributeInspectResult,
+} from "./card-attributes";
 
 export const sellerOnboardingSchema = z.object({
   recipientName: z.string().trim().min(2).max(80),

@@ -4,12 +4,13 @@ import { OrdersModule } from "../orders/orders.module";
 import { PaymentsModule } from "../payments/payments.module";
 import { PayoutsModule } from "../payouts/payouts.module";
 import { SellerPlansModule } from "../seller-plans/seller-plans.module";
+import { CatalogModule } from "../catalog/catalog.module";
 import { AdminActionsService } from "./admin-actions.service";
 import { AdminController } from "./admin.controller";
 import { AdminOpsService } from "./admin-ops.service";
 
 @Module({
-  imports: [OrdersModule, PaymentsModule, LedgerModule, PayoutsModule, SellerPlansModule],
+  imports: [OrdersModule, PaymentsModule, LedgerModule, PayoutsModule, SellerPlansModule, CatalogModule],
   controllers: [AdminController],
   providers: [AdminOpsService, AdminActionsService],
 })

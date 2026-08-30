@@ -33,7 +33,7 @@
 | TCG Market Chile | Índice interno de precio por variante (ventas COMPLETED + listings). No es TCGPlayer/Cardmarket/TCGMatch. |
 | RBAC | Roles en `UserRole`; políticas centralizadas. |
 | API-first | No hay UI de feature sin contrato en `/docs` y endpoint. |
-| TCGMatch | Competidor de referencia funcional. No es plantilla de código ni de marca. |
+| Atributos de carta | JSON por juego en `Card.attributes`. No hay columnas `pokemonHp`. Ver [catalog/CARD-ATTRIBUTES](catalog/CARD-ATTRIBUTES.md). |
 
 ## Identidad visual (provisional, Fase 0 no la necesita)
 

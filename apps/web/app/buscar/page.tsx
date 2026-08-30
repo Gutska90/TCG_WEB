@@ -1,44 +1,18 @@
 import Link from "next/link";
 import { CatalogPager } from "../../components/catalog-pager";
+import { SearchFilterChips } from "../../components/search-form";
 import { SearchLayout } from "../../components/search-layout";
 import { EmptyState } from "../../components/ui/empty-state";
 import { ProductCard } from "../../components/ui/product-card";
-import { CatalogRequestError, getGames } from "../../lib/catalog";
-import { searchCards, searchCardsHref, type SearchCardsInput } from "../../lib/search";
+import { CatalogRequestError, getGameFilters, getGames } from "../../lib/catalog";
+import { searchCards, searchCardsHref, searchInputFromParams } from "../../lib/search";
 
 type SearchPageProps = {
-  searchParams: Promise<{
-    q?: string;
-    game?: string;
-    set?: string;
-    rarity?: string;
-    language?: string;
-    finish?: string;
-    sort?: string;
-    priceMin?: string;
-    priceMax?: string;
-    page?: string;
-  }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
-function toInput(raw: Awaited<SearchPageProps["searchParams"]>): SearchCardsInput {
-  const sort = raw.sort === "releasedAt" || raw.sort === "price" ? raw.sort : "relevance";
-  return {
-    q: raw.q?.trim() || undefined,
-    game: raw.game?.trim() || undefined,
-    set: raw.set?.trim() || undefined,
-    rarity: raw.rarity?.trim() || undefined,
-    language: raw.language?.trim() || undefined,
-    finish: raw.finish?.trim() || undefined,
-    sort,
-    priceMin: raw.priceMin ? Number(raw.priceMin) || undefined : undefined,
-    priceMax: raw.priceMax ? Number(raw.priceMax) || undefined : undefined,
-    page: Number(raw.page ?? "1") || 1,
-  };
-}
-
 export default async function SearchPage({ searchParams }: SearchPageProps) {
-  const values = toInput(await searchParams);
+  const values = searchInputFromParams(await searchParams);
   let games: Awaited<ReturnType<typeof getGames>> = [];
   try {
     games = await getGames();
@@ -46,8 +20,28 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     games = [];
   }
 
+  let filters: Awaited<ReturnType<typeof getGameFilters>> | null = null;
+  if (values.game) {
+    try {
+      filters = await getGameFilters(values.game);
+    } catch {
+      filters = null;
+    }
+  }
+
   const hasQuery = Boolean(
-    values.q || values.game || values.set || values.rarity || values.language || values.finish || values.priceMin || values.priceMax,
+    values.q ||
+      values.game ||
+      values.set ||
+      values.rarity ||
+      values.supertype ||
+      values.language ||
+      values.finish ||
+      values.condition ||
+      values.hasListings ||
+      values.priceMin ||
+      values.priceMax ||
+      (values.attrs && Object.keys(values.attrs).length > 0),
   );
 
   let error: string | null = null;
@@ -57,7 +51,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       results = await searchCards(values);
     } catch (err) {
       if (err instanceof CatalogRequestError && err.status === 400) {
-        error = "Revisa los filtros e inténtalo de nuevo.";
+        error = "Ese filtro no aplica a este juego. Revisa los filtros.";
       } else {
         error = "No se pudo buscar. ¿Está la API arriba?";
       }
@@ -69,7 +63,10 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       <h1 className="text-3xl font-medium tracking-tight">Buscar cartas</h1>
       <p className="mt-2 text-sm text-text-muted">Nombre, número, set o juego.</p>
       <div className="mt-6">
-        <SearchLayout games={games} values={values}>
+        <SearchLayout games={games} values={values} filters={filters}>
+          <div className="mb-4">
+            <SearchFilterChips values={values} />
+          </div>
           {error ? <p className="text-sm text-danger">{error}</p> : null}
           {!hasQuery ? (
             <EmptyState

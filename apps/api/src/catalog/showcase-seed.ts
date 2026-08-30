@@ -39,6 +39,7 @@ type ShowcaseCard = {
   rarity: string;
   supertype: string;
   priceClp: number;
+  attributes?: Record<string, unknown>;
 };
 
 type ShowcaseGame = {
@@ -62,12 +63,12 @@ export const SHOWCASE_GAMES: ShowcaseGame[] = [
     sortOrder: 1,
     set: { code: "VTK", slug: "vitrina-kanto", name: "Vitrina Kanto" },
     cards: [
-      { number: "001", name: "Ember Pup", rarity: "Common", supertype: "Creature", priceClp: 2500 },
-      { number: "002", name: "Tide Sprite", rarity: "Common", supertype: "Creature", priceClp: 2800 },
-      { number: "003", name: "Stoneback Cub", rarity: "Uncommon", supertype: "Creature", priceClp: 4200 },
-      { number: "004", name: "Gale Finch", rarity: "Uncommon", supertype: "Creature", priceClp: 3900 },
-      { number: "005", name: "Moss Cap", rarity: "Rare", supertype: "Creature", priceClp: 8900 },
-      { number: "006", name: "Nightveil Lynx", rarity: "Rare", supertype: "Creature", priceClp: 12500 },
+      { number: "001", name: "Ember Pup", rarity: "Common", supertype: "Pokémon", priceClp: 2500, attributes: { cardType: "POKEMON", pokemonType: ["FIRE"], stage: "BASIC", hp: 60 } },
+      { number: "002", name: "Tide Sprite", rarity: "Common", supertype: "Pokémon", priceClp: 2800, attributes: { cardType: "POKEMON", pokemonType: ["WATER"], stage: "BASIC", hp: 50 } },
+      { number: "003", name: "Stoneback Cub", rarity: "Uncommon", supertype: "Pokémon", priceClp: 4200, attributes: { cardType: "POKEMON", pokemonType: ["FIGHTING"], stage: "STAGE_1", hp: 90 } },
+      { number: "004", name: "Gale Finch", rarity: "Uncommon", supertype: "Pokémon", priceClp: 3900, attributes: { cardType: "POKEMON", pokemonType: ["LIGHTNING"], stage: "BASIC", hp: 70 } },
+      { number: "005", name: "Moss Cap", rarity: "Rare", supertype: "Pokémon", priceClp: 8900, attributes: { cardType: "POKEMON", pokemonType: ["GRASS"], stage: "STAGE_2", hp: 140 } },
+      { number: "006", name: "Nightveil Lynx", rarity: "Rare", supertype: "Pokémon", priceClp: 12500, attributes: { cardType: "POKEMON", pokemonType: ["DARKNESS"], stage: "STAGE_1", hp: 110 } },
     ],
   },
   {
@@ -77,12 +78,12 @@ export const SHOWCASE_GAMES: ShowcaseGame[] = [
     sortOrder: 2,
     set: { code: "AOS", slug: "archive-of-sparks", name: "Archive of Sparks" },
     cards: [
-      { number: "001", name: "Amberbolt Adept", rarity: "Common", supertype: "Creature", priceClp: 1500 },
-      { number: "002", name: "Glimmerfen Warden", rarity: "Uncommon", supertype: "Creature", priceClp: 4500 },
-      { number: "003", name: "Sundial Archivist", rarity: "Uncommon", supertype: "Creature", priceClp: 5200 },
-      { number: "004", name: "Ironroot Channeler", rarity: "Rare", supertype: "Creature", priceClp: 9800 },
-      { number: "005", name: "Whispering Relic", rarity: "Rare", supertype: "Artifact", priceClp: 11200 },
-      { number: "006", name: "Cinder Pact", rarity: "Mythic", supertype: "Enchantment", priceClp: 18500 },
+      { number: "001", name: "Amberbolt Adept", rarity: "Common", supertype: "Creature", priceClp: 1500, attributes: { cardType: "Creature", colors: ["R"], colorIdentity: ["R"], manaValue: 2, power: "2", toughness: "1" } },
+      { number: "002", name: "Glimmerfen Warden", rarity: "Uncommon", supertype: "Creature", priceClp: 4500, attributes: { cardType: "Creature", colors: ["U"], colorIdentity: ["U"], manaValue: 3, power: "2", toughness: "4" } },
+      { number: "003", name: "Sundial Archivist", rarity: "Uncommon", supertype: "Creature", priceClp: 5200, attributes: { cardType: "Creature", colors: ["W"], colorIdentity: ["W"], manaValue: 4, power: "3", toughness: "3" } },
+      { number: "004", name: "Ironroot Channeler", rarity: "Rare", supertype: "Creature", priceClp: 9800, attributes: { cardType: "Creature", colors: ["G"], colorIdentity: ["G"], manaValue: 5, power: "4", toughness: "4" } },
+      { number: "005", name: "Whispering Relic", rarity: "Rare", supertype: "Artifact", priceClp: 11200, attributes: { cardType: "Artifact", colors: [], colorIdentity: [], manaValue: 2 } },
+      { number: "006", name: "Cinder Pact", rarity: "Mythic", supertype: "Enchantment", priceClp: 18500, attributes: { cardType: "Enchantment", colors: ["R"], colorIdentity: ["R"], manaValue: 3 } },
     ],
   },
   {
@@ -92,12 +93,12 @@ export const SHOWCASE_GAMES: ShowcaseGame[] = [
     sortOrder: 3,
     set: { code: "GLD", slug: "grand-line-demo", name: "Grand Line Demo" },
     cards: [
-      { number: "001", name: "Dockside Lookout", rarity: "Common", supertype: "Character", priceClp: 2200 },
-      { number: "002", name: "Tidechart Navigator", rarity: "Uncommon", supertype: "Character", priceClp: 4100 },
-      { number: "003", name: "Barrelhold Cook", rarity: "Uncommon", supertype: "Character", priceClp: 3600 },
-      { number: "004", name: "Skyline Spotter", rarity: "Rare", supertype: "Character", priceClp: 7600 },
-      { number: "005", name: "Harbor Quartermaster", rarity: "Rare", supertype: "Character", priceClp: 9400 },
-      { number: "006", name: "Coral Line Cadet", rarity: "Super Rare", supertype: "Character", priceClp: 15800 },
+      { number: "001", name: "Dockside Lookout", rarity: "Common", supertype: "Character", priceClp: 2200, attributes: { cardType: "CHARACTER", color: "RED", cost: 1, power: 2000 } },
+      { number: "002", name: "Tidechart Navigator", rarity: "Uncommon", supertype: "Character", priceClp: 4100, attributes: { cardType: "CHARACTER", color: "BLUE", cost: 2, power: 3000 } },
+      { number: "003", name: "Barrelhold Cook", rarity: "Uncommon", supertype: "Character", priceClp: 3600, attributes: { cardType: "CHARACTER", color: "YELLOW", cost: 3, power: 4000 } },
+      { number: "004", name: "Skyline Spotter", rarity: "Rare", supertype: "Character", priceClp: 7600, attributes: { cardType: "CHARACTER", color: "GREEN", cost: 4, power: 5000 } },
+      { number: "005", name: "Harbor Quartermaster", rarity: "Rare", supertype: "Character", priceClp: 9400, attributes: { cardType: "CHARACTER", color: "RED", cost: 5, power: 6000 } },
+      { number: "006", name: "Coral Line Cadet", rarity: "Super Rare", supertype: "Character", priceClp: 15800, attributes: { cardType: "CHARACTER", color: "BLUE", cost: 6, power: 7000 } },
     ],
   },
   {
@@ -107,12 +108,12 @@ export const SHOWCASE_GAMES: ShowcaseGame[] = [
     sortOrder: 4,
     set: { code: "SDD", slug: "shadow-duel-demo", name: "Shadow Duel Demo" },
     cards: [
-      { number: "001", name: "Glyphbound Sentinel", rarity: "Common", supertype: "Monster", priceClp: 1800 },
-      { number: "002", name: "Mirrorchain Mage", rarity: "Rare", supertype: "Monster", priceClp: 6400 },
-      { number: "003", name: "Trapweave Oracle", rarity: "Rare", supertype: "Trap", priceClp: 7100 },
-      { number: "004", name: "Scalebound Duelist", rarity: "Super Rare", supertype: "Monster", priceClp: 10200 },
-      { number: "005", name: "Vault Key Spirit", rarity: "Super Rare", supertype: "Spell", priceClp: 8800 },
-      { number: "006", name: "Dualstar Tactician", rarity: "Ultra Rare", supertype: "Monster", priceClp: 16400 },
+      { number: "001", name: "Glyphbound Sentinel", rarity: "Common", supertype: "Monster", priceClp: 1800, attributes: { category: "MONSTER", attribute: "EARTH", monsterType: ["WARRIOR"], cardTypes: ["NORMAL"], level: 4, atk: 1500, def: 1200 } },
+      { number: "002", name: "Mirrorchain Mage", rarity: "Rare", supertype: "Monster", priceClp: 6400, attributes: { category: "MONSTER", attribute: "DARK", monsterType: ["SPELLCASTER"], cardTypes: ["EFFECT"], level: 6, atk: 2100, def: 1600 } },
+      { number: "003", name: "Trapweave Oracle", rarity: "Rare", supertype: "Trap", priceClp: 7100, attributes: { category: "TRAP", spellTrapIcon: "NORMAL" } },
+      { number: "004", name: "Scalebound Duelist", rarity: "Super Rare", supertype: "Monster", priceClp: 10200, attributes: { category: "MONSTER", attribute: "DARK", monsterType: ["DRAGON"], cardTypes: ["EFFECT", "FUSION"], level: 8, atk: 2800, def: 2000 } },
+      { number: "005", name: "Vault Key Spirit", rarity: "Super Rare", supertype: "Spell", priceClp: 8800, attributes: { category: "SPELL", spellTrapIcon: "QUICK_PLAY" } },
+      { number: "006", name: "Dualstar Tactician", rarity: "Ultra Rare", supertype: "Monster", priceClp: 16400, attributes: { category: "MONSTER", attribute: "LIGHT", monsterType: ["WARRIOR"], cardTypes: ["EFFECT"], level: 7, atk: 2500, def: 2000 } },
     ],
   },
   {
@@ -122,12 +123,12 @@ export const SHOWCASE_GAMES: ShowcaseGame[] = [
     sortOrder: 5,
     set: { code: "AND", slug: "andes-demo", name: "Andes Demo" },
     cards: [
-      { number: "001", name: "Cumbre Andina", rarity: "Common", supertype: "Aliado", priceClp: 1900 },
-      { number: "002", name: "Niebla del Valle", rarity: "Common", supertype: "Aliado", priceClp: 2100 },
-      { number: "003", name: "Relámpago Austral", rarity: "Uncommon", supertype: "Oro", priceClp: 4800 },
-      { number: "004", name: "Pacto del Estrecho", rarity: "Rare", supertype: "Tótem", priceClp: 7200 },
-      { number: "005", name: "Guardián de Caliche", rarity: "Rare", supertype: "Aliado", priceClp: 8600 },
-      { number: "006", name: "Tronco del Sur", rarity: "Super Rare", supertype: "Aliado", priceClp: 14200 },
+      { number: "001", name: "Cumbre Andina", rarity: "Common", supertype: "Aliado", priceClp: 1900, attributes: { cardType: "ALIADO", raza: "ANDINO", coste: 2, fuerza: 2, era: "NUEVA_ERA" } },
+      { number: "002", name: "Niebla del Valle", rarity: "Common", supertype: "Aliado", priceClp: 2100, attributes: { cardType: "ALIADO", raza: "COSTERO", coste: 1, fuerza: 1, era: "NUEVA_ERA" } },
+      { number: "003", name: "Relámpago Austral", rarity: "Uncommon", supertype: "Oro", priceClp: 4800, attributes: { cardType: "ORO", coste: 1, era: "NUEVA_ERA" } },
+      { number: "004", name: "Pacto del Estrecho", rarity: "Rare", supertype: "Tótem", priceClp: 7200, attributes: { cardType: "TOTEM", coste: 3, era: "NUEVA_ERA" } },
+      { number: "005", name: "Guardián de Caliche", rarity: "Rare", supertype: "Aliado", priceClp: 8600, attributes: { cardType: "ALIADO", raza: "ANDINO", coste: 4, fuerza: 5, era: "NUEVA_ERA" } },
+      { number: "006", name: "Tronco del Sur", rarity: "Super Rare", supertype: "Aliado", priceClp: 14200, attributes: { cardType: "ALIADO", raza: "AUSTRAL", coste: 5, fuerza: 6, era: "NUEVA_ERA" } },
     ],
   },
 ];
@@ -223,6 +224,7 @@ async function upsertShowcaseCard(
       number: cardInput.number,
       rarity: cardInput.rarity,
       supertype: cardInput.supertype,
+      attributes: { source: "showcase-seed", ...cardInput.attributes },
     },
     create: {
       setId,
@@ -231,7 +233,7 @@ async function upsertShowcaseCard(
       name: cardInput.name,
       rarity: cardInput.rarity,
       supertype: cardInput.supertype,
-      attributes: { source: "showcase-seed" },
+      attributes: { source: "showcase-seed", ...cardInput.attributes },
     },
   });
   const variant = await prisma.cardVariant.upsert({

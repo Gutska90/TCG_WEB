@@ -19,6 +19,7 @@ const OPS_NAV = [
   { href: "/admin/reconciliation", label: "Conciliación" },
   { href: "/admin/users", label: "Usuarios" },
   { href: "/admin/listings", label: "Listings" },
+  { href: "/admin/catalog", label: "Catálogo" },
   { href: "/admin/feedback", label: "Feedback" },
 ];
 

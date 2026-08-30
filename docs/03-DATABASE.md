@@ -209,7 +209,7 @@ Card
   name
   rarity
   supertype
-  attributes Json
+  attributes Json      // CATALOG.1: contrato por slug, ver catalog/CARD-ATTRIBUTES.md
   imageUrl             // URL de origen (Scryfall, etc.), no blob propio
   unique(setId, number, name)  // ajustar si un número tiene varias caras
   unique(setId, slug)

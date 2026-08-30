@@ -47,6 +47,13 @@ async function main() {
      ORDER BY created_at DESC
      LIMIT 50`,
   );
+  await explain(
+    "catalog attributes gin containment",
+    `EXPLAIN (ANALYZE, BUFFERS)
+     SELECT c.id FROM cards c
+     WHERE c.attributes @> '{"cardType":"POKEMON"}'::jsonb
+     LIMIT 20`,
+  );
 }
 
 main()

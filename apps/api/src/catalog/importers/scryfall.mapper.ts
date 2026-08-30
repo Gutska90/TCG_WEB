@@ -14,6 +14,11 @@ export type ScryfallCard = {
   mana_cost?: string;
   cmc?: number;
   colors?: string[];
+  color_identity?: string[];
+  power?: string;
+  toughness?: string;
+  keywords?: string[];
+  legalities?: Record<string, string>;
   foil: boolean;
   nonfoil: boolean;
   finishes?: string[];
@@ -88,19 +93,37 @@ export function mapScryfallCard(card: ScryfallCard): {
     variants[0].isDefault = true;
   }
 
+  const typeLine = card.type_line ?? "";
+  const [typeSide, subtypeSide] = typeLine.split("—").map((part) => part.trim());
+  const types = (typeSide ?? "").split(/\s+/).filter(Boolean);
+  const cardType = types.find((type) => !["Legendary", "Basic", "Snow", "World", "Ongoing"].includes(type)) ?? types[0] ?? "Unknown";
+  const subtypes = subtypeSide ? subtypeSide.split(/\s+/).filter(Boolean) : [];
+  const legalities = Object.entries(card.legalities ?? {})
+    .filter(([, status]) => status === "legal")
+    .map(([format]) => format);
+
   return {
     number: card.collector_number,
     slug: slugifyStable(card.name, "card"),
     name: card.name,
     rarity: card.rarity,
-    supertype: card.type_line?.split("—")[0]?.trim() || "Unknown",
+    supertype: typeSide || "Unknown",
     imageUrl: scryfallImageUrl(card),
     attributes: {
       source: "scryfall",
       manaCost: card.mana_cost ?? null,
+      manaValue: card.cmc ?? null,
       cmc: card.cmc ?? null,
       colors: card.colors ?? [],
+      colorIdentity: card.color_identity ?? card.colors ?? [],
+      cardType,
+      subtypes,
+      power: card.power ?? null,
+      toughness: card.toughness ?? null,
+      keywords: card.keywords ?? [],
+      legalities,
       oracleText: card.oracle_text ?? null,
+      typeLine: typeLine || null,
     },
     variants,
   };

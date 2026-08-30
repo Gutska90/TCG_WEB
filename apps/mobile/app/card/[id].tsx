@@ -94,6 +94,11 @@ export default function CardScreen() {
       <Text style={{ color: colors.muted }}>
         {detail.set.name} · {detail.number} · {detail.rarity}
       </Text>
+      {detail.attributeFields?.map((field) => (
+        <Text key={field.key} style={{ color: colors.muted }}>
+          {field.label}: {field.value}
+        </Text>
+      ))}
       <Text>
         Precio orientativo {detail.market.minListing != null ? formatClp(detail.market.minListing) : "—"} · {detail.market.activeListings} publicaciones
       </Text>

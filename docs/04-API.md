@@ -101,7 +101,8 @@ Máximo `pageSize=100`.
 | GET | `/v1/sets/:id/cards` | no | paginado |
 | GET | `/v1/cards/:id` | no | carta + variantes + precios resumidos |
 | GET | `/v1/variants/:id` | no | variante + listings activos |
-| GET | `/v1/search/cards` | no | q, game, set, rarity, language, finish, sort |
+| GET | `/v1/games/:slug/filters` | no | CATALOG.1: filtros y options del juego |
+| GET | `/v1/search/cards` | no | q, game, set, rarity, language, finish, sort, `attr.*` |
 
 Respuesta de ficha `/v1/cards/:id` (MVP 2+ listings):
 
@@ -140,11 +141,15 @@ SEO web usa slugs; la API también expone las mismas fichas por id. `market.*` s
 | `rarity` | contiene, case-insensitive |
 | `language` | `CardLanguage` |
 | `finish` | `CardFinish` |
-| `sort` | `relevance` (default), `releasedAt` o `price` |
+| `sort` | `relevance` (default), `releasedAt`, `price`, `nameAsc`, `nameDesc`, y `hp`/`atk`/`level`/`manaValue` si el juego lo define |
 | `priceMin`, `priceMax` | CLP; filtra cartas con listing ACTIVE en rango |
+| `condition`, `hasListings`, `supertype` | marketplace / columna |
+| `attr.<key>` | CATALOG.1 whitelist por juego (ej. `attr.pokemonType=FIRE`) |
 | `page`, `pageSize` | igual que el resto del catálogo |
 
-Sin `q` ni filtros: `{ items: [], total: 0 }`.
+Sin `q` ni filtros: `{ items: [], total: 0 }`. Filtro de otro TCG: `400 FILTER_NOT_SUPPORTED_FOR_GAME`. Clave desconocida: `400 INVALID_FILTER`.
+
+`GET /v1/games/:slug/filters` devuelve `GameFiltersView` (support PARTIAL/FULL, options DISTINCT). Admin inspección: `GET /v1/admin/catalog/cards/:id/attributes`. Ver [catalog/GAME-FILTERS](catalog/GAME-FILTERS.md).
 
 Respuesta: `Paginated<SearchCardView>` (`CardSummaryView` + `gameName`, `setName`, `setCode`).
 

@@ -1,4 +1,4 @@
-import type { CardDetailView, CardSummaryView, GameView, Paginated, SetSummaryView } from "@tcg/types";
+import type { CardDetailView, CardSummaryView, GameFiltersView, GameView, Paginated, SetSummaryView } from "@tcg/types";
 
 const API_ORIGIN = process.env.API_ORIGIN ?? "http://localhost:4000";
 
@@ -25,6 +25,10 @@ export function getGames() {
 
 export function getGame(slug: string) {
   return catalogGet<GameView>(`/v1/games/${slug}`);
+}
+
+export function getGameFilters(slug: string) {
+  return catalogGet<GameFiltersView>(`/v1/games/${slug}/filters`, false);
 }
 
 export function getSets(gameSlug: string) {

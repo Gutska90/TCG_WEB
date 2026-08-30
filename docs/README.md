@@ -41,6 +41,8 @@ Este repositorio no es una copia de TCGMatch. TCGMatch es **referencia funcional
 | 20 | [SCREENS](20-SCREENS.md) | Inventario web, mobile, admin |
 | 21 | [ERRORS AND CONFIG](21-ERRORS-AND-CONFIG.md) | Códigos, env, comisión |
 | 22 | [GLOSSARY](22-GLOSSARY.md) | Vocabulario del proyecto |
+| — | [GAME-FILTERS](catalog/GAME-FILTERS.md) | CATALOG.1 filtros por TCG |
+| — | [CARD-ATTRIBUTES](catalog/CARD-ATTRIBUTES.md) | Contrato JSON `Card.attributes` |
 | 23 | [PRODUCT BACKLOG](23-PRODUCT-BACKLOG.md) | Confianza, compra, colección, comunidad, ops |
 | — | [FINANCIAL-LEDGER](FINANCIAL-LEDGER.md) | Asientos, saldo seller, payouts 10C |
 | — | [TRUST-AND-MODERATION](TRUST-AND-MODERATION.md) | Disputas, reportes, suspensión 10.5 |
