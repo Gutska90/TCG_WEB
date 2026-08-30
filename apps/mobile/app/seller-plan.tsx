@@ -1,4 +1,4 @@
-import { formatClp, formatFeePercentEsCl } from "@tcg/config";
+import { formatClp, formatFeePercentEsCl, sellerPlanLabel } from "@tcg/config";
 import { useQuery } from "@tanstack/react-query";
 import { Text } from "react-native";
 import type { SellerPlanView } from "@tcg/types";
@@ -33,7 +33,7 @@ function Inner() {
   const plan = query.data;
   return (
     <Screen title="Tu plan">
-      <Text style={{ color: colors.text, fontSize: 22, fontWeight: "600" }}>{plan.plan}</Text>
+      <Text style={{ color: colors.text, fontSize: 22, fontWeight: "600" }}>{sellerPlanLabel(plan.plan)}</Text>
       <Text style={{ color: colors.muted, marginTop: 8 }}>
         {formatClp(plan.monthlyPriceClp)} / mes · comisión normal {formatFeePercentEsCl(plan.normalFeeBps)} · tope{" "}
         {formatClp(plan.normalFeeCapClp)}

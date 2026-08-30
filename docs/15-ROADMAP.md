@@ -311,7 +311,7 @@ Orden de este bloque: UI/UX → auditoría de release → P0/P1 de código → s
 
 Entregado en repo:
 
-- Seed de vitrina (`seedShowcase` en `pnpm beta:seed`): Pokémon, Magic, One Piece + Yu-Gi-Oh **solo demo**, sellers ficticios, listings, historial `LISTING_MIN`, colección y wishlist del buyer. `SHOWCASE_COLLECTION_SIZE` para lotes grandes locales.
+- Seed de vitrina (`seedShowcase` en `pnpm beta:seed`): Pokémon, Magic, One Piece + Yu-Gi-Oh y Mitos y Leyendas **solo demo**, sellers ficticios, listings, historial `LISTING_MIN`, colección y wishlist del buyer. `SHOWCASE_COLLECTION_SIZE` para lotes grandes locales.
 - Templates HTML de correo (verificar, reset, notificaciones). El envío real sigue bloqueado sin Resend/SMTP.
 - Hardening web: skeletons, 404/500, `reason=expired`, banner offline, anti doble-submit en checkout.
 - Índices de listado/precios/wishlist/colección revisados; script `pnpm db:explain`.
@@ -340,7 +340,7 @@ Auditoría canónica: [audits/BETA-RELEASE-AUDIT-2026-08.md](audits/BETA-RELEASE
 
 ## M1 — Seller Plans + Fee Engine
 
-**Estado: esta entrega.** Planes FREE / PLUS / PRO / STORE, caps, promo `LAUNCH_3_PERCENT`, snapshot por Order, admin manual. **No** pagos live, **no** billing de suscripción, **no** Scanner/Stores/Auctions. Doc: [SELLER-PLANS-AND-FEES](SELLER-PLANS-AND-FEES.md).
+**Estado: listo.** Planes FREE / PLUS / PRO / STORE, caps, promo `LAUNCH_3_PERCENT`, snapshot por Order, admin manual. **No** pagos live, **no** billing de suscripción, **no** Scanner/Stores/Auctions. Doc: [SELLER-PLANS-AND-FEES](SELLER-PLANS-AND-FEES.md).
 
 ## M2 — Subscription Billing (futuro, no implementar)
 

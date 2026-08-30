@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import {
-  LAUNCH_PROMO_CODE,
+  LAUNCH_PROMO_INACTIVE,
   loadLaunchPromoWindow,
   quoteMarketplaceFee,
   type MarketplaceFeeQuote,
@@ -60,7 +60,7 @@ export class MarketplaceFeeService {
       const full = quoteMarketplaceFee({
         plan: quote.planCode,
         orderSubtotalClp: quote.grossAmountClp,
-        promoWindow: { enabled: false, code: LAUNCH_PROMO_CODE, startsAt: null, endsAt: null },
+        promoWindow: LAUNCH_PROMO_INACTIVE,
       });
       this.metrics.add("promo_discount_clp", full.platformFeeClp - quote.platformFeeClp);
     }

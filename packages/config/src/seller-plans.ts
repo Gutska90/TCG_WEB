@@ -24,6 +24,12 @@ export const SELLER_PLAN_LABELS: Record<SellerPlan, string> = {
   STORE: "Store",
 };
 
+export function sellerPlanLabel(plan: string): string {
+  return (SELLER_PLANS as readonly string[]).includes(plan)
+    ? SELLER_PLAN_LABELS[plan as SellerPlan]
+    : plan;
+}
+
 export type SellerPlanRates = {
   plan: SellerPlan;
   monthlyPriceClp: number;
@@ -62,6 +68,14 @@ export function isLaunchPromoActive(at: Date, window: LaunchPromoWindow = loadLa
   if (!window.enabled || !window.startsAt || !window.endsAt) return false;
   return at >= window.startsAt && at < window.endsAt;
 }
+
+/** Promo apagada: seeds, helpers legacy y métrica de descuento vs tarifa de plan. */
+export const LAUNCH_PROMO_INACTIVE: LaunchPromoWindow = {
+  enabled: false,
+  code: LAUNCH_PROMO_CODE,
+  startsAt: null,
+  endsAt: null,
+};
 
 export type MarketplaceFeeQuote = {
   policyVersion: typeof SELLER_PLANS_POLICY_VERSION;
@@ -105,6 +119,18 @@ export function quoteMarketplaceFee(input: {
     feeBeforeCapClp,
     platformFeeClp,
     sellerPayableBeforeProcessorClp: subtotal - platformFeeClp,
+  };
+}
+
+/** Campos Prisma de snapshot de comisión a partir de una quote. */
+export function orderFeeSnapshotFromQuote(quote: MarketplaceFeeQuote) {
+  return {
+    commissionClp: quote.platformFeeClp,
+    marketplaceFeePolicyVersion: quote.policyVersion,
+    sellerPlanCode: quote.planCode,
+    marketplacePromotionCode: quote.promotionCode,
+    marketplaceFeeBps: quote.effectiveFeeBps,
+    marketplaceFeeCapClp: quote.effectiveFeeCapClp,
   };
 }
 

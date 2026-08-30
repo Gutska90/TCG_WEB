@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { formatClp, SELLER_PLANS } from "@tcg/config";
+import { formatClp, SELLER_PLANS, sellerPlanLabel } from "@tcg/config";
 import type { AdminSellerPlanView } from "@tcg/types";
 import { ConfirmAction, Meta } from "@/components/confirm-action";
 import { api } from "@/lib/api";
@@ -39,7 +39,7 @@ export default function AdminSellerPlanPage() {
         Plan asignado manualmente. No existe cobro recurrente automático.
       </p>
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Meta label="Plan actual">{data.plan}</Meta>
+        <Meta label="Plan actual">{sellerPlanLabel(data.plan)}</Meta>
         <Meta label="Inicio">{data.startsAt ?? "—"}</Meta>
         <Meta label="Fin">{data.endsAt ?? "—"}</Meta>
         <Meta label="Origen">{data.source ?? "FREE por defecto"}</Meta>
@@ -51,8 +51,8 @@ export default function AdminSellerPlanPage() {
         {SELLER_PLANS.map((plan) => (
           <ConfirmAction
             key={plan}
-            title={`Asignar ${plan}`}
-            confirmLabel={`¿Asignar ${plan} sin cobro automático?`}
+            title={`Asignar ${sellerPlanLabel(plan)}`}
+            confirmLabel={`¿Asignar ${sellerPlanLabel(plan)} sin cobro automático?`}
             requireReason
             onConfirm={async (reason) => {
               if (!id) return;

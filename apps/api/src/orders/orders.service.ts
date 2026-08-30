@@ -4,6 +4,7 @@ import {
   COURIER_METHODS,
   ERROR_CODES,
   PLATFORM,
+  orderFeeSnapshotFromQuote,
   type ShippingMethod,
 } from "@tcg/config";
 import type { CheckoutView, OrderView, Paginated } from "@tcg/types";
@@ -198,12 +199,7 @@ export class OrdersService {
             status: "PENDING_PAYMENT",
             subtotalClp,
             shippingClp,
-            commissionClp: feeQuote.platformFeeClp,
-            marketplaceFeePolicyVersion: feeQuote.policyVersion,
-            sellerPlanCode: feeQuote.planCode,
-            marketplacePromotionCode: feeQuote.promotionCode,
-            marketplaceFeeBps: feeQuote.effectiveFeeBps,
-            marketplaceFeeCapClp: feeQuote.effectiveFeeCapClp,
+            ...orderFeeSnapshotFromQuote(feeQuote),
             totalClp,
             shippingMethod: selection.method,
             shippingAddressId: selection.addressId ?? null,

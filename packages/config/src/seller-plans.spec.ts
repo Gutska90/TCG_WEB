@@ -3,18 +3,16 @@ import {
   LAUNCH_PROMO_CODE,
   LAUNCH_PROMO_FEE_BPS,
   LAUNCH_PROMO_FEE_CAP_CLP,
+  LAUNCH_PROMO_INACTIVE,
   SELLER_PLAN_RATES,
   isLaunchPromoActive,
+  orderFeeSnapshotFromQuote,
   quoteMarketplaceFee,
+  sellerPlanLabel,
   type LaunchPromoWindow,
 } from "./seller-plans";
 
-const PROMO_OFF: LaunchPromoWindow = {
-  enabled: false,
-  code: LAUNCH_PROMO_CODE,
-  startsAt: null,
-  endsAt: null,
-};
+const PROMO_OFF = LAUNCH_PROMO_INACTIVE;
 
 const PROMO_ON: LaunchPromoWindow = {
   enabled: true,
@@ -117,5 +115,23 @@ describe("SELLER_PLANS_V1 quotes", () => {
     const quote = quoteMarketplaceFee({ plan: "FREE", orderSubtotalClp: 1, promoWindow: PROMO_OFF });
     expect(Number.isInteger(quote.platformFeeClp)).toBe(true);
     expect(quote.platformFeeClp).toBe(0);
+  });
+
+  it("sellerPlanLabel maps codes and falls back", () => {
+    expect(sellerPlanLabel("FREE")).toBe("Free");
+    expect(sellerPlanLabel("SELLER_PLUS")).toBe("Seller Plus");
+    expect(sellerPlanLabel("unknown")).toBe("unknown");
+  });
+
+  it("orderFeeSnapshotFromQuote copies quote into Order columns", () => {
+    const quote = quoteMarketplaceFee({ plan: "FREE", orderSubtotalClp: 30_000, promoWindow: PROMO_OFF });
+    expect(orderFeeSnapshotFromQuote(quote)).toEqual({
+      commissionClp: 1_800,
+      marketplaceFeePolicyVersion: quote.policyVersion,
+      sellerPlanCode: "FREE",
+      marketplacePromotionCode: null,
+      marketplaceFeeBps: 600,
+      marketplaceFeeCapClp: 25_000,
+    });
   });
 });

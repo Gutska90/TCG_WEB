@@ -38,7 +38,7 @@ Colección grande local: `SHOWCASE_COLLECTION_SIZE=1000 pnpm beta:seed`.
 
 ## Qué probar
 
-Flujos sandbox: registro, login, buscar, ficha, carrito, checkout de prueba, orden, confirmar recepción, rating, disputa. Seller: onboarding, listing, venta, preparar, despachar, saldo. Admin: dashboard, refund, payout **manual**, conciliación, disputa, reportes, jobs.
+Flujos sandbox: registro, login, buscar, ficha, carrito, checkout de prueba, orden, confirmar recepción, rating, disputa. Seller: onboarding, listing, `/planes`, estimación de comisión al publicar, venta, preparar, despachar, saldo, tarjeta Tu plan. Admin: dashboard, refund, payout **manual**, conciliación, disputa, reportes, jobs, asignación manual de plan de vendedor (sin cobro de mensualidad).
 
 Colección, historial de precios (índice TCG Market Chile) y wishlist. Tema claro/oscuro. Mobile web (~375px).
 

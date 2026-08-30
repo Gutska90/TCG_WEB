@@ -1,4 +1,4 @@
-import { commissionClp, LEGAL } from "@tcg/config";
+import { LEGAL, LAUNCH_PROMO_INACTIVE, orderFeeSnapshotFromQuote, quoteMarketplaceFee } from "@tcg/config";
 import type { PrismaClient } from "@prisma/client";
 import * as argon2 from "argon2";
 import { ledgerIdempotencyKey, sellerNetClp } from "../ledger/ledger.money";
@@ -204,7 +204,12 @@ async function ensureFailedRefundFixture(
   }
 
   const priceClp = 5000;
-  const fee = commissionClp(priceClp);
+  const quote = quoteMarketplaceFee({
+    plan: "FREE",
+    orderSubtotalClp: priceClp,
+    promoWindow: LAUNCH_PROMO_INACTIVE,
+  });
+  const fee = quote.platformFeeClp;
   const net = sellerNetClp(priceClp, fee);
   const orderNumber = `${QA_REFUND_ORDER_PREFIX}-${Date.now().toString(36).toUpperCase()}`;
 
@@ -224,7 +229,7 @@ async function ensureFailedRefundFixture(
             status: "PAID",
             subtotalClp: priceClp,
             shippingClp: 0,
-            commissionClp: fee,
+            ...orderFeeSnapshotFromQuote(quote),
             totalClp: priceClp,
             shippingMethod: "MEETUP",
             paidAt: new Date(),

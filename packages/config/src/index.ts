@@ -1,5 +1,5 @@
 import { quoteShippingClp } from "./shipping";
-import { LAUNCH_PROMO_CODE, quoteMarketplaceFee } from "./seller-plans";
+import { LAUNCH_PROMO_INACTIVE, quoteMarketplaceFee } from "./seller-plans";
 
 export {
   COMPRA_PROTEGIDA_DEFINITION,
@@ -24,10 +24,13 @@ export {
   LAUNCH_PROMO_CODE,
   LAUNCH_PROMO_FEE_BPS,
   LAUNCH_PROMO_FEE_CAP_CLP,
+  LAUNCH_PROMO_INACTIVE,
   SELLER_PLANS,
   SELLER_PLANS_POLICY_VERSION,
   SELLER_PLAN_LABELS,
   SELLER_PLAN_RATES,
+  orderFeeSnapshotFromQuote,
+  sellerPlanLabel,
   SELLER_SUBSCRIPTION_SOURCES,
   SELLER_SUBSCRIPTION_STATUSES,
   feeBeforeCap,
@@ -211,7 +214,7 @@ export function commissionClp(subtotalClp: number): number {
   return quoteMarketplaceFee({
     plan: "FREE",
     orderSubtotalClp: subtotalClp,
-    promoWindow: { enabled: false, code: LAUNCH_PROMO_CODE, startsAt: null, endsAt: null },
+    promoWindow: LAUNCH_PROMO_INACTIVE,
   }).platformFeeClp;
 }
 

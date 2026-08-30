@@ -26,6 +26,7 @@ E2E: `e2e/admin-refund-retry.spec.ts` usa el fixture `QA_B4_REFUND_RETRY` (listi
 - [ ] Aprobar → Marcar en proceso → Marcar PAID con `providerRef` (comprobante externo).
 - [ ] Copy: no transfiere dinero.
 - [ ] Saldo seller `/admin/sellers/:id/balance`.
+- [ ] Plan seller `/admin/sellers/:id/plan` (desde Usuarios). Asignar con motivo. Copy: sin cobro recurrente. El detalle de orden muestra snapshot de comisión (no editable).
 
 E2E: `e2e/admin-payout-path.spec.ts` (venta meetup hasta COMPLETED, luego el flujo manual).
 

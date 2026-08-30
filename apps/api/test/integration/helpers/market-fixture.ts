@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { PrismaClient } from "@prisma/client";
+import { LAUNCH_PROMO_INACTIVE, orderFeeSnapshotFromQuote, quoteMarketplaceFee } from "@tcg/config";
 import { reserveStock } from "../../../src/orders/stock";
 
 export type PendingSale = {
@@ -114,7 +115,13 @@ export async function createPendingSale(
             status: "PENDING_PAYMENT",
             subtotalClp: 80000 * quantity,
             shippingClp: 0,
-            commissionClp: Math.floor(80000 * quantity * 0.08),
+            ...orderFeeSnapshotFromQuote(
+              quoteMarketplaceFee({
+                plan: "FREE",
+                orderSubtotalClp: 80000 * quantity,
+                promoWindow: LAUNCH_PROMO_INACTIVE,
+              }),
+            ),
             totalClp: 80000 * quantity,
             shippingMethod: "MEETUP",
             items: {

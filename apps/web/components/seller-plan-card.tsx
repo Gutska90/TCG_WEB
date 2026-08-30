@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { formatClp, formatFeePercentEsCl } from "@tcg/config";
+import { formatClp, formatFeePercentEsCl, sellerPlanLabel } from "@tcg/config";
 import type { SellerPlanView } from "@tcg/types";
 import { fetchSellerPlan } from "../lib/seller-plans";
 
@@ -23,7 +23,7 @@ export function SellerPlanCard() {
         Tu plan
       </h2>
       <p className="mt-2 text-sm">
-        {plan.plan} · {formatClp(plan.monthlyPriceClp)} / mes · comisión normal {formatFeePercentEsCl(plan.normalFeeBps)} ·
+        {sellerPlanLabel(plan.plan)} · {formatClp(plan.monthlyPriceClp)} / mes · comisión normal {formatFeePercentEsCl(plan.normalFeeBps)} ·
         tope {formatClp(plan.normalFeeCapClp)}
       </p>
       {plan.promotion.active ? (

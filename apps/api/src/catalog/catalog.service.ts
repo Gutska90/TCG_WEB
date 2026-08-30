@@ -26,7 +26,7 @@ export class CatalogService {
 
   async listGames(): Promise<GameView[]> {
     const rows = await this.prisma.tcgGame.findMany({
-      where: { isActive: true },
+      where: { isActive: true, NOT: { slug: { startsWith: "it-game-" } } },
       orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     });
     return rows.map(toGameView);

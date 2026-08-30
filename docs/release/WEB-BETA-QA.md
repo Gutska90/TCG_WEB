@@ -34,7 +34,7 @@ Sellers de vitrina (mismo password; no son cuentas de E2E):
 | Vitrina Valparaíso | `mazo.valparaiso.beta@example.test` | `BetaPassw0rd!` |
 | Vitrina Biobío | `foil.concepcion.beta@example.test` | `BetaPassw0rd!` |
 
-Yu-Gi-Oh en home/buscar es **catálogo demo** del seed, no un juego Fase 1. Colección grande local: `SHOWCASE_COLLECTION_SIZE=1000 pnpm beta:seed`.
+Yu-Gi-Oh y Mitos y Leyendas en home/buscar son **catálogo demo** del seed, no un juego Fase 1 ni importer. Colección grande local: `SHOWCASE_COLLECTION_SIZE=1000 pnpm beta:seed`.
 
 ## Buyer (Fases 11–14)
 
@@ -60,6 +60,7 @@ Yu-Gi-Oh en home/buscar es **catálogo demo** del seed, no un juego Fase 1. Cole
 - [ ] Listado `/me/publicaciones`: stock, pausar, reactivar, editar.
 - [ ] Ver venta: preparación, encuentro o tracking, marcar entregado.
 - [ ] `/me/balance`: pendiente vs disponible (copy de liquidación, no “escrow MP”).
+- [ ] `/planes` público. `/vender` muestra comisión estimada. `/me` y `/me/ventas` muestran Tu plan. Detalle de venta: comisión + snapshot (plan/promo). El medio de pago se informa aparte.
 
 ## Admin / trust (panel aparte)
 

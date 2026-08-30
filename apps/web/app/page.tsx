@@ -12,6 +12,7 @@ const GAME_BLURBS: Record<string, string> = {
   magic: "Singles para armar tu mazo.",
   "one-piece": "Personajes y rares de One Piece.",
   yugioh: "Monstruos, magias y trampas.",
+  "mitos-y-leyendas": "El TCG chileno. Aliados y ediciones de vitrina.",
 };
 
 export default async function HomePage() {

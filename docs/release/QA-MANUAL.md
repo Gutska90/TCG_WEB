@@ -57,6 +57,9 @@ jobs
 - [ ] Editar / pausar / reactivar en `/me/publicaciones`.
 - [ ] Tras una venta: preparar, despachar (encuentro o tracking), marcar entregado.
 - [ ] `/me/balance`: pendiente vs disponible (copy de liquidación, no “escrow MP”).
+- [ ] `/planes`: cuatro planes, caps, copy de beta (sin cobro automático). Promo 3% solo si está activa.
+- [ ] `/vender` y editar publicación: comisión estimada y “recibirías antes del medio de pago”.
+- [ ] `/me` y `/me/ventas`: tarjeta Tu plan. Detalle de venta muestra comisión + plan/promo snapshot.
 
 ## ADMIN
 
@@ -69,6 +72,7 @@ Panel aparte (`/admin/ingresar`). Cuenta `admin.beta@example.test`. La web **no*
 - [ ] Dispute: resolver **sin** mover dinero.
 - [ ] Reportes / moderación.
 - [ ] Jobs: en Playwright `JOBS_ENABLED=false`; en staging el operador los enciende.
+- [ ] Usuarios → Plan: asignar Plus/Pro/Store/Free con motivo. No mueve dinero. Orden nueva usa el plan; órdenes viejas conservan snapshot.
 
 ## Extra (PS)
 

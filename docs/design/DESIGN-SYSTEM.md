@@ -29,7 +29,7 @@ CSS variables (`packages/ui/src/tokens.css`). Tailwind consume `--color-*`.
 | warning | `#F59E0B` | |
 | danger | `#EF4444` | |
 
-Acentos de juego (solo badge/borde fino): Pokémon amarillo, Magic naranja, One Piece rojo, Yu-Gi-Oh violeta.
+Acentos de juego (solo badge/borde fino): Pokémon amarillo, Magic naranja, One Piece rojo, Yu-Gi-Oh violeta, Mitos y Leyendas cobre.
 
 ## Tema
 

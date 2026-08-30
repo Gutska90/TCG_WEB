@@ -30,7 +30,7 @@ Cuando existan las cuentas: pegar secretos, DNS, `prisma migrate deploy`, R2, Re
 | Área | Evidencia |
 |------|-----------|
 | UI/UX | UI.1 + header TCG MARKET, tema, home, skeletons, 404/500, offline, `loginHref` + `reason=expired`, anti doble-submit checkout |
-| Seed vitrina | `seedShowcase` en `beta:seed`: 4 juegos (Yu-Gi-Oh **solo demo**), 3 sellers ficticios, listings, `LISTING_MIN` ~14 días, colección/wishlist buyer. `SHOWCASE_COLLECTION_SIZE` para volumen local |
+| Seed vitrina | `seedShowcase` en `beta:seed`: 5 juegos (Yu-Gi-Oh y Mitos y Leyendas **solo demo**), 3 sellers ficticios, listings, `LISTING_MIN` ~14 días, colección/wishlist buyer. `SHOWCASE_COLLECTION_SIZE` para volumen local |
 | Emails | HTML en `apps/api/src/mail/mail.templates.ts`; `MailMessage.html` opcional. Sin provider = log |
 | Índices | Listing `(status, priceClp)` ya en Prisma; sin migración nueva. Script `pnpm db:explain` |
 | Collection N+1 | `listSetProgress`: 1 query de cartas del set + 1 de listings ACTIVE (no 2N). `SHOWCASE_COLLECTION_SIZE` para volumen local |

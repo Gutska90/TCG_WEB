@@ -6,7 +6,7 @@
 - Moneda: CLP (enteros).
 - Idioma de producto: es-CL.
 - Pagos: Mercado Pago.
-- Catálogo Fase 1: Pokémon, Magic: The Gathering, One Piece. Yu-Gi-Oh puede aparecer en el **seed de vitrina** (`seedShowcase`); no es expansión de producto Fase 1.
+- Catálogo Fase 1: Pokémon, Magic: The Gathering, One Piece. Yu-Gi-Oh y Mitos y Leyendas pueden aparecer en el **seed de vitrina** (`seedShowcase`); no son expansión de producto Fase 1 ni importer.
 
 ## MVP 1 — Catálogo e identidad
 

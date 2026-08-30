@@ -52,7 +52,7 @@ type ShowcaseGame = {
 
 /**
  * Staging vitrina. Original names only — not publisher characters and not TCGMatch copy.
- * Yu-Gi-Oh is demo catalog, not a Fase 1 product expansion.
+ * Yu-Gi-Oh and Mitos y Leyendas are demo catalog, not Fase 1 product expansions.
  */
 export const SHOWCASE_GAMES: ShowcaseGame[] = [
   {
@@ -113,6 +113,21 @@ export const SHOWCASE_GAMES: ShowcaseGame[] = [
       { number: "004", name: "Scalebound Duelist", rarity: "Super Rare", supertype: "Monster", priceClp: 10200 },
       { number: "005", name: "Vault Key Spirit", rarity: "Super Rare", supertype: "Spell", priceClp: 8800 },
       { number: "006", name: "Dualstar Tactician", rarity: "Ultra Rare", supertype: "Monster", priceClp: 16400 },
+    ],
+  },
+  {
+    slug: "mitos-y-leyendas",
+    name: "Mitos y Leyendas",
+    publisher: "Fénix",
+    sortOrder: 5,
+    set: { code: "AND", slug: "andes-demo", name: "Andes Demo" },
+    cards: [
+      { number: "001", name: "Cumbre Andina", rarity: "Common", supertype: "Aliado", priceClp: 1900 },
+      { number: "002", name: "Niebla del Valle", rarity: "Common", supertype: "Aliado", priceClp: 2100 },
+      { number: "003", name: "Relámpago Austral", rarity: "Uncommon", supertype: "Oro", priceClp: 4800 },
+      { number: "004", name: "Pacto del Estrecho", rarity: "Rare", supertype: "Tótem", priceClp: 7200 },
+      { number: "005", name: "Guardián de Caliche", rarity: "Rare", supertype: "Aliado", priceClp: 8600 },
+      { number: "006", name: "Tronco del Sur", rarity: "Super Rare", supertype: "Aliado", priceClp: 14200 },
     ],
   },
 ];
@@ -377,6 +392,10 @@ export async function seedShowcase(
   prisma: PrismaClient,
   input: { buyerId: string; defaultSellerId: string },
 ): Promise<{ games: number; cards: number; listings: number }> {
+  await prisma.tcgGame.updateMany({
+    where: { slug: { startsWith: "it-game-" } },
+    data: { isActive: false },
+  });
   const extraSellers = [];
   for (const sellerInput of SHOWCASE_SELLERS) {
     extraSellers.push(await upsertSeller(prisma, sellerInput));
