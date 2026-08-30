@@ -12,15 +12,22 @@ export function SearchLayout({
   games,
   values,
   filters = null,
+  action = "/buscar",
+  lockGame = false,
+  lockSet = false,
   children,
 }: {
   games: GameView[];
   values: SearchCardsInput;
   filters?: GameFiltersView | null;
+  action?: string;
+  lockGame?: boolean;
+  lockSet?: boolean;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
-  const count = activeCount(values);
+  const count = activeCount(values, { lockGame, lockSet });
+  const formProps = { games, values, initialMeta: filters, action, lockGame, lockSet };
 
   return (
     <div className="lg:grid lg:grid-cols-[17rem_minmax(0,1fr)] lg:items-start lg:gap-8">
@@ -28,7 +35,7 @@ export function SearchLayout({
         <div className="sticky top-28 rounded-[16px] border border-border bg-surface p-4">
           <h2 className="text-sm font-medium">Filtros</h2>
           <div className="mt-3">
-            <SearchForm games={games} values={values} initialMeta={filters} />
+            <SearchForm {...formProps} />
           </div>
         </div>
       </aside>
@@ -36,7 +43,7 @@ export function SearchLayout({
         <div className="sticky top-[3.25rem] z-20 -mx-4 mb-4 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-sm lg:hidden">
           <div className="flex gap-2">
             <div className="min-w-0 flex-1">
-              <SearchForm compact values={values} />
+              <SearchForm compact values={values} action={action} lockGame={lockGame} lockSet={lockSet} />
             </div>
             <Button variant="secondary" onClick={() => setOpen(true)}>
               <Filter className="h-4 w-4" aria-hidden />
@@ -47,16 +54,19 @@ export function SearchLayout({
         {children}
       </div>
       <Sheet open={open} title="Filtros" onClose={() => setOpen(false)}>
-        <SearchForm games={games} values={values} initialMeta={filters} />
+        <SearchForm {...formProps} />
       </Sheet>
     </div>
   );
 }
 
-function activeCount(values: SearchCardsInput): number {
+function activeCount(
+  values: SearchCardsInput,
+  locked: { lockGame: boolean; lockSet: boolean },
+): number {
   let n = 0;
-  if (values.game) n += 1;
-  if (values.set) n += 1;
+  if (!locked.lockGame && values.game) n += 1;
+  if (!locked.lockSet && values.set) n += 1;
   if (values.rarity) n += 1;
   if (values.supertype) n += 1;
   if (values.language) n += 1;

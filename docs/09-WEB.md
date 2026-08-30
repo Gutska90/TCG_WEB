@@ -45,9 +45,10 @@ MVP 1 nav: Logo, Buscar, Juegos, Favoritos, Login.
 | `/verificar-email` | |
 | `/recuperar-password` | |
 | `/{game}` | Sets |
-| `/{game}/{set}` | Grid de cartas |
+| `/{game}/cartas` | Grid + filtros del juego |
+| `/{game}/{set}` | Grid + filtros (set fijado) |
 | `/{game}/{set}/{card}` | Ficha (sin vendedores aún) |
-| `/buscar?q=` | Resultados |
+| `/buscar?q=` | Resultados + filtros |
 | `/me` | Perfil |
 | `/me/favoritos` | |
 

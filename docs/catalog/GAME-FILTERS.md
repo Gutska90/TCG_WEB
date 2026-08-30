@@ -6,7 +6,7 @@ No per-game Prisma columns. Adding a TCG is a new definition + importer, not a m
 
 Options for SELECT/MULTI_SELECT come from **DISTINCT catalog values**. Labels may translate known codes; they must not invent options (MyL `ANDINO`/`COSTERO`/`AUSTRAL` are not real races).
 
-Filters have `tier`: `PRIMARY` (sidebar) or `ADVANCED` (`Más filtros`). `visibleWhen` is a typed expression (`key`/`oneOf`/`all`/`noneOf`). UI must not branch `if (game === "pokemon")`.
+Filters have `tier`: `PRIMARY` (sidebar) or `ADVANCED` (`Más filtros`). `visibleWhen` is a typed expression (`key`/`oneOf`/`all`/`noneOf`). UI must not branch `if (game === "pokemon")`. The same `SearchLayout` is on `/buscar`, `/{game}/cartas` (game locked) and `/{game}/{set}` (game + set locked).
 
 Showcase cards are `sourceQuality=SYNTHETIC`. Public staging can hide them with `SHOW_SYNTHETIC_CATALOG=false`.
 

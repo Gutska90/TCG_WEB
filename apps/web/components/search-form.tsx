@@ -29,7 +29,9 @@ export function SearchForm({
 }) {
   if (compact) {
     return (
-      <form action="/buscar" method="get" className="w-full">
+      <form action={action} method="get" className="w-full">
+        {lockGame && values?.game ? <input type="hidden" name="game" value={values.game} /> : null}
+        {lockSet && values?.set ? <input type="hidden" name="set" value={values.set} /> : null}
         <label className="sr-only" htmlFor="header-q">
           Buscar cartas
         </label>
@@ -98,8 +100,14 @@ function FullSearchForm({
   }, [game, initialMeta]);
 
   const cardFilters = useMemo(
-    () => (meta?.filters ?? []).filter((filter) => filter.group === "card" && isFilterVisible(toDef(filter), selected)),
-    [meta, selected],
+    () =>
+      (meta?.filters ?? []).filter(
+        (filter) =>
+          filter.group === "card" &&
+          !(lockSet && filter.key === "set") &&
+          isFilterVisible(toDef(filter), selected),
+      ),
+    [meta, selected, lockSet],
   );
   const marketFilters = useMemo(
     () => (meta?.filters ?? []).filter((filter) => filter.group === "marketplace"),
@@ -206,14 +214,17 @@ function FullSearchForm({
           </fieldset>
         </>
       ) : (
-        <GenericFallback values={values} />
+        <GenericFallback values={values} lockSet={lockSet} />
       )}
       <SortControl values={values} filters={meta?.filters ?? []} />
       <div className="flex flex-wrap items-center gap-3">
         <button type="submit" className={buttonClassName("primary")}>
           Buscar
         </button>
-        <Link href={game ? `/buscar?game=${encodeURIComponent(game)}` : "/buscar"} className="text-sm underline">
+        <Link
+          href={lockGame || lockSet ? action : game ? `/buscar?game=${encodeURIComponent(game)}` : "/buscar"}
+          className="text-sm underline"
+        >
           Limpiar todos
         </Link>
       </div>
@@ -221,13 +232,15 @@ function FullSearchForm({
   );
 }
 
-function GenericFallback({ values }: { values: SearchCardsInput }) {
+function GenericFallback({ values, lockSet }: { values: SearchCardsInput; lockSet: boolean }) {
   return (
     <>
-      <label className="text-sm">
-        Set (slug o código)
-        <input name="set" defaultValue={values.set ?? ""} className={`mt-1 ${controlClassName}`} />
-      </label>
+      {lockSet ? null : (
+        <label className="text-sm">
+          Set (slug o código)
+          <input name="set" defaultValue={values.set ?? ""} className={`mt-1 ${controlClassName}`} />
+        </label>
+      )}
       <label className="text-sm">
         Rareza
         <input name="rarity" defaultValue={values.rarity ?? ""} className={`mt-1 ${controlClassName}`} />
@@ -451,10 +464,19 @@ function toDef(filter: GameFilterView) {
   };
 }
 
-export function SearchFilterChips({ values }: { values: SearchCardsInput }) {
+export function SearchFilterChips({
+  values,
+  pathname = "/buscar",
+  lockedKeys = [],
+}: {
+  values: SearchCardsInput;
+  pathname?: string;
+  lockedKeys?: string[];
+}) {
+  const locked = new Set(lockedKeys);
   const chips: Array<{ key: string; label: string }> = [];
-  if (values.game) chips.push({ key: "game", label: values.game });
-  if (values.set) chips.push({ key: "set", label: values.set });
+  if (values.game && !locked.has("game")) chips.push({ key: "game", label: values.game });
+  if (values.set && !locked.has("set")) chips.push({ key: "set", label: values.set });
   if (values.rarity) chips.push({ key: "rarity", label: values.rarity });
   if (values.supertype) chips.push({ key: "supertype", label: values.supertype });
   if (values.language) chips.push({ key: "language", label: values.language });
@@ -470,7 +492,7 @@ export function SearchFilterChips({ values }: { values: SearchCardsInput }) {
       {chips.map((chip) => (
         <li key={chip.key}>
           <Link
-            href={searchCardsHref(omitSearchFilter(values, chip.key))}
+            href={searchCardsHref(omitSearchFilter(values, chip.key), pathname)}
             className="inline-flex items-center rounded-full border border-border px-3 py-1 text-xs"
           >
             {chip.label} ×

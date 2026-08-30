@@ -17,8 +17,8 @@ Cada pantalla lista: fase, ruta, datos (API), acciones, vacío, error. Si la API
 | 1 | `/verificar-email` | verify | |
 | 1 | `/recuperar-password` | forgot/reset | |
 | 2 | `/{game}` | game + sets | |
-| 2 | `/{game}/cartas` | cards paginadas del game | filtros set/rareza |
-| 2 | `/{game}/{set}` | set + cards | |
+| 2 | `/{game}/cartas` | search + `GET /v1/games/:slug/filters` | filtros por juego (set fijado no); URL compartible |
+| 2 | `/{game}/{set}` | search + `GET /v1/games/:slug/filters` | mismos filtros, juego y set fijados |
 | 2 | `/{game}/{set}/{card}` | card + variants | selector variante, favorito |
 | 3 | `/buscar` | search + `GET /v1/games/:slug/filters` | query, filtros por juego, URL compartible |
 | 4 | ficha + bloque vendedores | listings by variant | add cart |
@@ -87,7 +87,7 @@ Header: **TCG MARKET** + badge Beta, buscador, wishlist, carrito, cuenta (dropdo
 
 Home: hero “Encuentra. Colecciona. Compra. Vende.”, juegos, publicaciones vía `GET /v1/listings` existente, CTAs colección/wishlist.
 
-`/buscar`: filtros en sidebar (desktop) o sheet (mobile). Cards con imagen `object-contain`.
+`/buscar`, `/{game}/cartas` y `/{game}/{set}`: filtros en sidebar (desktop) o sheet (mobile). Cards con imagen `object-contain`.
 
 Ficha: imagen | mercado / menor listing; historial con confianza; publicaciones tabla/cards.
 

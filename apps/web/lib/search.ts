@@ -15,6 +15,7 @@ export type SearchCardsInput = {
   priceMin?: number;
   priceMax?: number;
   page?: number;
+  pageSize?: number;
   attrs?: Record<string, string[]>;
 };
 
@@ -94,18 +95,18 @@ export function applySearchParams(params: URLSearchParams, input: SearchCardsInp
   }
 }
 
-export function searchCardsHref(input: SearchCardsInput): string {
+export function searchCardsHref(input: SearchCardsInput, pathname = "/buscar"): string {
   const params = new URLSearchParams();
   applySearchParams(params, input);
   const query = params.toString();
-  return query ? `/buscar?${query}` : "/buscar";
+  return query ? `${pathname}?${query}` : pathname;
 }
 
 export function searchCards(input: SearchCardsInput) {
   const params = new URLSearchParams();
   applySearchParams(params, { ...input, page: input.page });
   if (input.sort) params.set("sort", input.sort);
-  params.set("pageSize", "20");
+  params.set("pageSize", String(input.pageSize ?? 20));
   if (input.page) params.set("page", String(input.page));
   return catalogGet<Paginated<SearchCardView>>(`/v1/search/cards?${params.toString()}`, false);
 }

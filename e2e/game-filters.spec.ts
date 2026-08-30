@@ -1,5 +1,12 @@
 import { expect, test } from "@playwright/test";
 
+test("game-filters: set page shows the same sidebar as search", async ({ page }) => {
+  await page.goto("/mitos-y-leyendas/andes-demo");
+  await expect(page.getByRole("heading", { name: "Filtros" })).toBeVisible();
+  await expect(page.getByText("Tipo de carta").first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /Cumbre Andina/ })).toBeVisible();
+});
+
 test("game-filters: Pokémon type stays in the URL and Yu-Gi-Oh replaces Pokémon filters", async ({ page }) => {
   await page.goto("/buscar?game=pokemon&attr.pokemonType=FIRE");
   await expect(page).toHaveURL(/game=pokemon/);
