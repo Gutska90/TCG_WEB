@@ -16,6 +16,8 @@
     "catalog:reference:refresh": "tsx src/catalog/cli.ts reference-refresh",
     "beta:seed": "tsx src/catalog/beta-seed.cli.ts",
     "staging:preflight": "tsx src/ops/staging-preflight.cli.ts",
+    "catalog:import-myl": "tsx src/catalog/cli.ts import-myl",
+    "catalog:seed-myl-demo": "tsx src/catalog/cli.ts seed-myl-demo",
     "catalog:import-scryfall": "tsx src/catalog/cli.ts import-scryfall",
     "catalog:attributes:audit": "tsx src/catalog/attributes-audit.cli.ts",
     "catalog:attributes:backfill": "tsx src/catalog/attributes-backfill.cli.ts",

@@ -34,6 +34,20 @@ async function main() {
       console.log(`Reference catalog: ${result.games} juegos, ${result.cards} cartas verificadas.`);
       return;
     }
+    if (command === "import-myl") {
+      const { importMylDemoCards } = await import("./myl-demo/import-myl");
+      const result = await importMylDemoCards(prisma);
+      console.log(`Import MyL demo: ${result.sets} sets, ${result.cards} cartas (pack curado, no scrape).`);
+      return;
+    }
+    if (command === "seed-myl-demo") {
+      const { seedMylDemo } = await import("./myl-demo/seed-myl-demo");
+      const result = await seedMylDemo(prisma);
+      console.log(
+        `MyL demo: ${result.cards} cartas, ${result.sellers} vendedores, ${result.listings} publicaciones.`,
+      );
+      return;
+    }
     if (command === "import-scryfall") {
       if (!arg) {
         throw new Error("Uso: catalog:import-scryfall <codigo-set>  (staging: mh3 blb dsk fdn)");
@@ -58,7 +72,9 @@ async function main() {
       await refreshReferenceCatalog({ game, write: flag("--write") });
       return;
     }
-    throw new Error("Comandos: seed | seed-reference | import-scryfall <set> | import-pokemon <set> | reference-refresh --game <slug>");
+    throw new Error(
+      "Comandos: seed | seed-reference | seed-myl-demo | import-myl | import-scryfall <set> | import-pokemon <set> | reference-refresh --game <slug>",
+    );
   } finally {
     await prisma.$disconnect();
   }

@@ -254,9 +254,13 @@ export const patchListingSchema = z
 export const listListingsQuerySchema = paginationQuerySchema.extend({
   variantId: z.preprocess(emptyToUndefined, z.string().uuid().optional()),
   sellerId: z.preprocess(emptyToUndefined, z.string().uuid().optional()),
+  q: z.preprocess(emptyToUndefined, z.string().trim().max(80).optional()),
+  game: z.preprocess(emptyToUndefined, z.string().trim().max(80).optional()),
+  set: z.preprocess(emptyToUndefined, z.string().trim().max(80).optional()),
   condition: z.preprocess(emptyToUndefined, z.enum(CARD_CONDITIONS).optional()),
   minPrice: z.preprocess(emptyToUndefined, z.coerce.number().int().min(1).optional()),
   maxPrice: z.preprocess(emptyToUndefined, z.coerce.number().int().min(1).optional()),
+  sort: z.preprocess(emptyToUndefined, z.enum(["priceAsc", "priceDesc", "newest"]).optional()),
 });
 
 export const putCartItemSchema = z.object({

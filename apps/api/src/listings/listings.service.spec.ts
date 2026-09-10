@@ -67,4 +67,26 @@ describe("ListingsService", () => {
       status: HttpStatus.FORBIDDEN,
     });
   });
+
+  it("filters public listings by seller, query and game", async () => {
+    prisma.listing.count.mockResolvedValue(0);
+    prisma.listing.findMany.mockResolvedValue([]);
+    prisma.$transaction.mockImplementation((ops: unknown[]) => Promise.all(ops as Promise<unknown>[]));
+    await service.listPublic({
+      page: 1,
+      pageSize: 24,
+      sellerId: "11111111-1111-4111-8111-111111111111",
+      q: "Brunhild",
+      game: "mitos-y-leyendas",
+      sort: "priceAsc",
+    });
+    expect(prisma.listing.count).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          sellerId: "11111111-1111-4111-8111-111111111111",
+          variant: { card: { set: { game: { slug: "mitos-y-leyendas" } } } },
+        }),
+      }),
+    );
+  });
 });

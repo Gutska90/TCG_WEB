@@ -16,7 +16,8 @@ El catálogo es el corazón. Se **importa**; no se escribe a mano carta por cart
 |-------|------|-----------------|-------|
 | Magic: The Gathering | `magic` | [Scryfall API](https://scryfall.com/docs/api) | `pnpm catalog:import-scryfall -- mh3`. `externalIds.scryfallId` |
 | Pokémon | `pokemon` | [Pokémon TCG API](https://docs.pokemontcg.io/) | `pnpm catalog:import-pokemon -- xy1`. `POKEMON_TCG_API_KEY` opcional. `externalIds.pokemonTcgApiId` |
-| One Piece / Yu-Gi-Oh! / MyL / Digimon / Gundam | ver [REAL-DATA-SOURCES](catalog/REAL-DATA-SOURCES.md) | curated `pnpm catalog:seed-reference` | Sin scrape masivo. PARTIAL. |
+| One Piece / Yu-Gi-Oh! / Digimon / Gundam | ver [REAL-DATA-SOURCES](catalog/REAL-DATA-SOURCES.md) | curated `pnpm catalog:seed-reference` | Sin scrape masivo. PARTIAL. |
+| Mitos y Leyendas | `mitos-y-leyendas` | reference fixtures + `pnpm catalog:import-myl` / `catalog:seed-myl-demo` | Pack curado local. **Prohibido** scrape de storefronts. PARTIAL. |
 
 TCG posteriores (Yu-Gi-Oh!, Mitos y Leyendas, Lorcana, Digimon, Riftbound, FaB, Gundam): mismo patrón, **nuevo importer**, cero cambios de esquema.
 
@@ -49,6 +50,8 @@ Slugs implementados en Fase 2. Reimportar un set reutiliza el slug existente (`u
 ```bash
 pnpm catalog:seed
 pnpm catalog:seed-reference
+pnpm catalog:import-myl
+pnpm catalog:seed-myl-demo
 pnpm catalog:import-scryfall -- mh3
 pnpm catalog:import-pokemon -- xy1
 pnpm catalog:reference:refresh -- --game pokemon

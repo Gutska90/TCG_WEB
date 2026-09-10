@@ -72,6 +72,11 @@ export class UsersService {
     if (!user) {
       throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Usuario no encontrado");
     }
+    const [reputation, activeListingCount, completedSaleCount] = await Promise.all([
+      this.ratings.summarizeOne(user.id),
+      this.prisma.listing.count({ where: { sellerId: user.id, status: "ACTIVE", quantity: { gt: 0 } } }),
+      this.prisma.order.count({ where: { sellerId: user.id, status: "COMPLETED" } }),
+    ]);
     return {
       id: user.id,
       displayName: user.displayName,
@@ -83,7 +88,9 @@ export class UsersService {
         country: user.profile?.country ?? "CL",
       },
       createdAt: user.createdAt.toISOString(),
-      reputation: await this.ratings.summarizeOne(user.id),
+      reputation,
+      activeListingCount,
+      completedSaleCount,
     };
   }
 

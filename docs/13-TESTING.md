@@ -116,6 +116,7 @@ Casos CATALOG.1/2: unit `catalog-filters.spec.ts`, `catalog-real-taxonomy.spec.t
 
 - Seed catálogo: `pnpm catalog:seed` (juegos, cartas Test Mon, tarifas).
 - Seed beta QA: `pnpm beta:seed` — buyer/seller/admin sintéticos + listing Test Mon #1 + fixture refund FAILED (Test Mon #2). Ver [release/B4-QA.md](release/B4-QA.md).
+- Demo MyL (local, no CI): `pnpm catalog:seed-myl-demo`. Unit `myl-demo/cards.spec.ts`.
 - Nunca apuntar tests a producción.
 
 ## CI

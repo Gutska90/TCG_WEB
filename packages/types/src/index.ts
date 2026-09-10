@@ -189,6 +189,8 @@ export type PublicUserView = {
   profile: Pick<ProfileView, "bio" | "comuna" | "region" | "country">;
   createdAt: string;
   reputation: ReputationView;
+  activeListingCount: number;
+  completedSaleCount: number;
 };
 
 export type ReputationView = {

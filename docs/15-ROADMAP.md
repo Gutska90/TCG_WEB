@@ -37,6 +37,10 @@ UI.1      Visual Refresh                 ✓
 PS        Pre-Staging Readiness          ✓
 PS.1      Final pre-staging cleanup      ✓
 
+MYL.1     Native MyL demo importer       ✓ pack curado (no scrape)
+MYL.2     MyL demo sellers/listings      ✓ `catalog:seed-myl-demo`
+SELLER.1  Seller storefront              ✓ `/vendedores/{slug}`
+
 --- BETA RELEASE PROGRAM (feature freeze) ---
 B0        Release Audit                  ✓
 B1        Staging                        🟡 contrato + storage/email (hosting operador)
@@ -344,6 +348,21 @@ Entregado en repo:
 Deja `main` listo para B1: `.env.staging.example` con `SHOW_SYNTHETIC_CATALOG=false`, preflight WARNING si el showcase sintético sigue visible, hide en search **y** `GET /v1/games|sets|cards`, seed-reference sin listings, runbook [STAGING-CATALOG](runbooks/STAGING-CATALOG.md). No Scanner.
 
 **Estado: listo.** Siguiente: cuentas B1 (operador). No Fase 15.
+
+## MYL.1 / MYL.2 — Demo Mitos y Leyendas ✓
+
+Catálogo canónico vs inventario: el dueño/admin controla `Card`; el vendedor solo crea `Listing` sobre un `variantId`. **No** hay `CatalogSubmission` todavía (CAT.1).
+
+- **No scrapear** MyL Serena, Stribog, Tradeck ni otros marketplaces. Los scripts Java/Python de un repo anterior no se portan.
+- Pack curado en `apps/api/src/catalog/myl-demo` (`source=myl-demo-pack`, `sourceQuality=CURATED_VERIFIED`, `verified=false`). Stats incompletos a propósito (PARTIAL).
+- `pnpm catalog:import-myl` — upsert de cartas/sets, sin listings.
+- `pnpm catalog:seed-myl-demo` — reference + pack + 3 vendedores demo + listings. Idempotente. Correos `@example.test`.
+
+## SELLER.1 — Storefront del vendedor ✓
+
+`/vendedores/{slug}` es una mini tienda: header (comuna, reputación, ventas, stock), búsqueda/filtros (q, juego, edición, condición, orden) y grid de `ProductCard`. CTA principal sigue siendo el listing → carrito. **No** WhatsApp como checkout. **No** Fase 16 Stores B2B.
+
+**No en este incremento:** CAT.1 cola de cartas, CONTACT.1, BULK.1, CART.1/2, Scanner, Auctions, pagos live.
 
 ## Feature freeze (B0–B8)
 

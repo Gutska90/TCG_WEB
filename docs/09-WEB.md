@@ -58,7 +58,7 @@ MVP 1 nav: Logo, Buscar, Juegos, Favoritos, Login.
 |------|-----------|
 | `/vender` | Wizard publicación |
 | `/me/publicaciones` | CRUD listings |
-| `/vendedores/{slug}` | Perfil público |
+| `/vendedores/{slug}` | Mini tienda: inventario, búsqueda, filtros, valoraciones |
 | `/carrito` | Multi-seller |
 | `/checkout` | Direcciones, envío, MP |
 | `/me/compras` `/me/compras/{id}` | |

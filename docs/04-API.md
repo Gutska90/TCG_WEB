@@ -79,7 +79,7 @@ Máximo `pageSize=100`.
 | GET | `/v1/me/balance` | sí | saldo seller derivado del ledger (`pendingClp` / `availableClp` / `reservedClp` / `paidClp` / `netClp`) |
 | PATCH | `/v1/me` | sí | displayName, bio, comuna, `marketingOptIn` |
 | POST | `/v1/me/deletion-request` | sí | desactiva la cuenta; no borra Order/Payment/Refund/Ledger/AuditLog |
-| GET | `/v1/users/:id` | no | perfil público (id o slug) |
+| GET | `/v1/users/:id` | no | perfil público (id o slug): reputación, `activeListingCount`, `completedSaleCount` |
 | POST | `/v1/me/seller-onboarding` | sí | activa rol SELLER |
 | GET | `/v1/me/addresses` | sí | |
 | POST | `/v1/me/addresses` | sí | |
@@ -205,7 +205,7 @@ Privada. Detalle en [COLLECTIONS.md](COLLECTIONS.md). Flag `ENABLE_COLLECTIONS`.
 
 | Método | Path | Auth | Descripción |
 |--------|------|------|-------------|
-| GET | `/v1/listings` | no | filtros: variantId, sellerId, condition, min/max price |
+| GET | `/v1/listings` | no | filtros: variantId, sellerId, q, game, set, condition, min/max price, sort=`priceAsc\|priceDesc\|newest` |
 | GET | `/v1/listings/:id` | no | dueño también ve pausadas |
 | GET | `/v1/me/listings` | SELLER | las propias |
 | POST | `/v1/listings` | SELLER | crear |

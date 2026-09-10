@@ -28,8 +28,9 @@ export class ListingsService {
   ) {}
 
   async listPublic(query: ListListingsQuery): Promise<Paginated<ListingView>> {
-    const where = {
-      status: "ACTIVE" as const,
+    const q = query.q?.trim();
+    const where: Prisma.ListingWhereInput = {
+      status: "ACTIVE",
       quantity: { gt: 0 },
       ...(query.variantId ? { variantId: query.variantId } : {}),
       ...(query.sellerId ? { sellerId: query.sellerId } : {}),
@@ -37,8 +38,35 @@ export class ListingsService {
       ...(query.minPrice || query.maxPrice
         ? { priceClp: { gte: query.minPrice, lte: query.maxPrice } }
         : {}),
+      ...(q
+        ? {
+            OR: [
+              { title: { contains: q, mode: "insensitive" } },
+              { variant: { card: { name: { contains: q, mode: "insensitive" } } } },
+            ],
+          }
+        : {}),
+      ...(query.game || query.set
+        ? {
+            variant: {
+              card: {
+                set: {
+                  ...(query.set ? { slug: query.set } : {}),
+                  ...(query.game ? { game: { slug: query.game } } : {}),
+                },
+              },
+            },
+          }
+        : {}),
     };
-    return this.page(where, query.page, query.pageSize, { priceClp: "asc" });
+    const sort = query.sort ?? "priceAsc";
+    const orderBy: Prisma.ListingOrderByWithRelationInput =
+      sort === "newest"
+        ? { publishedAt: "desc" }
+        : sort === "priceDesc"
+          ? { priceClp: "desc" }
+          : { priceClp: "asc" };
+    return this.page(where, query.page, query.pageSize, orderBy);
   }
 
   async listMine(userId: string, page: number, pageSize: number): Promise<Paginated<ListingView>> {
@@ -280,9 +308,10 @@ export class ListingsService {
       }),
     ]);
     let items = await this.attachMany(rows.map(toListingView));
-    if (orderBy.priceClp === "asc") {
+    if (orderBy.priceClp === "asc" || orderBy.priceClp === "desc") {
+      const dir = orderBy.priceClp === "desc" ? -1 : 1;
       items = [...items].sort((a, b) => {
-        if (a.priceClp !== b.priceClp) return a.priceClp - b.priceClp;
+        if (a.priceClp !== b.priceClp) return (a.priceClp - b.priceClp) * dir;
         return (b.seller.reputation.averageStars ?? 0) - (a.seller.reputation.averageStars ?? 0);
       });
     }
