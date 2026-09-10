@@ -6,6 +6,7 @@ import type {
   CatalogFilterSupport,
   CatalogFilterType,
   CatalogFilterVisibleWhen,
+  CatalogSubmissionStatus,
   DisputeEvidenceType,
   DisputeReason,
   DisputeStatus,
@@ -38,6 +39,7 @@ export type {
   CardCondition,
   CardLanguage,
   CardFinish,
+  CatalogSubmissionStatus,
   ErrorCode,
   LedgerEntryType,
   ListingStatus,
@@ -159,6 +161,8 @@ export type ProfileView = {
   comuna: string | null;
   country: string;
   sellerOnboardedAt: string | null;
+  contactWhatsapp: string | null;
+  contactWhatsappEnabled: boolean;
 };
 
 export type MeView = {
@@ -191,6 +195,8 @@ export type PublicUserView = {
   reputation: ReputationView;
   activeListingCount: number;
   completedSaleCount: number;
+  contactWhatsappEnabled: boolean;
+  contactWhatsapp: string | null;
 };
 
 export type ReputationView = {
@@ -222,6 +228,8 @@ export type ListingSellerView = {
   displayName: string;
   slug: string;
   reputation: ReputationView;
+  contactWhatsappEnabled: boolean;
+  contactWhatsapp: string | null;
 };
 
 export type ListingView = {
@@ -1146,5 +1154,68 @@ export type FeePreviewView = {
 
 export type AdminSellerPlanView = SellerPlanView & {
   sellerId: string;
+  notice: string;
+};
+
+export type CatalogSubmissionView = {
+  id: string;
+  status: CatalogSubmissionStatus;
+  name: string;
+  number: string | null;
+  rarity: string | null;
+  game: { id: string; slug: string; name: string };
+  set: { id: string; slug: string; name: string } | null;
+  proposedSetName: string | null;
+  createdAt: string;
+  reviewedAt: string | null;
+  approvedCardId: string | null;
+};
+
+export type CatalogSubmissionDetailView = CatalogSubmissionView & {
+  supertype: string | null;
+  attributes: Record<string, unknown>;
+  imageUrl: string | null;
+  notes: string | null;
+  sourceUrl: string | null;
+  reviewNotes: string | null;
+  approvedCard: { id: string; slug: string; name: string; gameSlug: string; setSlug: string } | null;
+};
+
+export type CreateCatalogSubmissionResult = {
+  id: string;
+  status: "PENDING";
+};
+
+export type CatalogDuplicateHint = {
+  id: string;
+  name: string;
+  number: string;
+  setName: string;
+  setSlug: string;
+};
+
+export type AdminCatalogSubmissionView = CatalogSubmissionDetailView & {
+  submittedBy: { id: string; displayName: string; slug: string };
+  reviewedBy: { id: string; displayName: string; slug: string } | null;
+  possibleDuplicates: CatalogDuplicateHint[];
+};
+
+export type BulkListingPreviewRow = {
+  line: number;
+  status: "matched" | "missing" | "error";
+  game: string;
+  set: string;
+  cardNumber: string;
+  name: string;
+  variantId: string | null;
+  message: string | null;
+};
+
+export type BulkListingPreviewView = {
+  total: number;
+  matched: number;
+  missing: number;
+  errors: number;
+  rows: BulkListingPreviewRow[];
   notice: string;
 };

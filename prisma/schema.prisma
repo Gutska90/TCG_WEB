@@ -68,6 +68,14 @@ enum ProductType {
   ACCESSORY
 }
 
+enum CatalogSubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  DUPLICATE
+  NEEDS_INFO
+}
+
 enum OrderStatus {
   PENDING_PAYMENT
   PAID
@@ -279,6 +287,8 @@ model User {
   suspensionsLifted    SellerSuspension[]   @relation("SuspensionLifter")
   feedback             Feedback[]
   sellerSubscriptions  SellerSubscription[]
+  catalogSubmissions   CatalogSubmission[] @relation("CatalogSubmissionAuthor")
+  catalogReviews       CatalogSubmission[] @relation("CatalogSubmissionReviewer")
 
   @@map("users")
 }
@@ -353,9 +363,12 @@ model Profile {
   region             String?
   comuna             String?
   country            String    @default("CL")
-  sellerOnboardedAt  DateTime? @map("seller_onboarded_at") @db.Timestamptz(6)
-  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+  sellerOnboardedAt        DateTime? @map("seller_onboarded_at") @db.Timestamptz(6)
+  /// Public WhatsApp in E.164. Never copied from Address.phone.
+  contactWhatsapp          String?   @map("contact_whatsapp")
+  contactWhatsappEnabled   Boolean   @default(false) @map("contact_whatsapp_enabled")
+  createdAt                DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt                DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -439,7 +452,8 @@ model TcgGame {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  sets TcgSet[]
+  sets                TcgSet[]
+  catalogSubmissions  CatalogSubmission[]
 
   @@map("tcg_games")
 }
@@ -458,9 +472,10 @@ model TcgSet {
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  game      TcgGame @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  imageFile File?   @relation("SetImage", fields: [imageFileId], references: [id], onDelete: SetNull)
-  cards     Card[]
+  game                TcgGame @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  imageFile           File?   @relation("SetImage", fields: [imageFileId], references: [id], onDelete: SetNull)
+  cards               Card[]
+  catalogSubmissions  CatalogSubmission[]
 
   @@unique([gameId, code])
   @@unique([gameId, slug])
@@ -483,13 +498,49 @@ model Card {
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  set      TcgSet        @relation(fields: [setId], references: [id], onDelete: Cascade)
-  variants CardVariant[]
+  set                 TcgSet              @relation(fields: [setId], references: [id], onDelete: Cascade)
+  variants            CardVariant[]
+  catalogSubmissions  CatalogSubmission[]
 
   @@unique([setId, number, name])
   @@unique([setId, slug])
   @@index([setId])
   @@map("cards")
+}
+
+/// Proposed canonical card. Never becomes a Listing. Admin approval creates Card + default CardVariant.
+model CatalogSubmission {
+  id              String                   @id @default(uuid()) @db.Uuid
+  submittedById   String                   @map("submitted_by_id") @db.Uuid
+  gameId          String                   @map("game_id") @db.Uuid
+  setId           String?                  @map("set_id") @db.Uuid
+  proposedSetName String?                  @map("proposed_set_name")
+  name            String
+  number          String?
+  rarity          String?
+  supertype       String?
+  attributes      Json                     @default("{}")
+  imageUrl        String?                  @map("image_url")
+  notes           String?
+  sourceUrl       String?                  @map("source_url")
+  status          CatalogSubmissionStatus  @default(PENDING)
+  reviewedById    String?                  @map("reviewed_by_id") @db.Uuid
+  reviewedAt      DateTime?                @map("reviewed_at") @db.Timestamptz(6)
+  reviewNotes     String?                  @map("review_notes")
+  approvedCardId  String?                  @unique @map("approved_card_id") @db.Uuid
+  createdAt       DateTime                 @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime                 @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  submittedBy  User    @relation("CatalogSubmissionAuthor", fields: [submittedById], references: [id], onDelete: Restrict)
+  reviewedBy   User?   @relation("CatalogSubmissionReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  game         TcgGame @relation(fields: [gameId], references: [id], onDelete: Restrict)
+  set          TcgSet? @relation(fields: [setId], references: [id], onDelete: SetNull)
+  approvedCard Card?   @relation(fields: [approvedCardId], references: [id], onDelete: SetNull)
+
+  @@index([submittedById, createdAt])
+  @@index([status, createdAt])
+  @@index([gameId, status])
+  @@map("catalog_submissions")
 }
 
 model CardVariant {

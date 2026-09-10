@@ -93,6 +93,23 @@ export const CARD_LANGUAGES = [
 ] as const;
 export type CardLanguage = (typeof CARD_LANGUAGES)[number];
 
+export const CATALOG_SUBMISSION_STATUSES = [
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
+  "DUPLICATE",
+  "NEEDS_INFO",
+] as const;
+export type CatalogSubmissionStatus = (typeof CATALOG_SUBMISSION_STATUSES)[number];
+
+export const CATALOG_SUBMISSION_STATUS_LABELS: Record<CatalogSubmissionStatus, string> = {
+  PENDING: "Pendiente",
+  APPROVED: "Aprobada",
+  REJECTED: "Rechazada",
+  DUPLICATE: "Duplicada",
+  NEEDS_INFO: "Necesita información",
+};
+
 export const CARD_FINISHES = [
   "NORMAL",
   "HOLO",
@@ -107,6 +124,7 @@ export const CARD_FINISHES = [
 export type CardFinish = (typeof CARD_FINISHES)[number];
 
 export { CHILE_REGIONS, findChilePlace, shippingZoneFromPlace } from "./chile";
+export { listingWhatsappMessage, normalizeWhatsappE164, whatsappMeHref } from "./whatsapp";
 export type { ChilePlace, ChileRegion, ShippingZone } from "./chile";
 export {
   SHIPPING_RATE_SEED,
@@ -574,6 +592,7 @@ export const ERROR_CODES = {
   FILE_NOT_ALLOWED: "FILE_NOT_ALLOWED",
   FILE_NOT_READY: "FILE_NOT_READY",
   FILE_NOT_STORED: "FILE_NOT_STORED",
+  CATALOG_SUBMISSION_NOT_REVIEWABLE: "CATALOG_SUBMISSION_NOT_REVIEWABLE",
   FEATURE_DISABLED: "FEATURE_DISABLED",
   SERVICE_TEMPORARILY_DISABLED: "SERVICE_TEMPORARILY_DISABLED",
   PAYOUT_DISPUTED: "PAYOUT_DISPUTED",
