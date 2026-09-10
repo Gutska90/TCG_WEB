@@ -13,6 +13,8 @@ export const MYL_DEMO_SELLERS = [
     comuna: "Providencia",
     region: "Metropolitana de Santiago",
     bio: "Tienda demo de Mitos y Leyendas. Precios de vitrina, no son cotizaciones reales.",
+    contactWhatsapp: "+56911111111",
+    contactWhatsappEnabled: true,
   },
   {
     email: "cartas.valparaiso.myl@example.test",
@@ -22,6 +24,8 @@ export const MYL_DEMO_SELLERS = [
     comuna: "Valparaíso",
     region: "Valparaíso",
     bio: "Vendedor demo. Stock y precios para mostrar el marketplace.",
+    contactWhatsapp: null,
+    contactWhatsappEnabled: false,
   },
   {
     email: "mazo.nunoa.myl@example.test",
@@ -31,6 +35,30 @@ export const MYL_DEMO_SELLERS = [
     comuna: "Ñuñoa",
     region: "Metropolitana de Santiago",
     bio: "Coleccionista demo. Publicaciones de ejemplo en NM, LP y MP.",
+    contactWhatsapp: null,
+    contactWhatsappEnabled: false,
+  },
+  {
+    email: "imperio.tcg.demo@example.test",
+    password: "MylDemoPassw0rd!",
+    displayName: "Imperio TCG",
+    slug: "imperio-tcg",
+    comuna: "Santiago",
+    region: "Metropolitana de Santiago",
+    bio: "Vendedor demo. Inventario de ejemplo para comparar ofertas.",
+    contactWhatsapp: "+56912222222",
+    contactWhatsappEnabled: true,
+  },
+  {
+    email: "cartas.del.sur.demo@example.test",
+    password: "MylDemoPassw0rd!",
+    displayName: "Cartas del Sur",
+    slug: "cartas-del-sur",
+    comuna: "Concepción",
+    region: "Biobío",
+    bio: "Tienda demo del sur. Contacto público deshabilitado.",
+    contactWhatsapp: null,
+    contactWhatsappEnabled: false,
   },
 ] as const;
 
@@ -38,6 +66,8 @@ const CONDITIONS: CardCondition[][] = [
   ["NM", "NM", "LP"],
   ["LP", "NM", "MP"],
   ["NM", "LP", "NM"],
+  ["NM", "LP", "MP"],
+  ["LP", "MP", "NM"],
 ];
 
 function priceFor(rarity: string, sellerIndex: number, cardIndex: number): number {
@@ -93,6 +123,8 @@ async function upsertSeller(
       region: input.region,
       country: "CL",
       bio: input.bio,
+      contactWhatsapp: input.contactWhatsapp,
+      contactWhatsappEnabled: input.contactWhatsappEnabled,
     },
     create: {
       userId: user.id,
@@ -101,6 +133,8 @@ async function upsertSeller(
       region: input.region,
       bio: input.bio,
       sellerOnboardedAt: now,
+      contactWhatsapp: input.contactWhatsapp,
+      contactWhatsappEnabled: input.contactWhatsappEnabled,
     },
   });
   return user;
@@ -199,8 +233,10 @@ export async function seedMylDemo(prisma: PrismaClient): Promise<{
   let listings = 0;
   for (const [sellerIndex, seller] of sellers.entries()) {
     for (const [cardIndex, variant] of sellable.entries()) {
-      if (sellerIndex === 1 && cardIndex % 5 === 0) continue;
+      if (sellerIndex === 1 && cardIndex % 4 === 0) continue;
       if (sellerIndex === 2 && cardIndex % 3 !== 0) continue;
+      if (sellerIndex === 3 && cardIndex % 5 !== 0) continue;
+      if (sellerIndex === 4 && cardIndex % 7 !== 0) continue;
       const condition = CONDITIONS[sellerIndex]?.[cardIndex % 3] ?? "NM";
       await upsertListing(prisma, {
         sellerId: seller.id,

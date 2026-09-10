@@ -20,6 +20,8 @@ export type MylDemoCard = {
   raza?: string;
   coste?: number;
   fuerza?: number;
+  number?: string;
+  imageUrl?: string;
 };
 
 export const MYL_DEMO_SETS = {
@@ -35,6 +37,7 @@ type Row = [keyof typeof MYL_DEMO_SETS, string, string, MylDemoCardType];
 
 /** ~140 named cards across 7 editions. Reference fixtures (Mitra, Excalibur, …) are also upserted by seed. */
 const ROWS: Row[] = [
+  ["es", "Brunhild", "Ultra Real", "ALIADO"],
   ["es", "Arturo", "Ultra Real", "ALIADO"],
   ["es", "Merlín", "Ultra Real", "ALIADO"],
   ["es", "Lancelot", "Real", "ALIADO"],
@@ -156,6 +159,49 @@ const ROWS: Row[] = [
   ["ta", "Toqui", "Cortesano", "ALIADO"],
   ["ta", "Kultrún", "Real", "TALISMAN"],
   ["ta", "Clava", "Cortesano", "ARMA"],
+  ["es", "Excalibur Oscura", "Ultra Real", "ARMA"],
+  ["es", "Escudo de Camelot", "Real", "ARMA"],
+  ["es", "Corona Pendragón", "Ultra Real", "TALISMAN"],
+  ["es", "Hada Madrina", "Cortesano", "ALIADO"],
+  ["es", "Caballero Verde", "Real", "ALIADO"],
+  ["es", "Oro de Avalon", "Cortesano", "ORO"],
+  ["he", "Atenas", "Real", "TOTEM"],
+  ["he", "Esparta", "Real", "TOTEM"],
+  ["he", "Argo", "Cortesano", "ARMA"],
+  ["he", "Vellocino", "Ultra Real", "TALISMAN"],
+  ["he", "Néctar", "Cortesano", "ORO"],
+  ["he", "Quimera", "Real", "ALIADO"],
+  ["he", "Cíclope", "Cortesano", "ALIADO"],
+  ["he", "Sirena", "Cortesano", "ALIADO"],
+  ["dr", "Cleopatra", "Ultra Real", "ALIADO"],
+  ["dr", "Ramsés", "Real", "ALIADO"],
+  ["dr", "Esfinge de Giza", "Ultra Real", "TOTEM"],
+  ["dr", "Ankh", "Cortesano", "TALISMAN"],
+  ["dr", "Oro del Nilo", "Cortesano", "ORO"],
+  ["dr", "Guardián del Templo", "Cortesano", "ALIADO"],
+  ["ai", "Sassánida", "Cortesano", "ALIADO"],
+  ["ai", "Sátrapa", "Cortesano", "ALIADO"],
+  ["ai", "Grifo Persa", "Real", "ALIADO"],
+  ["ai", "Simurgh", "Ultra Real", "ALIADO"],
+  ["ai", "Arco Compuesto", "Cortesano", "ARMA"],
+  ["ai", "Estendarte Imperial", "Real", "TALISMAN"],
+  ["co", "San Bernardo", "Real", "ALIADO"],
+  ["co", "Preceptor", "Cortesano", "ALIADO"],
+  ["co", "Sello Templario", "Real", "TALISMAN"],
+  ["co", "Maza", "Cortesano", "ARMA"],
+  ["co", "Relicario", "Cortesano", "ORO"],
+  ["ta", "Machi", "Real", "ALIADO"],
+  ["ta", "Weichafe", "Cortesano", "ALIADO"],
+  ["ta", "Ruca", "Cortesano", "TOTEM"],
+  ["ta", "Rehue", "Real", "TOTEM"],
+  ["ta", "Trutruca", "Cortesano", "TALISMAN"],
+  ["ta", "Lonco", "Real", "ALIADO"],
+  ["es", "Guinevere", "Real", "ALIADO"],
+  ["es", "Paladín", "Cortesano", "ALIADO"],
+  ["he", "Moiras", "Real", "ALIADO"],
+  ["he", "Hécate", "Ultra Real", "ALIADO"],
+  ["dr", "Maat", "Real", "ALIADO"],
+  ["ai", "Artajerjes", "Ultra Real", "ALIADO"],
 ];
 
 export const MYL_DEMO_CARDS: MylDemoCard[] = ROWS.map(([setKey, name, rarity, cardType]) => ({

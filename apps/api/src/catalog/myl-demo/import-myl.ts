@@ -6,6 +6,15 @@ import { MYL_DEMO_CARDS, type MylDemoCard } from "./cards";
 const GAME_SLUG = "mitos-y-leyendas";
 const NOW = "2026-09-10T00:00:00.000Z";
 
+export type MylImportSummary = {
+  sets: number;
+  cards: number;
+  imported: number;
+  updated: number;
+  skipped: number;
+  conflicts: number;
+};
+
 function cardTypeToSupertype(cardType: MylDemoCard["cardType"]): string {
   switch (cardType) {
     case "ALIADO":
@@ -19,6 +28,15 @@ function cardTypeToSupertype(cardType: MylDemoCard["cardType"]): string {
     case "ORO":
       return "Oro";
   }
+}
+
+function isVerifiedCard(attributes: Prisma.JsonValue): boolean {
+  return Boolean(
+    attributes &&
+      typeof attributes === "object" &&
+      !Array.isArray(attributes) &&
+      (attributes as { verified?: unknown }).verified === true,
+  );
 }
 
 export function toMylDemoAttributes(card: MylDemoCard): Record<string, unknown> {
@@ -42,43 +60,59 @@ export function toMylDemoAttributes(card: MylDemoCard): Record<string, unknown> 
 export async function importMylDemoCards(
   prisma: PrismaClient,
   cards: MylDemoCard[] = MYL_DEMO_CARDS,
-): Promise<{ sets: number; cards: number }> {
-  const game = await prisma.tcgGame.upsert({
-    where: { slug: GAME_SLUG },
-    update: { name: "Mitos y Leyendas", publisher: "Fénix", isActive: true },
-    create: {
-      slug: GAME_SLUG,
-      name: "Mitos y Leyendas",
-      publisher: "Fénix",
-      sortOrder: 5,
-      isActive: true,
-    },
-  });
+  options: { dryRun?: boolean } = {},
+): Promise<MylImportSummary> {
+  const dryRun = options.dryRun === true;
+  const game = dryRun
+    ? await prisma.tcgGame.findUnique({ where: { slug: GAME_SLUG } })
+    : await prisma.tcgGame.upsert({
+        where: { slug: GAME_SLUG },
+        update: { name: "Mitos y Leyendas", publisher: "Fénix", isActive: true },
+        create: {
+          slug: GAME_SLUG,
+          name: "Mitos y Leyendas",
+          publisher: "Fénix",
+          sortOrder: 5,
+          isActive: true,
+        },
+      });
+  if (!game) {
+    return { sets: 0, cards: 0, imported: 0, updated: 0, skipped: cards.length, conflicts: 0 };
+  }
 
   const setIds = new Map<string, string>();
   const takenBySet = new Map<string, Set<string>>();
   let imported = 0;
+  let updated = 0;
+  let skipped = 0;
+  let conflicts = 0;
 
   for (const row of cards) {
+    const number = row.number?.trim() || row.name;
     let setId = setIds.get(row.set.code);
     if (!setId) {
       const existingSet =
         (await prisma.tcgSet.findFirst({ where: { gameId: game.id, slug: row.set.slug } })) ??
         (await prisma.tcgSet.findFirst({ where: { gameId: game.id, code: row.set.code } }));
-      const set = existingSet
-        ? await prisma.tcgSet.update({
-            where: { id: existingSet.id },
-            data: { name: row.set.name },
-          })
-        : await prisma.tcgSet.create({
-            data: {
-              gameId: game.id,
-              code: row.set.code,
-              slug: row.set.slug,
-              name: row.set.name,
-            },
-          });
-      setId = set.id;
+      if (existingSet) {
+        if (!dryRun) {
+          await prisma.tcgSet.update({ where: { id: existingSet.id }, data: { name: row.set.name } });
+        }
+        setId = existingSet.id;
+      } else if (dryRun) {
+        skipped += 1;
+        continue;
+      } else {
+        const set = await prisma.tcgSet.create({
+          data: {
+            gameId: game.id,
+            code: row.set.code,
+            slug: row.set.slug,
+            name: row.set.name,
+          },
+        });
+        setId = set.id;
+      }
       setIds.set(row.set.code, setId);
       const existing = await prisma.card.findMany({ where: { setId }, select: { slug: true } });
       takenBySet.set(setId, new Set(existing.map((card) => card.slug)));
@@ -86,25 +120,37 @@ export async function importMylDemoCards(
 
     const taken = takenBySet.get(setId) ?? new Set<string>();
     const existingCard = await prisma.card.findUnique({
-      where: { setId_number_name: { setId, number: row.name, name: row.name } },
+      where: { setId_number_name: { setId, number, name: row.name } },
     });
+    if (existingCard && isVerifiedCard(existingCard.attributes)) {
+      conflicts += 1;
+      continue;
+    }
+    if (dryRun) {
+      if (existingCard) updated += 1;
+      else imported += 1;
+      continue;
+    }
     const slug = existingCard?.slug ?? uniqueSlug(slugifyStable(row.name, "carta"), taken);
     const attributes = toMylDemoAttributes(row);
+    const imageUrl =
+      row.imageUrl && row.imageUrl.startsWith("https://") ? row.imageUrl : (existingCard?.imageUrl ?? null);
     const card = await prisma.card.upsert({
-      where: { setId_number_name: { setId, number: row.name, name: row.name } },
+      where: { setId_number_name: { setId, number, name: row.name } },
       update: {
         rarity: row.rarity,
         supertype: cardTypeToSupertype(row.cardType),
         attributes: attributes as Prisma.InputJsonValue,
+        ...(imageUrl ? { imageUrl } : {}),
       },
       create: {
         setId,
-        number: row.name,
+        number,
         slug,
         name: row.name,
         rarity: row.rarity,
         supertype: cardTypeToSupertype(row.cardType),
-        imageUrl: null,
+        imageUrl,
         attributes: attributes as Prisma.InputJsonValue,
       },
     });
@@ -126,8 +172,20 @@ export async function importMylDemoCards(
         externalIds: { mylDemoPack: slug } as Prisma.InputJsonValue,
       },
     });
-    imported += 1;
+    if (existingCard) updated += 1;
+    else imported += 1;
   }
 
-  return { sets: setIds.size, cards: imported };
+  return {
+    sets: setIds.size,
+    cards: imported + updated,
+    imported,
+    updated,
+    skipped,
+    conflicts,
+  };
+}
+
+export function formatMylImportSummary(summary: MylImportSummary): string {
+  return `Imported: ${summary.imported}\nUpdated: ${summary.updated}\nSkipped: ${summary.skipped}\nConflicts: ${summary.conflicts}`;
 }

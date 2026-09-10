@@ -29,12 +29,40 @@ export class ListingsService {
 
   async listPublic(query: ListListingsQuery): Promise<Paginated<ListingView>> {
     const q = query.q?.trim();
+    const cardWhere: Prisma.CardWhereInput = {
+      ...(query.game || query.set
+        ? {
+            set: {
+              ...(query.set ? { slug: query.set } : {}),
+              ...(query.game ? { game: { slug: query.game } } : {}),
+            },
+          }
+        : {}),
+      ...(query.cardType || query.raza || query.coste != null
+        ? {
+            AND: [
+              ...(query.cardType ? [{ attributes: { path: ["cardType"], equals: query.cardType } }] : []),
+              ...(query.raza ? [{ attributes: { path: ["raza"], equals: query.raza } }] : []),
+              ...(query.coste != null ? [{ attributes: { path: ["coste"], equals: query.coste } }] : []),
+            ],
+          }
+        : {}),
+    };
+    const variantWhere: Prisma.CardVariantWhereInput = {
+      ...(query.language ? { language: query.language } : {}),
+      ...(query.finish ? { finish: query.finish } : {}),
+      ...(Object.keys(cardWhere).length > 0 ? { card: cardWhere } : {}),
+    };
     const where: Prisma.ListingWhereInput = {
       status: "ACTIVE",
       quantity: { gt: 0 },
       ...(query.variantId ? { variantId: query.variantId } : {}),
       ...(query.sellerId ? { sellerId: query.sellerId } : {}),
       ...(query.condition ? { condition: query.condition } : {}),
+      ...(query.allowsShipping === "true" ? { allowsShipping: true } : {}),
+      ...(query.allowsShipping === "false" ? { allowsShipping: false } : {}),
+      ...(query.allowsMeetup === "true" ? { allowsMeetup: true } : {}),
+      ...(query.allowsMeetup === "false" ? { allowsMeetup: false } : {}),
       ...(query.minPrice || query.maxPrice
         ? { priceClp: { gte: query.minPrice, lte: query.maxPrice } }
         : {}),
@@ -46,18 +74,7 @@ export class ListingsService {
             ],
           }
         : {}),
-      ...(query.game || query.set
-        ? {
-            variant: {
-              card: {
-                set: {
-                  ...(query.set ? { slug: query.set } : {}),
-                  ...(query.game ? { game: { slug: query.game } } : {}),
-                },
-              },
-            },
-          }
-        : {}),
+      ...(Object.keys(variantWhere).length > 0 ? { variant: variantWhere } : {}),
     };
     const sort = query.sort ?? "priceAsc";
     const orderBy: Prisma.ListingOrderByWithRelationInput =
@@ -65,7 +82,9 @@ export class ListingsService {
         ? { publishedAt: "desc" }
         : sort === "priceDesc"
           ? { priceClp: "desc" }
-          : { priceClp: "asc" };
+          : sort === "nameAsc"
+            ? { title: "asc" }
+            : { priceClp: "asc" };
     return this.page(where, query.page, query.pageSize, orderBy);
   }
 
