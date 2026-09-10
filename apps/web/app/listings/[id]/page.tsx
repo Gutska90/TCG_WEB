@@ -5,6 +5,8 @@ import { CatalogRequestError } from "../../../lib/catalog";
 import { getListing } from "../../../lib/listings";
 import { AddToCartButton } from "../../../components/add-to-cart-button";
 import { ReportListingButton } from "../../../components/report-listing-button";
+import { ShareControls } from "../../../components/share-controls";
+import { WhatsappListingButton } from "../../../components/whatsapp-listing-button";
 import { CardImage } from "../../../components/ui/product-card";
 import { Price } from "../../../components/ui/price";
 import { StatusBadge } from "../../../components/ui/badge";
@@ -57,8 +59,19 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
                 ))}
               </ul>
             ) : null}
-            <div className="mt-8">
+            <div className="mt-8 flex flex-col gap-3">
               <AddToCartButton listingId={listing.id} available={listing.available} />
+              {listing.seller.contactWhatsappEnabled && listing.seller.contactWhatsapp ? (
+                <WhatsappListingButton
+                  phoneE164={listing.seller.contactWhatsapp}
+                  cardName={listing.variant.card.name}
+                  setName={listing.variant.card.setSlug}
+                  condition={listing.condition}
+                  priceClp={listing.priceClp}
+                  listingPath={`/listings/${listing.id}`}
+                />
+              ) : null}
+              <ShareControls path={`/listings/${listing.id}`} title={listing.title} />
             </div>
             <ReportListingButton listingId={listing.id} />
           </div>

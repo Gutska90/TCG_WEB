@@ -176,6 +176,12 @@ function SellWizard() {
               </li>
             ))}
           </ul>
+          <p className="mt-4 text-sm">
+            ¿No encuentras tu carta?{" "}
+            <Link href="/vender/solicitar-carta" className="underline underline-offset-2">
+              Solicitar incorporación
+            </Link>
+          </p>
         </div>
       ) : null}
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { AdminCardAttributesView } from "@tcg/types";
 import { api } from "@/lib/api";
 
@@ -12,7 +13,12 @@ export default function AdminCatalogAttributesPage() {
   return (
     <div>
       <h1 className="mb-4 text-2xl font-semibold">Atributos de carta</h1>
-      <p className="mb-4 text-sm text-text-muted">Inspección de Card.attributes. No hay edición de JSON.</p>
+      <p className="mb-4 text-sm text-text-muted">
+        Inspección de Card.attributes. No hay edición de JSON.{" "}
+        <Link href="/admin/catalog/submissions" className="underline">
+          Ver solicitudes de catálogo
+        </Link>
+      </p>
       <form
         className="mb-6 flex gap-2"
         onSubmit={(event) => {
