@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# Shim so Turbo can spawn `pnpm` when only `corepack pnpm` is available locally.
+exec corepack pnpm "$@"

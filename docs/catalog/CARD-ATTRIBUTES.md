@@ -8,12 +8,24 @@ Provenance on every imported/reference card:
 
 | Key | Meaning |
 |-----|---------|
-| `source` | provider id (`pokemon-tcg-api`, `scryfall`, `tor.myl.cl`, …) |
+| `source` | provider id (`pokemon-tcg-api`, `scryfall`, `tor.myl.cl`, `myl-demo-pack`, `catalog-submission`, …) |
 | `sourceQuality` | `VERIFIED_PROVIDER` \| `CURATED_VERIFIED` \| `SYNTHETIC` |
 | `sourceUrl` | fetch URL |
 | `sourceId` | provider id (not the printed name) |
 | `sourceRetrievedAt` | ISO time |
-| `verified` | true for reference/provider data |
+| `verified` | `true` only when attributes were checked against a provider or official list |
+
+`sourceQuality`, `verified`, and `SHOW_SYNTHETIC_CATALOG` are **not interchangeable**:
+
+| Knob | Controls | Does not control |
+|------|----------|------------------|
+| `sourceQuality=SYNTHETIC` | Showcase/fixture rows (Ember Pup, Andes Demo, Test Mon). `isSyntheticCardAttributes` is also true when `source` is `synthetic-showcase`, `showcase-seed`, or `seed`. | Completeness of stats |
+| `sourceQuality=CURATED_VERIFIED` | Human-entered identity from a known edition or admin approval (MyL demo pack, official-list fixtures, approved `CatalogSubmission`) | Whether every stat is provider-complete |
+| `sourceQuality=VERIFIED_PROVIDER` | Live importer (Scryfall, Pokémon TCG API) | Visibility flags |
+| `verified` | Stats/identity QA: `true` for importer + `seed-reference` fixtures; `false` when names are curated but stats are PARTIAL | Public visibility |
+| `SHOW_SYNTHETIC_CATALOG=false` | Hides only synthetic-showcase rows from public search and REST game/set/card pages | Curated or provider rows, including `verified: false` |
+
+`CURATED_VERIFIED` + `verified: false` is **intentional** for `source=myl-demo-pack` and `source=catalog-submission`. Retagging those as `SYNTHETIC` would hide the commercial MyL demo (and newly approved cards) when staging sets `SHOW_SYNTHETIC_CATALOG=false`.
 
 `CardVariant.externalIds` holds provider ids (`pokemonTcgApiId`, `scryfallId`, `konamiPassword`, `bandaiNumber`, `torPath`).
 

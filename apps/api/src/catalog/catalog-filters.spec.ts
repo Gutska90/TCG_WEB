@@ -196,6 +196,9 @@ describe("CATALOG.1/2 filter definitions", () => {
     expect(isSyntheticCardAttributes({ source: "synthetic-showcase" })).toBe(true);
     expect(isSyntheticCardAttributes({ sourceQuality: "SYNTHETIC" })).toBe(true);
     expect(isSyntheticCardAttributes({ source: "pokemon-tcg-api", sourceQuality: "VERIFIED_PROVIDER" })).toBe(false);
+    expect(
+      isSyntheticCardAttributes({ source: "myl-demo-pack", sourceQuality: "CURATED_VERIFIED", verified: false }),
+    ).toBe(false);
   });
 
   it("inspects attributes without inventing unknown keys", () => {

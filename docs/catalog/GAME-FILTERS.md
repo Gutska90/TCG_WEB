@@ -8,7 +8,7 @@ Options for SELECT/MULTI_SELECT come from **DISTINCT catalog values**. Labels ma
 
 Filters have `tier`: `PRIMARY` (sidebar) or `ADVANCED` (`Más filtros`). `visibleWhen` is a typed expression (`key`/`oneOf`/`all`/`noneOf`). UI must not branch `if (game === "pokemon")`. The same `SearchLayout` is on `/buscar`, `/{game}/cartas` (game locked) and `/{game}/{set}` (game + set locked).
 
-Showcase cards are `sourceQuality=SYNTHETIC`. Public staging hides them with `SHOW_SYNTHETIC_CATALOG=false` (search, DISTINCT facets, and REST game/set/card pages).
+Showcase cards are `sourceQuality=SYNTHETIC`. Public staging hides them with `SHOW_SYNTHETIC_CATALOG=false` (search, DISTINCT facets, and REST game/set/card pages). Curated MyL demo rows (`source=myl-demo-pack`, `sourceQuality=CURATED_VERIFIED`, `verified=false`) stay visible — `verified` is not a visibility flag. See [CARD-ATTRIBUTES.md](CARD-ATTRIBUTES.md).
 
 ## Support matrix (CATALOG.2)
 
