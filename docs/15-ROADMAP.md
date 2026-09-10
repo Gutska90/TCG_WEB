@@ -40,6 +40,11 @@ PS.1      Final pre-staging cleanup      ✓
 MYL.1     Native MyL demo importer       ✓ pack curado (no scrape)
 MYL.2     MyL demo sellers/listings      ✓ `catalog:seed-myl-demo`
 SELLER.1  Seller storefront              ✓ `/vendedores/{slug}`
+CAT.1     CatalogSubmission (user)       ✓
+CAT.2     Admin catalog approval         ✓
+MARKET.1  Canonical card + offers        ✓
+CONTACT.1 Optional seller WhatsApp       ✓
+BULK.1    Listing CSV preview contract   ✓ preview; confirm UI pendiente
 
 --- BETA RELEASE PROGRAM (feature freeze) ---
 B0        Release Audit                  ✓

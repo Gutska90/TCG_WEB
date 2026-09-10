@@ -49,8 +49,8 @@ Games without a safe API stay **manual** (edit the JSON + `retrievedAt`).
 | | |
 |--|--|
 | Source | [tor.myl.cl](https://tor.myl.cl/) / [blog.myl.cl](https://blog.myl.cl/) |
-| Import | **None from marketplaces.** `pnpm catalog:import-myl` (curated pack) + `pnpm catalog:seed-myl-demo` (sellers/listings). No Serena/Stribog/Tradeck scrape. |
-| Fixtures | Mitra (Águila Imperial), La Mayoría (Tierra Austral), Relámpago, Stonehenge, Excalibur, El Dorado + MYL.1 demo pack (names/editions, incomplete stats). |
+| Import | **None from marketplaces.** `pnpm catalog:import-myl` (pack o `--file JSON`) + `pnpm catalog:seed-myl-demo`. No Serena/Stribog/Tradeck scrape. |
+| Fixtures | Mitra, La Mayoría, Relámpago, Stonehenge, Excalibur, El Dorado + pack demo ≥150 cartas (stats incompletos a propósito). |
 | Limits | Raza from catalog values only. Legality filter omitted until a dated banlist exists. PARTIAL. |
 | Refresh | Manual. |
 

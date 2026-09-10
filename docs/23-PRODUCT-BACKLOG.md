@@ -167,7 +167,7 @@ Eventos/torneos, mapa de tiendas: futura, Chile (Santiago primero).
 | Tema | Cuándo |
 |------|--------|
 | Dashboard vendedor (GMV, comisiones, stock, listings sin venta, precio vs mercado) | web vendedor; no esperar Fase 16 |
-| Inventario tienda, CSV, SKU, barcode, `StoreMember` | 16 |
+| Inventario tienda, CSV, SKU, barcode, `StoreMember` | 16 (preview CSV listings: BULK.1) |
 | API B2B `/inventory`, listings, stock, orders | después de 16 |
 | `CatalogProvider` (Scryfall, Pokémon, One Piece) | [19-CATALOG-IMPORT](19-CATALOG-IMPORT.md); no inflar un solo service |
 | Jobs (BullMQ + Redis) | cuando el volumen lo pida: import, thumbnails, mail, snapshots, wishlist, refund retry. Ya previsto en [02-ARCHITECTURE](02-ARCHITECTURE.md) |

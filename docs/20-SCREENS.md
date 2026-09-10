@@ -61,7 +61,7 @@ Legales (contenido estático, Fase 1): `/terminos`, `/privacidad`, `/fuentes`.
 5. Fotos (1–8) + meetup/envío + descripción
 6. Confirmar y publicar
 
-Vacío paso 1: “No encontramos esa carta. Puedes reportarla.”
+Vacío paso 1: “No encontramos esa carta.” Enlace a `/vender/solicitar-carta` (CatalogSubmission). No se crea Card.
 
 ### Ficha de carta — bloques
 

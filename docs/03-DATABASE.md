@@ -158,6 +158,8 @@ Profile
   userId unique
   bio, region, comuna, country default 'CL'
   sellerOnboardedAt
+  contactWhatsapp          // E.164 público; NUNCA copiar Address.phone
+  contactWhatsappEnabled   // consentimiento explícito
   storeId nullable
 
 Address
@@ -213,6 +215,23 @@ Card
   imageUrl             // URL de origen (Scryfall, etc.), no blob propio
   unique(setId, number, name)  // ajustar si un número tiene varias caras
   unique(setId, slug)
+
+CatalogSubmission
+  submittedById
+  gameId
+  setId nullable
+  proposedSetName nullable
+  name, number?, rarity?, supertype?
+  attributes Json      // mismos keys de Card.attributes; no columnas raza/coste/fuerza
+  imageUrl?, notes?, sourceUrl?
+  status CatalogSubmissionStatus   // PENDING | APPROVED | REJECTED | DUPLICATE | NEEDS_INFO
+  reviewedById?, reviewedAt?, reviewNotes?
+  approvedCardId? unique
+  indexes (submittedById, createdAt), (status, createdAt), (gameId, status)
+
+  Card = entidad canónica (qué carta existe)
+  Listing = oferta de un vendedor (copia, condición, stock, precio)
+  CatalogSubmission = propuesta pendiente de validación admin. Nunca es un Listing.
 
 CardVariant
   cardId
@@ -510,6 +529,7 @@ ShippingRate            // Fase 8
 |------|----------------|
 | 1 Auth | User, UserRole, AuthIdentity, Session, Profile, EmailVerificationToken, PasswordResetToken |
 | 2 Catálogo | TcgGame, TcgSet (`sets`), Card, CardVariant |
+| CAT.1 | CatalogSubmission; Profile.contactWhatsapp* |
 | 2 Favoritos | Favorite |
 | 3 Búsqueda | extensiones `pg_trgm` + `unaccent`, índices GIN (sin tablas) |
 | 4 Marketplace | Address, Listing, ListingImage, CardPrice (mínimo) |

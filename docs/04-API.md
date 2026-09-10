@@ -77,7 +77,7 @@ Máximo `pageSize=100`.
 |--------|------|------|-------------|
 | GET | `/v1/me` | sí | usuario + profile + roles + consentimiento legal |
 | GET | `/v1/me/balance` | sí | saldo seller derivado del ledger (`pendingClp` / `availableClp` / `reservedClp` / `paidClp` / `netClp`) |
-| PATCH | `/v1/me` | sí | displayName, bio, comuna, `marketingOptIn` |
+| PATCH | `/v1/me` | sí | displayName, bio, comuna, `marketingOptIn`, `contactWhatsapp`, `contactWhatsappEnabled` |
 | POST | `/v1/me/deletion-request` | sí | desactiva la cuenta; no borra Order/Payment/Refund/Ledger/AuditLog |
 | GET | `/v1/users/:id` | no | perfil público (id o slug): reputación, `activeListingCount`, `completedSaleCount` |
 | POST | `/v1/me/seller-onboarding` | sí | activa rol SELLER |
@@ -205,9 +205,10 @@ Privada. Detalle en [COLLECTIONS.md](COLLECTIONS.md). Flag `ENABLE_COLLECTIONS`.
 
 | Método | Path | Auth | Descripción |
 |--------|------|------|-------------|
-| GET | `/v1/listings` | no | filtros: variantId, sellerId, q, game, set, condition, min/max price, sort=`priceAsc\|priceDesc\|newest` |
+| GET | `/v1/listings` | no | filtros: variantId, sellerId, q, game, set, condition, language, finish, min/max price, allowsShipping/allowsMeetup, cardType/raza/coste (MyL attributes), sort=`relevance\|priceAsc\|priceDesc\|newest\|nameAsc` |
 | GET | `/v1/listings/:id` | no | dueño también ve pausadas |
 | GET | `/v1/me/listings` | SELLER | las propias |
+| POST | `/v1/me/listings/bulk/preview` | SELLER | CSV → match de variantes; no crea listings ni Cards |
 | POST | `/v1/listings` | SELLER | crear |
 | PATCH | `/v1/listings/:id` | dueño | |
 | POST | `/v1/listings/:id/pause` | dueño | |
@@ -230,6 +231,28 @@ Privada. Detalle en [COLLECTIONS.md](COLLECTIONS.md). Flag `ENABLE_COLLECTIONS`.
 ```
 
 Sugerencia de precio: `GET /v1/variants/:id/price-suggestion` → `{ market, minListing, suggested }`. Con `ENABLE_PRICES`, `market` puede ser el `LISTING_AVG` de 7 días.
+
+### Catálogo canónico vs publicaciones
+
+`Card` es la entidad canónica. `Listing` es la oferta del vendedor. Un vendedor **no** crea `Card`. Si no está en el catálogo, propone `CatalogSubmission`.
+
+| Método | Path | Auth | Descripción |
+|--------|------|------|-------------|
+| POST | `/v1/catalog/submissions` | sí (10/hora) | propuesta; no crea Card |
+| GET | `/v1/me/catalog-submissions` | sí | solo las propias |
+| GET | `/v1/me/catalog-submissions/:id` | sí | 404 si no es dueño |
+| GET | `/v1/admin/catalog/submissions` | ADMIN, SUPER_ADMIN | filtros status/game/fecha/usuario |
+| GET | `/v1/admin/catalog/submissions/:id` | ADMIN, SUPER_ADMIN | incluye `possibleDuplicates` |
+| POST | `/v1/admin/catalog/submissions/:id/approve` | ADMIN, SUPER_ADMIN | transacción: Card + CardVariant default + AuditLog |
+| POST | `/v1/admin/catalog/submissions/:id/reject` | ADMIN, SUPER_ADMIN | |
+| POST | `/v1/admin/catalog/submissions/:id/duplicate` | ADMIN, SUPER_ADMIN | |
+| POST | `/v1/admin/catalog/submissions/:id/needs-info` | ADMIN, SUPER_ADMIN | |
+
+Aprobar dos veces → `CATALOG_SUBMISSION_NOT_REVIEWABLE`. AuditLog: `catalog_submission.created|approved|rejected|duplicate|needs_info`. El DTO admin no incluye email ni teléfono.
+
+`POST /v1/me/listings/bulk/preview` body `{ csv }`. Columnas: `game,set,card_number,name,condition,quantity,price_clp,language,finish`. Filas sin match **no** crean Card (quedan `missing` para `CatalogSubmission`). Confirmar listings es un incremento futuro.
+
+Perfil público: `contactWhatsapp` solo si `contactWhatsappEnabled`. WhatsApp es CTA secundario; carrito/checkout siguen siendo el flujo principal.
 
 Historial (Fase 13, pública, flag `ENABLE_PRICES`): `GET /v1/variants/:id/prices?range=1m|3m|6m|1a` (default `3m`) → `{ currency, range, current, min, avg, max, volumeSold, lastSaleClp, avg30dClp, median30dClp, minListingClp, confidence, points, disclaimer }`. `current` es el índice interno TCG Market Chile (mediana de ventas COMPLETED 30d, outliers 0.5×–2× fuera; si no hay ventas, avg de listings). Job `card-prices` cada 6 h: `LISTING_MIN` / `LISTING_AVG` / `SALE` uno por (variante, source, día calendario America/Santiago). `SALE` imputa `Order.completedAt` (no `OrderItem.createdAt`). CLI `pnpm --filter @tcg/api prices:capture`. Job `collection-value` diario persiste `CollectionValueSnapshot`. Resumen de colección incluye `change30dClp`.
 

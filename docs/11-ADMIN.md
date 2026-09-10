@@ -170,4 +170,10 @@ Alertas extra en dashboard: refunds/payouts FAILED, recon CRITICAL, jobs FAILED 
 
 Ruta: `/admin/feedback`. API: `GET /v1/admin/feedback` (ADMIN/SUPER_ADMIN). Lista simple. No es helpdesk. No expone passwordHash ni versiones legales en el listado de usuarios.
 
+## Catálogo (CAT.2)
+
+Ruta web: `/admin/catalog` (inspección de attributes) y `/admin/catalog/submissions`.
+
+API: `GET /v1/admin/catalog/cards/:id/attributes`; solicitudes en `/v1/admin/catalog/submissions*`. Solo ADMIN/SUPER_ADMIN. MODERATOR no revisa catálogo.
+
 Checklist staff y Playwright: [release/ADMIN-BETA-QA.md](release/ADMIN-BETA-QA.md).

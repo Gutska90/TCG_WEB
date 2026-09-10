@@ -4,6 +4,32 @@
 
 El corazón del producto. Una publicación de single **siempre** apunta a `CardVariant`. No se permite “título libre” para singles: se busca en catálogo y se elige la variante (idioma + finish).
 
+```text
+Card = entidad canónica
+Listing = oferta de vendedor
+CatalogSubmission = propuesta pendiente de validación
+```
+
+```text
+Usuario
+  │
+  ├── encuentra carta
+  │       ↓
+  │    Listing
+  │
+  └── no encuentra
+          ↓
+    CatalogSubmission
+          ↓
+       Admin
+       /   \
+ approve   reject
+    ↓
+ Card + Variant
+    ↓
+ vendedor ya puede publicar
+```
+
 Ficha pública (web y app):
 
 ```text

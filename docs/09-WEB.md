@@ -56,9 +56,10 @@ MVP 1 nav: Logo, Buscar, Juegos, Favoritos, Login.
 
 | Ruta | Contenido |
 |------|-----------|
-| `/vender` | Wizard publicación |
+| `/vender` | Wizard publicación + enlace a solicitar carta |
+| `/vender/solicitar-carta` | CatalogSubmission (no crea Card) |
 | `/me/publicaciones` | CRUD listings |
-| `/vendedores/{slug}` | Mini tienda: inventario, búsqueda, filtros, valoraciones |
+| `/vendedores/{slug}` | Mini tienda: tabs productos/valoraciones/información, filtros, contacto opcional |
 | `/carrito` | Multi-seller |
 | `/checkout` | Direcciones, envío, MP |
 | `/me/compras` `/me/compras/{id}` | |

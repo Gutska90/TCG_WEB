@@ -51,11 +51,38 @@ Slugs implementados en Fase 2. Reimportar un set reutiliza el slug existente (`u
 pnpm catalog:seed
 pnpm catalog:seed-reference
 pnpm catalog:import-myl
+pnpm catalog:import-myl -- ./data/myl-demo.json
+pnpm catalog:import-myl -- --file ./data/myl-demo.json --dry-run
 pnpm catalog:seed-myl-demo
 pnpm catalog:import-scryfall -- mh3
 pnpm catalog:import-pokemon -- xy1
 pnpm catalog:reference:refresh -- --game pokemon
 ```
+
+`catalog:import-myl` acepta el pack curado del repo o un JSON local (`name`, `set`, `number`, `rarity`, `imageUrl`, `attributes`). Parser + normalizador + dedupe. Nunca borra cartas. Resumen: `Imported` / `Updated` / `Skipped` / `Conflicts`. `--dry-run` no escribe.
+
+## Carga masiva de **listings** (no catálogo)
+
+CSV del vendedor (BULK.1, preview):
+
+```csv
+game,set,card_number,name,condition,quantity,price_clp,language,finish
+mitos-y-leyendas,primera-era,123,Brunhild,NM,2,9000,ES,NORMAL
+```
+
+```text
+CSV
+ ↓
+normalización
+ ↓
+buscar CardVariant
+ ↓
+match
+ ├─ existe → preview de Listing (aún no se crea hasta confirmar; UI de confirmación pendiente)
+ └─ no existe → CatalogSubmission (el usuario la envía aparte; el preview no crea Card)
+```
+
+Endpoint: `POST /v1/me/listings/bulk/preview`. El catálogo ya debe existir. Archivo distinto al importer de cartas.
 
 ## Seed local (Fase 2)
 
@@ -67,6 +94,4 @@ Sin llamar APIs externas en CI:
 
 Staging/prod: [STAGING-CATALOG.md](runbooks/STAGING-CATALOG.md) (`seed-reference` + 2–4 sets Magic/Pokémon, `SHOW_SYNTHETIC_CATALOG=false`).
 
-## Carga masiva de **listings** (no catálogo)
 
-CSV vendedor/tienda (segunda etapa): `variantExternalId, condition, qty, priceClp`. El catálogo ya debe existir. Archivo distinto al importer de cartas.
