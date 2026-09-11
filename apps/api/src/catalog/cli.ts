@@ -87,8 +87,32 @@ async function main() {
       await refreshReferenceCatalog({ game, write: flag("--write") });
       return;
     }
+    if (command === "import-myl-tor" || command === "enrich-myl") {
+      const { importMylTorCatalog, formatMylTorImportSummary } = await import("./myl-tor/import-myl-tor");
+      const formatsRaw = argAfter("--formats") ?? "pe,pb";
+      const formats = formatsRaw
+        .split(",")
+        .map((row) => row.trim())
+        .filter((row): row is "pe" | "pb" => row === "pe" || row === "pb");
+      const result = await importMylTorCatalog(prisma, {
+        formats: formats.length ? formats : ["pe", "pb"],
+        editionSlug: argAfter("--edition"),
+        dryRun: flag("--dry-run"),
+        force: flag("--force"),
+        card: argAfter("--card"),
+        missingOnly: flag("--missing-only"),
+      });
+      if (flag("--dry-run")) console.log("Dry-run (no writes).");
+      console.log(formatMylTorImportSummary(result));
+      if (result.completeness.incomplete > 0) {
+        const { formatCompletenessReport } = await import("./myl-tor/completeness");
+        console.log(formatCompletenessReport(result.completeness));
+        if (flag("--strict")) process.exitCode = 1;
+      }
+      return;
+    }
     throw new Error(
-      "Comandos: seed | seed-reference | seed-myl-demo | import-myl [--file path] [--dry-run] [--force] | import-scryfall <set> | import-pokemon <set> | reference-refresh --game <slug>",
+      "Comandos: seed | seed-reference | seed-myl-demo | import-myl [--file path] [--dry-run] [--force] | import-myl-tor|enrich-myl [--formats pe,pb] [--edition slug] [--card slug] [--dry-run] [--force] [--missing-only] [--strict] | import-scryfall <set> | import-pokemon <set> | reference-refresh --game <slug>",
     );
   } finally {
     await prisma.$disconnect();

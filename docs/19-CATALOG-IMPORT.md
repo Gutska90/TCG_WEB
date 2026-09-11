@@ -17,7 +17,7 @@ El catálogo es el corazón. Se **importa**; no se escribe a mano carta por cart
 | Magic: The Gathering | `magic` | [Scryfall API](https://scryfall.com/docs/api) | `pnpm catalog:import-scryfall -- mh3`. `externalIds.scryfallId` |
 | Pokémon | `pokemon` | [Pokémon TCG API](https://docs.pokemontcg.io/) | `pnpm catalog:import-pokemon -- xy1`. `POKEMON_TCG_API_KEY` opcional. `externalIds.pokemonTcgApiId` |
 | One Piece / Yu-Gi-Oh! / Digimon / Gundam | ver [REAL-DATA-SOURCES](catalog/REAL-DATA-SOURCES.md) | curated `pnpm catalog:seed-reference` | Sin scrape masivo. PARTIAL. |
-| Mitos y Leyendas | `mitos-y-leyendas` | reference fixtures + `pnpm catalog:import-myl` / `catalog:seed-myl-demo` | Pack curado local. **Prohibido** scrape de storefronts. PARTIAL. |
+| Mitos y Leyendas | `mitos-y-leyendas` | `pnpm catalog:import-myl-tor` (API oficial Fénix / TOR) + pack demo de respaldo | **Prohibido** scrape de storefronts. PE+PB oficiales. |
 
 TCG posteriores (Yu-Gi-Oh!, Mitos y Leyendas, Lorcana, Digimon, Riftbound, FaB, Gundam): mismo patrón, **nuevo importer**, cero cambios de esquema.
 
@@ -54,6 +54,9 @@ pnpm catalog:import-myl
 pnpm catalog:import-myl -- ./data/myl-demo.json
 pnpm catalog:import-myl -- --file ./data/myl-demo.json --dry-run
 pnpm catalog:import-myl -- --force
+pnpm catalog:import-myl-tor
+pnpm catalog:import-myl-tor -- --formats pe,pb --dry-run
+pnpm catalog:enrich-myl -- --edition espada-sagrada --card arturo --strict
 pnpm catalog:seed-myl-demo
 pnpm catalog:import-scryfall -- mh3
 pnpm catalog:import-pokemon -- xy1
@@ -61,6 +64,8 @@ pnpm catalog:reference:refresh -- --game pokemon
 ```
 
 `catalog:import-myl` acepta el pack curado del repo o un JSON local (`name`, `set`, `number`, `rarity`, `imageUrl`, `attributes`). Parser + normalizador + dedupe. Nunca borra cartas. Resumen: `Imported` / `Updated` / `Skipped` / `Conflicts`. `--dry-run` no escribe.
+
+`catalog:import-myl-tor` / `catalog:enrich-myl` leen **solo** `api.myl.cl` (Fénix). CI no llama la API en vivo: los tests usan payloads mock. `--strict` sale distinto de 0 si el reporte de completitud tiene huecos (sin imagen, sin habilidad oficial en no-Oro, historia ni marcada `NO_OFFICIAL_FLAVOR_TEXT`).
 
 El importer **solo actualiza** cartas con `attributes.source = myl-demo-pack`. Cualquier otra procedencia (`catalog-submission`, proveedor oficial, fixture curado, etc.) entra en `Conflicts` y no se sobrescribe. `--force` es la única excepción explícita. `catalog:seed-myl-demo` **no** pasa `--force`.
 

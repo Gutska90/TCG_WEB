@@ -99,7 +99,7 @@ Máximo `pageSize=100`.
 | GET | `/v1/games/:slug/cards` | no | paginado |
 | GET | `/v1/sets/:id` | no | |
 | GET | `/v1/sets/:id/cards` | no | paginado |
-| GET | `/v1/cards/:id` | no | carta + variantes + precios resumidos |
+| GET | `/v1/cards/:id` | no | carta + variantes + precios resumidos. `attributes` incluye lore MyL (`rulesText`, `flavorText`, `flavorTextStatus`) cuando el importer TOR lo llenó. |
 | GET | `/v1/variants/:id` | no | variante + listings activos |
 | GET | `/v1/games/:slug/filters` | no | CATALOG.1/2: filtros, tier PRIMARY/ADVANCED, options DISTINCT |
 | GET | `/v1/search/cards` | no | q, game, set, rarity, language, finish, sort, `attr.*` |

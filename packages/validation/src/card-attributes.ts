@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const optionalString = z.string().trim().max(160).optional().nullable();
+const optionalLongText = z.string().trim().max(5000).optional().nullable();
 const optionalStringList = z.array(z.string().trim().max(80)).max(24).optional();
 const optionalInt = z.number().int().optional().nullable();
 const sourceQuality = z.enum(["VERIFIED_PROVIDER", "CURATED_VERIFIED", "SYNTHETIC"]).optional();
@@ -98,6 +99,10 @@ export const mylCardAttributesSchema = z
     era: optionalString,
     collectorNumber: optionalString,
     illustrator: optionalString,
+    rulesText: optionalLongText,
+    flavorText: optionalLongText,
+    errataText: optionalLongText,
+    flavorTextStatus: z.enum(["OFFICIAL", "NO_OFFICIAL_FLAVOR_TEXT"]).optional(),
     legalities: z
       .array(
         z.object({

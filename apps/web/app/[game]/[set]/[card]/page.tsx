@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CatalogRequestError, getCardBySlug } from "../../../../lib/catalog";
 import { CardActions } from "../../../../components/card-actions";
 import { CardAttributeFields } from "../../../../components/card-attribute-fields";
+import { CardLore } from "../../../../components/card-lore";
 import { CardImage } from "../../../../components/ui/product-card";
 import { Price } from "../../../../components/ui/price";
 
@@ -35,6 +36,7 @@ export default async function CardPage({
             </p>
             <p className="mt-1 text-sm text-text-muted">{detail.supertype}</p>
             <CardAttributeFields fields={detail.attributeFields} />
+            <CardLore attributes={detail.attributes} />
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <div className="rounded-[16px] border border-border bg-surface p-4">
                 <p className="text-xs font-medium tracking-wide text-text-muted uppercase">Precio mercado</p>

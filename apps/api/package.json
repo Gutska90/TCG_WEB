@@ -17,6 +17,8 @@
     "beta:seed": "tsx src/catalog/beta-seed.cli.ts",
     "staging:preflight": "tsx src/ops/staging-preflight.cli.ts",
     "catalog:import-myl": "tsx src/catalog/cli.ts import-myl",
+    "catalog:import-myl-tor": "tsx src/catalog/cli.ts import-myl-tor",
+    "catalog:enrich-myl": "tsx src/catalog/cli.ts enrich-myl",
     "catalog:seed-myl-demo": "tsx src/catalog/cli.ts seed-myl-demo",
     "catalog:import-scryfall": "tsx src/catalog/cli.ts import-scryfall",
     "catalog:attributes:audit": "tsx src/catalog/attributes-audit.cli.ts",

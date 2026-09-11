@@ -19,7 +19,7 @@ FULL requires a live importer, populated principal attributes, real filter optio
 | Pokémon | `pokemon` | PARTIAL | Pokémon TCG API importer + `xy1-1` fixture | live catalog size; regulationMark only when provider sends it |
 | Magic | `magic` | PARTIAL | Scryfall importer + reference snapshots | artist facet; default DB is showcase unless imported |
 | Yu-Gi-Oh! | `yugioh` | PARTIAL | curated LOB-EN001 fixture | licensed bulk importer (no Konami scrape) |
-| Mitos y Leyendas | `mitos-y-leyendas` | PARTIAL | curated tor.myl.cl fixtures + MYL.1 demo pack | official frecuencia importer; versioned banlist (legality filter omitted) |
+| Mitos y Leyendas | `mitos-y-leyendas` | PARTIAL | official Fénix API (api.myl.cl / tor.myl.cl) PE+PB | versioned banlist (legality filter omitted) |
 | One Piece | `one-piece` | PARTIAL | curated Bandai list fixtures | Bandai bulk import |
 | Digimon | `digimon` | PARTIAL | curated BT14-007 + game row | official bulk importer |
 | Gundam | `gundam` | PARTIAL | curated GD01-001 + game row | official bulk importer |
@@ -43,7 +43,8 @@ pnpm catalog:attributes:backfill -- --game pokemon --dry-run
 pnpm catalog:seed-reference
 pnpm catalog:import-pokemon -- xy1
 pnpm catalog:import-scryfall -- 10e
-pnpm catalog:reference:refresh -- --game pokemon
+pnpm catalog:import-myl-tor -- --edition espada-sagrada --dry-run
+pnpm catalog:enrich-myl
 ```
 
 `catalog:seed-reference` is **not** a CI step. Refresh is dry-run unless `--write`.

@@ -497,14 +497,16 @@ export const GAME_FILTER_DEFINITIONS: Record<string, GameFilterDefinition> = {
   "mitos-y-leyendas": assemble(
     "mitos-y-leyendas",
     "PARTIAL",
-    "curated official MyL fixtures (tor.myl.cl); no mass scrape",
-    ["official frecuencia importer", "versioned banlist (filter omitted until then)"],
+    "official Fénix API (api.myl.cl / tor.myl.cl); PE+PB importer",
+    ["versioned banlist (filter omitted until then)"],
     MYL,
     [
       { key: "cardType", label: "Tipo" },
       { key: "raza", label: "Raza" },
       { key: "coste", label: "Coste" },
       { key: "fuerza", label: "Fuerza" },
+      { key: "keywords", label: "Palabras clave" },
+      { key: "illustrator", label: "Ilustrador" },
       { key: "edicion", label: "Edición" },
     ],
   ),

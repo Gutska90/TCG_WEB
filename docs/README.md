@@ -3,7 +3,7 @@
 **Nombre de trabajo:** TCG Market Chile  
 **Nombre interno:** `tcg-platform`  
 **Fecha:** 23 agosto 2026  
-**Estado:** Fase **14** lista. **UI.1** ✓. **PS** ✓. **PS.1** ✓. **MYL.1/2** demo MyL. **SELLER.1** storefront. Feature freeze 15–20. **B0–B7** ✓ repo. **B1/B8** = operador. No Scanner ni pagos live. **M2** no implementar.
+**Estado:** Fase **14** lista. **UI.1** ✓. **PS** ✓. **PS.1** ✓. **MYL.1/2/3** catálogo MyL TOR. **SELLER.1** storefront. Feature freeze 15–20. **B0–B7** ✓ repo. **B1/B8** = operador. No Scanner ni pagos live. **M2** no implementar.
 
 Este repositorio no es una copia de TCGMatch. TCGMatch es **referencia funcional** de un marketplace chileno de cartas. El producto objetivo es una **plataforma TCG integral** para coleccionistas, jugadores y tiendas, con web, PWA y apps móviles sobre **un solo backend y una sola base de datos**.
 
