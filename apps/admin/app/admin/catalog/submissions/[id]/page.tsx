@@ -89,7 +89,7 @@ export default function AdminCatalogSubmissionDetailPage() {
       <p>Fecha: {row.createdAt}</p>
       {row.imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={row.imageUrl} alt="" className="max-w-xs rounded border border-neutral-800" />
+        <img src={row.imageUrl} alt="" className="max-w-xs rounded border border-neutral-800" loading="lazy" decoding="async" />
       ) : null}
       {row.sourceUrl ? (
         <p>

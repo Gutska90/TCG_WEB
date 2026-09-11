@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { formatClp } from "@tcg/config";
 import type { WishlistItemView } from "@tcg/types";
 import { ApiError, api } from "../lib/api";
@@ -9,6 +10,7 @@ import { buttonClassName } from "./ui/button-styles";
 import { controlClassName } from "./ui/input";
 
 export function AddToWishlistButton({ variantId }: { variantId: string }) {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [target, setTarget] = useState("");
   const [pending, setPending] = useState(false);
@@ -29,8 +31,10 @@ export function AddToWishlistButton({ variantId }: { variantId: string }) {
       setMessage("Guardada en wishlist.");
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
-        setMessage("Ingresa para usar la wishlist.");
-      } else if (error instanceof ApiError && error.code === "FEATURE_DISABLED") {
+        window.location.assign(`/ingresar?next=${encodeURIComponent(pathname)}`);
+        return;
+      }
+      if (error instanceof ApiError && error.code === "FEATURE_DISABLED") {
         setMessage("Wishlist no está habilitada.");
       } else {
         setMessage(error instanceof ApiError ? error.message : "No se pudo guardar.");

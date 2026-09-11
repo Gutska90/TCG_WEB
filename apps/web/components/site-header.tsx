@@ -43,6 +43,7 @@ export function SiteHeader() {
         { href: "/me/wishlist", label: "Wishlist" },
         { href: "/me/compras", label: "Compras" },
         { href: "/me/ventas", label: "Ventas" },
+        { href: "/me/consultas", label: "Consultas" },
         { href: "/me/publicaciones", label: "Publicaciones" },
         { href: "/me/seguridad", label: "Seguridad" },
       ]
@@ -53,27 +54,25 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-6">
-        <Link href="/" className="flex shrink-0 items-center gap-2 tracking-tight">
-          <BrandMark className="h-8 w-8" />
-          <span className="text-base font-semibold">TCG MARKET</span>
+      <div className="mx-auto flex max-w-6xl items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-6 sm:py-3">
+        <Link href="/" className="flex min-w-0 items-center gap-2 tracking-tight">
+          <BrandMark className="h-8 w-8 shrink-0" />
+          <span className="hidden truncate text-base font-semibold min-[380px]:inline">TCG MARKET</span>
           <span className="hidden text-xs font-medium text-text-muted sm:inline">Chile</span>
           <Badge tone="primary">Beta</Badge>
         </Link>
         <div className="hidden min-w-0 flex-1 md:block">
-          <SearchForm compact />
+          <SearchForm compact defaultHasListings inputId="header-q" />
         </div>
         <nav className="ml-auto flex items-center gap-1" aria-label="Accesos">
           <ThemeToggle compact />
-          {signedIn ? (
-            <Link
-              href="/me/wishlist"
-              aria-label="Wishlist"
-              className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-[12px] text-text hover:bg-surface-elevated"
-            >
-              <Heart className="h-5 w-5" />
-            </Link>
-          ) : null}
+          <Link
+            href="/me/wishlist"
+            aria-label="Wishlist"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-[12px] text-text hover:bg-surface-elevated"
+          >
+            <Heart className="h-5 w-5" />
+          </Link>
           <Link
             href="/carrito"
             aria-label="Carrito"
@@ -125,7 +124,10 @@ export function SiteHeader() {
               aria-label="Principal móvil"
             >
               <div className="mb-3">
-                <SearchForm compact />
+                <SearchForm compact defaultHasListings inputId="menu-q" />
+              </div>
+              <div className="mb-3">
+                <ThemeToggle />
               </div>
               {games.map((game) => (
                 <Link key={game.id} href={`/${game.slug}`} className="block rounded-[10px] px-2 py-2">

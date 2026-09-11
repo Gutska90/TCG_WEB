@@ -4,7 +4,7 @@ import { CatalogPager } from "../../../components/catalog-pager";
 import { SearchFilterChips } from "../../../components/search-form";
 import { SearchLayout } from "../../../components/search-layout";
 import { EmptyState } from "../../../components/ui/empty-state";
-import { ProductCard } from "../../../components/ui/product-card";
+import { CATALOG_CARD_GRID, ProductCard } from "../../../components/ui/product-card";
 import { CatalogRequestError, getGame, getGameFilters } from "../../../lib/catalog";
 import { searchCards, searchCardsHref, searchInputFromParams, type SearchCardsInput, hasExtraSearchFilters } from "../../../lib/search";
 
@@ -52,22 +52,24 @@ export default async function GameCardsPage({
         <div className="mt-6">
           <SearchLayout games={[game]} values={values} filters={filters} action={pathname} lockGame>
             <div className="mb-4">
-              <SearchFilterChips values={values} pathname={pathname} lockedKeys={["game"]} />
+              <SearchFilterChips values={values} pathname={pathname} lockedKeys={["game"]} games={[game]} />
             </div>
             {error ? <p className="text-sm text-danger">{error}</p> : null}
             {results ? (
               <>
                 <p className="text-sm text-text-muted">{results.total} resultados</p>
-                <ul className="mt-4 grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3">
+                <ul className={CATALOG_CARD_GRID}>
                   {results.items.map((card) => (
                     <li key={card.id}>
                       <ProductCard
                         href={`/${card.gameSlug}/${card.setSlug}/${card.slug}`}
                         name={card.name}
+                        setName={card.setName}
                         number={card.number}
                         imageUrl={card.imageUrl}
                         gameSlug={card.gameSlug}
                         meta={card.rarity}
+                        priceClp={card.minListingClp}
                       />
                     </li>
                   ))}
@@ -75,17 +77,25 @@ export default async function GameCardsPage({
                 {results.items.length === 0 ? (
                   <EmptyState
                     title={
-                      hasExtraSearchFilters(values, ["game"])
-                        ? "No hay cartas que coincidan."
-                        : `El catálogo de ${game.name} está en preparación.`
+                      values.hasListings
+                        ? "Nadie vende cartas con esos filtros."
+                        : hasExtraSearchFilters(values, ["game"])
+                          ? "No hay cartas que coincidan."
+                          : `El catálogo de ${game.name} está en preparación.`
                     }
                     body={
-                      hasExtraSearchFilters(values, ["game"])
-                        ? undefined
-                        : "Aún no publicamos cartas verificadas de este juego."
+                      values.hasListings
+                        ? "Prueba el catálogo o quita filtros."
+                        : hasExtraSearchFilters(values, ["game"])
+                          ? "Prueba otro nombre o quita filtros."
+                          : "Aún no publicamos cartas verificadas de este juego."
                     }
                     action={
-                      hasExtraSearchFilters(values, ["game"]) ? (
+                      values.hasListings ? (
+                        <Link href={searchCardsHref({ ...values, hasListings: undefined, page: 1 }, pathname)} className="underline">
+                          Ver catálogo
+                        </Link>
+                      ) : hasExtraSearchFilters(values, ["game"]) ? (
                         <Link href={pathname} className="underline">
                           Quitar filtros
                         </Link>

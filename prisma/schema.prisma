@@ -97,6 +97,11 @@ enum CheckoutStatus {
   CANCELLED
 }
 
+enum SellerInquiryStatus {
+  OPEN
+  EXPIRED
+}
+
 enum PaymentStatus {
   PENDING
   APPROVED
@@ -289,6 +294,8 @@ model User {
   sellerSubscriptions  SellerSubscription[]
   catalogSubmissions   CatalogSubmission[] @relation("CatalogSubmissionAuthor")
   catalogReviews       CatalogSubmission[] @relation("CatalogSubmissionReviewer")
+  inquiriesBought      SellerInquiry[]     @relation("InquiryBuyer")
+  inquiriesSold        SellerInquiry[]     @relation("InquirySeller")
 
   @@map("users")
 }
@@ -744,6 +751,7 @@ model Listing {
   images               ListingImage[]
   cartItems            CartItem[]
   orderItems           OrderItem[]
+  inquiryItems         SellerInquiryItem[]
   revisions            ListingRevision[]
 
   @@index([sellerId])
@@ -794,6 +802,50 @@ model CartItem {
   @@unique([cartId, listingId])
   @@index([listingId])
   @@map("cart_items")
+}
+
+/// CONTACT.2: consulta de lote al vendedor. No reserva stock; el checkout sigue descontando.
+model SellerInquiry {
+  id            String              @id @default(uuid()) @db.Uuid
+  inquiryNumber String              @unique @map("inquiry_number")
+  buyerId       String?             @map("buyer_id") @db.Uuid
+  guestToken    String?             @map("guest_token")
+  sellerId      String              @map("seller_id") @db.Uuid
+  status        SellerInquiryStatus @default(OPEN)
+  subtotalClp   Int                 @map("subtotal_clp")
+  messageText   String              @map("message_text")
+  expiresAt     DateTime            @map("expires_at") @db.Timestamptz(6)
+  createdAt     DateTime            @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime            @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  buyer  User?                @relation("InquiryBuyer", fields: [buyerId], references: [id], onDelete: SetNull)
+  seller User                 @relation("InquirySeller", fields: [sellerId], references: [id], onDelete: Restrict)
+  items  SellerInquiryItem[]
+
+  @@index([sellerId, createdAt])
+  @@index([buyerId, createdAt])
+  @@index([status, expiresAt])
+  @@map("seller_inquiries")
+}
+
+model SellerInquiryItem {
+  id            String         @id @default(uuid()) @db.Uuid
+  inquiryId     String         @map("inquiry_id") @db.Uuid
+  listingId     String         @map("listing_id") @db.Uuid
+  variantId     String         @map("variant_id") @db.Uuid
+  titleSnapshot String         @map("title_snapshot")
+  condition     CardCondition
+  quantity      Int
+  unitPriceClp  Int            @map("unit_price_clp")
+  lineTotalClp  Int            @map("line_total_clp")
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  inquiry SellerInquiry @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  listing Listing       @relation(fields: [listingId], references: [id], onDelete: Restrict)
+
+  @@index([inquiryId])
+  @@index([listingId])
+  @@map("seller_inquiry_items")
 }
 
 model CardPrice {

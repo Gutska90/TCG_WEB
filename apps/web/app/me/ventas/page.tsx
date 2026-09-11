@@ -65,6 +65,10 @@ export default function SalesPage() {
         </ul>
       )}
       <p className="mt-8 text-sm">
+        <Link href="/me/consultas" className="underline">
+          Ver consultas
+        </Link>
+        {" · "}
         <Link href="/me/balance" className="underline">
           Ver saldo
         </Link>

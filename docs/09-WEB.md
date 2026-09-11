@@ -27,14 +27,17 @@ No indexar `/checkout`, `/me/*`, `/admin` (admin es otra app).
 ## Layout global
 
 ```text
-Header: Logo | Search | Cartas | Sellados* | Ofertas* | Subastas* | Tiendas* | Precios* | Colecciones*
-        ❤️  🛒  👤
+Header: Logo | Search (typeahead) | Juegos | ❤️ wishlist | 🛒 | 👤 | tema (sol/luna)
 Footer: legal, juegos, ayuda
 ```
 
 \* En MVP 1–2, ítems futuros pueden ocultarse o ser “Próximamente” sin rutas dummy que parezcan producto.
 
-MVP 1 nav: Logo, Buscar, Juegos, Favoritos, Login.
+MVP 1 nav: Logo, Buscar, Juegos, Wishlist, Login.
+
+Home: búsqueda, juegos con marca de color, publicaciones con “Ver todas” a `/buscar?hasListings=true`. El submit del hero y el typeahead del header/menú envían `hasListings=true` (comprar). Hubs `/{game}` y `/{game}/{set}` siguen en catálogo salvo que el usuario pulse **En venta**.
+
+`/buscar` y hubs de catálogo: interruptor **Catálogo / En venta** (`hasListings`). Autocompletar reusa `GET /v1/search/cards`; el clic en una sugerencia abre la ficha (no se cierra el listado por blur). MyL `/{game}` agrupa ediciones por época (PE / PB / Imperio).
 
 ## Pantallas MVP 1
 
@@ -62,10 +65,11 @@ MVP 1 nav: Logo, Buscar, Juegos, Favoritos, Login.
 | `/me/solicitudes-catalogo/{id}` | Detalle; completar `NEEDS_INFO` |
 | `/me/publicaciones` | CRUD listings |
 | `/vendedores/{slug}` | Mini tienda: tabs productos/valoraciones/información, filtros, contacto opcional |
-| `/carrito` | Multi-seller |
+| `/carrito` | Multi-seller; qty +/− sobre la imagen; consultar lote (CONTACT.2 + WhatsApp opt-in), sin reservar stock |
 | `/checkout` | Direcciones, envío, MP |
 | `/me/compras` `/me/compras/{id}` | |
 | `/me/ventas` `/me/ventas/{id}` | |
+| `/me/consultas` `/me/consultas/{id}` | consultas de lote (comprador y vendedor) |
 | `/me/direcciones` | |
 
 ## UX de ficha de carta
@@ -74,10 +78,11 @@ MVP 1 nav: Logo, Buscar, Juegos, Favoritos, Login.
 - A la derecha: nombre, edición, número, rareza, tipo, raza, coste, fuerza, ilustrador, palabras clave.
 - MyL: bloques **Habilidad** (`attributes.rulesText`) e **Historia** (`flavorText`). Si TOR no publica historia, leyenda “No existe texto histórico oficial registrado para esta impresión.”
 - Enlace a la ficha TOR cuando hay `sourceUrl`.
-- Selector de variante (idioma / finish). Las ofertas de la ficha filtran por esa `variantId`; no hay filtros extra de idioma/finish que puedan contradecirla.
-- Bloque de precios.
-- Lista de listings con condición, vendedor, reputación, precio, CTA al carrito.
-- Fotos del listing al expandir.
+- Selector de variante (idioma / acabado). Las ofertas de la ficha filtran por esa `variantId`; no hay filtros extra de idioma/acabado que puedan contradecirla.
+- Bloque de precios (mercado / menor listing) **antes** de lore.
+- Acciones (colección, wishlist, vender) y ofertas a continuación. Si no hay listings: CTA wishlist + vender.
+- Lista de listings con condición en es-CL, vendedor, reputación, precio, cantidad con **+/− sobre la imagen**, CTA al carrito y consulta WhatsApp opcional.
+- Fotos del listing etiquetadas “Foto de la publicación”; el arte de ficha es “Arte oficial del catálogo”.
 
 ## Estado cliente
 

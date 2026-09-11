@@ -3,7 +3,7 @@ import { CatalogPager } from "../../components/catalog-pager";
 import { SearchFilterChips } from "../../components/search-form";
 import { SearchLayout } from "../../components/search-layout";
 import { EmptyState } from "../../components/ui/empty-state";
-import { ProductCard } from "../../components/ui/product-card";
+import { CATALOG_CARD_GRID, ProductCard } from "../../components/ui/product-card";
 import { CatalogRequestError, getGameFilters, getGames } from "../../lib/catalog";
 import { searchCards, searchCardsHref, searchInputFromParams } from "../../lib/search";
 
@@ -65,7 +65,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       <div className="mt-6">
         <SearchLayout games={games} values={values} filters={filters}>
           <div className="mb-4">
-            <SearchFilterChips values={values} />
+            <SearchFilterChips values={values} games={games} />
           </div>
           {error ? <p className="text-sm text-danger">{error}</p> : null}
           {!hasQuery ? (
@@ -77,7 +77,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           {results ? (
             <>
               <p className="text-sm text-text-muted">{results.total} resultados</p>
-              <ul className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <ul className={CATALOG_CARD_GRID}>
                 {results.items.map((card) => (
                   <li key={card.id}>
                     <ProductCard
@@ -89,17 +89,33 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
                       imageUrl={card.imageUrl}
                       gameSlug={card.gameSlug}
                       meta={card.rarity}
+                      priceClp={card.minListingClp}
                     />
                   </li>
                 ))}
               </ul>
               {results.items.length === 0 ? (
                 <EmptyState
-                  title="No hay cartas que coincidan."
+                  title={values.hasListings ? "Nadie vende cartas con esos filtros." : "No hay cartas que coincidan."}
+                  body={
+                    values.hasListings
+                      ? "Prueba el catálogo o quita filtros. Si buscas una carta concreta, agrégala a tu wishlist."
+                      : "Prueba otro nombre, quita filtros o mira el marketplace."
+                  }
                   action={
-                    <Link href="/ayuda" className="underline">
-                      Reportar o pedir ayuda
-                    </Link>
+                    <span className="flex flex-wrap justify-center gap-3">
+                      <Link href={searchCardsHref({ ...values, hasListings: undefined, page: 1 })} className="underline">
+                        Ver catálogo
+                      </Link>
+                      {values.hasListings ? null : (
+                        <Link href={searchCardsHref({ ...values, hasListings: true, page: 1 })} className="underline">
+                          Ver en venta
+                        </Link>
+                      )}
+                      <Link href="/me/wishlist" className="underline">
+                        Ir a wishlist
+                      </Link>
+                    </span>
                   }
                 />
               ) : null}

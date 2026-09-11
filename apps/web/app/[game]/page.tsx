@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CatalogRequestError, getGame, getSets } from "../../lib/catalog";
 import { EmptyState } from "../../components/ui/empty-state";
+import { SetDirectory } from "../../components/set-directory";
 
 export default async function GamePage({ params }: { params: Promise<{ game: string }> }) {
   const { game: slug } = await params;
@@ -29,18 +30,7 @@ export default async function GamePage({ params }: { params: Promise<{ game: str
             />
           </div>
         ) : (
-          <ul className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {sets.map((set) => (
-              <li key={set.id}>
-                <Link href={`/${game.slug}/${set.slug}`} className="elevate-hover block rounded-[16px] border border-border bg-surface p-4">
-                  <p className="font-medium">{set.name}</p>
-                  <p className="text-sm text-text-muted">
-                    {set.code} · {set.cardCount} cartas
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <SetDirectory gameSlug={game.slug} gameName={game.name} sets={sets} />
         )}
       </main>
     );

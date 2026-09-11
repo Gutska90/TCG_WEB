@@ -39,7 +39,7 @@ type ListingRow = {
       number: string;
       rarity: string;
       imageUrl: string | null;
-      set: { slug: string; game: { slug: string } };
+      set: { slug: string; name: string; game: { slug: string } };
     };
   } | null;
 };
@@ -105,6 +105,7 @@ export function toListingView(row: ListingRow): ListingView {
         imageUrl: row.variant.card.imageUrl,
         gameSlug: row.variant.card.set.game.slug,
         setSlug: row.variant.card.set.slug,
+        setName: row.variant.card.set.name,
       },
     },
     images: row.images.map((image) => ({

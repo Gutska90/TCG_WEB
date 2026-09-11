@@ -286,11 +286,11 @@ function CollectionHome() {
                     }}
                   />
                   <Link href={`/me/coleccion/${item.id}`} className="flex min-w-0 flex-1 gap-3">
-                    <CardImage src={item.variant.card.imageUrl} alt="" className="h-24 w-[68px] shrink-0" />
+                    <CardImage src={item.variant.card.imageUrl} alt={item.variant.card.name} variant="thumb" className="h-24 w-[68px] shrink-0" />
                     <span className="min-w-0">
                       <span className="block font-medium">{item.variant.card.name}</span>
                       <span className="block text-sm text-text-muted">
-                        {item.variant.card.setSlug} · {item.variant.card.number} · ×{item.quantity}
+                        {item.variant.card.setName} · {item.variant.card.number} · ×{item.quantity}
                       </span>
                       <span className="mt-1 block text-xs text-text-muted">
                         {item.condition} · {item.variant.language} · {item.variant.finish}

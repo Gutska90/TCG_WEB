@@ -1,12 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CARD_CONDITION_LABELS, formatClp } from "@tcg/config";
+import { CARD_CONDITION_LABELS, formatClp, whatsappMeHref } from "@tcg/config";
 import type { CartView } from "@tcg/types";
 import { useRouter } from "expo-router";
-import { Text, View } from "react-native";
-import { fetchCart, putCartItem, removeCartItem } from "../../src/lib/endpoints";
+import { useState } from "react";
+import { Image, Text, View } from "react-native";
+import { fetchCart, putCartItem, removeCartItem, createInquiry } from "../../src/lib/endpoints";
 import { useAuth } from "../../src/lib/auth";
 import { userFacingError } from "../../src/lib/errors";
+import { openWhatsappHref } from "../../src/lib/whatsapp";
 import { Button, EmptyState, ErrorText, LoadingState, Screen } from "../../src/ui/screen";
+import { QtyStepper } from "../../src/ui/qty-stepper";
 import { TextLink } from "../../src/ui/nav";
 import { useColors } from "../../src/ui/theme-provider";
 
@@ -21,6 +24,7 @@ export default function CartScreen() {
   const { me } = useAuth();
   const router = useRouter();
   const qc = useQueryClient();
+  const [consultError, setConsultError] = useState<string | null>(null);
   const cart = useQuery({ queryKey: ["cart"], queryFn: fetchCart, enabled: Boolean(me) });
   const mutate = useMutation({
     mutationFn: ({ listingId, quantity }: { listingId: string; quantity: number }) =>
@@ -54,41 +58,72 @@ export default function CartScreen() {
         <View key={group.seller.id} style={{ marginBottom: 16, gap: 8 }}>
           <Text style={{ fontWeight: "600" }}>{group.seller.displayName}</Text>
           {group.items.map((item) => (
-            <View key={item.listingId} style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 12, gap: 6 }}>
+            <View key={item.listingId} style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 12, gap: 8 }}>
+              <View style={{ width: "100%", height: 220, borderRadius: 8, overflow: "hidden", backgroundColor: "#111", justifyContent: "flex-end" }}>
+                {item.listing.variant.card.imageUrl ? (
+                  <Image
+                    source={{ uri: item.listing.variant.card.imageUrl }}
+                    style={{ position: "absolute", width: "100%", height: "100%" }}
+                    resizeMode="contain"
+                    accessibilityLabel={item.listing.variant.card.name}
+                  />
+                ) : null}
+                <View style={{ alignItems: "center", paddingBottom: 8 }}>
+                  <QtyStepper
+                    value={item.quantity}
+                    max={Math.max(1, item.listing.available)}
+                    disabled={mutate.isPending}
+                    onChange={(next) => mutate.mutate({ listingId: item.listingId, quantity: next })}
+                  />
+                </View>
+              </View>
               <Text>{item.listing.title}</Text>
               <Text style={{ color: colors.muted, fontSize: 13 }}>
                 {item.listing.condition} · {CARD_CONDITION_LABELS[item.listing.condition]} · {formatClp(item.listing.priceClp)}
               </Text>
               {item.issue ? <Text style={{ color: colors.danger }}>{ISSUE_COPY[item.issue]}</Text> : null}
               <Text>Cantidad {item.quantity} · {formatClp(item.lineTotalClp)}</Text>
-              <View style={{ flexDirection: "row", gap: 8 }}>
-                <Button
-                  variant="secondary"
-                  label="Menos"
-                  disabled={mutate.isPending}
-                  onPress={() => mutate.mutate({ listingId: item.listingId, quantity: item.quantity - 1 })}
-                />
-                <Button
-                  variant="secondary"
-                  label="Más"
-                  disabled={mutate.isPending || item.quantity >= item.listing.available}
-                  onPress={() => mutate.mutate({ listingId: item.listingId, quantity: item.quantity + 1 })}
-                />
-                <Button
-                  variant="secondary"
-                  label="Quitar"
-                  disabled={mutate.isPending}
-                  onPress={() => mutate.mutate({ listingId: item.listingId, quantity: 0 })}
-                />
-              </View>
+              <Button
+                variant="secondary"
+                label="Quitar"
+                disabled={mutate.isPending}
+                onPress={() => mutate.mutate({ listingId: item.listingId, quantity: 0 })}
+              />
             </View>
           ))}
           <Text>Subtotal {formatClp(group.subtotalClp)}</Text>
+          {group.seller.contactWhatsappEnabled && group.seller.contactWhatsapp ? (
+            <Button
+              variant="secondary"
+              label="Consultar lote por WhatsApp"
+              disabled={mutate.isPending || !group.items.some((item) => item.purchasable)}
+              onPress={() => {
+                setConsultError(null);
+                void (async () => {
+                  try {
+                    const inquiry = await createInquiry(group.seller.id);
+                    if (!inquiry.seller.contactWhatsapp) {
+                      setConsultError("Consulta creada. Este vendedor no tiene WhatsApp público.");
+                      return;
+                    }
+                    await openWhatsappHref(whatsappMeHref(inquiry.seller.contactWhatsapp, inquiry.messageText));
+                  } catch (err: unknown) {
+                    setConsultError(userFacingError(err));
+                  }
+                })();
+              }}
+            />
+          ) : null}
+          {group.seller.contactWhatsappEnabled && group.seller.contactWhatsapp ? (
+            <Text style={{ color: colors.muted, fontSize: 13 }}>
+              Consultar no reserva stock. Para tomarlo, paga en la plataforma.
+            </Text>
+          ) : null}
         </View>
       ))}
       <Text>Productos {formatClp(data.productTotalClp)}</Text>
       <Text style={{ color: colors.muted }}>El envío se calcula al pagar. El total lo confirma el servidor.</Text>
-      <ErrorText message={mutate.error ? userFacingError(mutate.error) : null} />
+      <ErrorText message={mutate.error ? userFacingError(mutate.error) : consultError} />
       <Button label="Ir a pagar" onPress={() => router.push("/checkout")} />
     </Screen>
   );

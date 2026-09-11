@@ -282,6 +282,20 @@ export const putCartItemSchema = z.object({
   quantity: z.number().int().min(1).max(9999),
 });
 
+export const createInquirySchema = z.object({
+  sellerId: z.string().uuid(),
+  cartUrl: z
+    .string()
+    .url()
+    .max(300)
+    .refine((value) => value.startsWith("https://") || value.startsWith("http://"))
+    .optional(),
+});
+
+export const listInquiriesQuerySchema = paginationQuerySchema.extend({
+  as: z.enum(["buyer", "seller"]),
+});
+
 export const listingIdParamSchema = z.string().uuid();
 
 export const uuidParamSchema = z.string().uuid();
@@ -344,6 +358,8 @@ export const createRatingSchema = z.object({
 });
 
 export type PutCartItemInput = z.infer<typeof putCartItemSchema>;
+export type CreateInquiryInput = z.infer<typeof createInquirySchema>;
+export type ListInquiriesQuery = z.infer<typeof listInquiriesQuerySchema>;
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 export type ListOrdersQuery = z.infer<typeof listOrdersQuerySchema>;
 export type ShipOrderInput = z.infer<typeof shipOrderSchema>;

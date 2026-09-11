@@ -27,8 +27,16 @@ export default async function CardPage({
             {detail.set.name}
           </Link>
         </p>
-        <div className="mt-6 grid gap-10 lg:grid-cols-[minmax(0,280px)_1fr]">
-          <CardImage src={detail.imageUrl} alt={detail.name} className="mx-auto w-full max-w-[280px]" />
+        <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,280px)_1fr]">
+          <CardImage
+            src={detail.imageUrl}
+            alt={detail.name}
+            name={detail.name}
+            gameSlug={detail.game.slug}
+            variant="detail"
+            priority
+            className="mx-auto w-full max-w-[280px]"
+          />
           <div>
             <h1 className="text-3xl font-medium tracking-tight sm:text-4xl">{detail.name}</h1>
             <p className="mt-2 text-text-muted">
@@ -36,7 +44,6 @@ export default async function CardPage({
             </p>
             <p className="mt-1 text-sm text-text-muted">{detail.supertype}</p>
             <CardAttributeFields fields={detail.attributeFields} />
-            <CardLore attributes={detail.attributes} />
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <div className="rounded-[16px] border border-border bg-surface p-4">
                 <p className="text-xs font-medium tracking-wide text-text-muted uppercase">Precio mercado</p>
@@ -51,8 +58,14 @@ export default async function CardPage({
               </div>
             </div>
             {defaultVariant ? (
-              <CardActions variantId={defaultVariant.id} variants={detail.variants} />
+              <CardActions
+                variantId={defaultVariant.id}
+                variants={detail.variants}
+                cardName={detail.name}
+                setName={detail.set.name}
+              />
             ) : null}
+            <CardLore attributes={detail.attributes} />
           </div>
         </div>
       </main>

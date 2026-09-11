@@ -56,8 +56,11 @@ pnpm catalog:import-myl -- --file ./data/myl-demo.json --dry-run
 pnpm catalog:import-myl -- --force
 pnpm catalog:import-myl-tor
 pnpm catalog:import-myl-tor -- --formats pe,pb --dry-run
+pnpm catalog:import-myl-tor -- --formats imperio
+pnpm catalog:import-myl-tor -- --edition aguila-imperial
 pnpm catalog:enrich-myl -- --edition espada-sagrada --card arturo --strict
 pnpm catalog:seed-myl-demo
+pnpm catalog:prune-myl-without-images
 pnpm catalog:import-scryfall -- mh3
 pnpm catalog:import-pokemon -- xy1
 pnpm catalog:reference:refresh -- --game pokemon
@@ -65,7 +68,7 @@ pnpm catalog:reference:refresh -- --game pokemon
 
 `catalog:import-myl` acepta el pack curado del repo o un JSON local (`name`, `set`, `number`, `rarity`, `imageUrl`, `attributes`). Parser + normalizador + dedupe. Nunca borra cartas. Resumen: `Imported` / `Updated` / `Skipped` / `Conflicts`. `--dry-run` no escribe.
 
-`catalog:import-myl-tor` / `catalog:enrich-myl` leen **solo** `api.myl.cl` (Fénix). CI no llama la API en vivo: los tests usan payloads mock. `catalog:seed-myl-demo` es offline (pack demo + listings) salvo `MYL_TOR_LIVE_IMPORT=true`. `--strict` sale distinto de 0 si el reporte de completitud tiene huecos (sin imagen, sin habilidad oficial en no-Oro, historia ni marcada `NO_OFFICIAL_FLAVOR_TEXT`).
+`catalog:import-myl-tor` / `catalog:enrich-myl` leen **solo** `api.myl.cl` (Fénix). CI no llama la API en vivo: los tests usan payloads mock. `catalog:seed-myl-demo` es offline (pack demo + listings) salvo `MYL_TOR_LIVE_IMPORT=true`; si ya hay cartas TOR con imagen, no reinyecta el pack demo. `catalog:prune-myl-without-images` borra cartas MyL locales sin `imageUrl` (no es parte del importer). `--strict` sale distinto de 0 si el reporte de completitud tiene huecos (sin imagen, sin habilidad oficial en no-Oro, historia ni marcada `NO_OFFICIAL_FLAVOR_TEXT`).
 
 El importer **solo actualiza** cartas con `attributes.source = myl-demo-pack`. Cualquier otra procedencia (`catalog-submission`, proveedor oficial, fixture curado, etc.) entra en `Conflicts` y no se sobrescribe. `--force` es la única excepción explícita. `catalog:seed-myl-demo` **no** pasa `--force`.
 

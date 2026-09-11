@@ -61,7 +61,8 @@ describe("SearchService", () => {
   it("maps ranked ids to card summaries", async () => {
     prisma.$queryRaw
       .mockResolvedValueOnce([{ total: 1n }])
-      .mockResolvedValueOnce([{ id: "card-1" }]);
+      .mockResolvedValueOnce([{ id: "card-1" }])
+      .mockResolvedValueOnce([{ cardId: "card-1", minListing: 1500 }]);
     prisma.card.findMany.mockResolvedValue([
       {
         id: "card-1",
@@ -92,6 +93,7 @@ describe("SearchService", () => {
           setSlug: "test-set",
           setName: "Set de prueba",
           setCode: "TEST",
+          minListingClp: 1500,
         },
       ],
       page: 1,

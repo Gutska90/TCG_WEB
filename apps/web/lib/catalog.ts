@@ -8,6 +8,11 @@ export class CatalogRequestError extends Error {
   }
 }
 
+/**
+ * Server-side catalog GET against Nest (`API_ORIGIN`).
+ * Default ISR 30s so set/search grids do not hammer the API on every tile navigation.
+ * Pass `false` when the payload must not be cached (game filter metadata).
+ */
 export async function catalogGet<T>(path: string, revalidate?: number | false): Promise<T> {
   const res = await fetch(
     `${API_ORIGIN}${path}`,

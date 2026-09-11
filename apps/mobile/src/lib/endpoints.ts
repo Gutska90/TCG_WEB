@@ -22,6 +22,7 @@ import type {
   PublicPlatformConfig,
   SearchCardView,
   SellerBalanceView,
+  SellerInquiryView,
   SellerRatingView,
   ShippingQuoteView,
   WishlistItemView,
@@ -66,6 +67,21 @@ export function putCartItem(listingId: string, quantity: number) {
 
 export function removeCartItem(listingId: string) {
   return api<CartView>(`/v1/cart/items/${listingId}`, { method: "DELETE" });
+}
+
+export function createInquiry(sellerId: string) {
+  return api<SellerInquiryView>("/v1/inquiries", {
+    method: "POST",
+    body: JSON.stringify({ sellerId }),
+  });
+}
+
+export function listInquiries(as: "buyer" | "seller") {
+  return api<Paginated<SellerInquiryView>>(`/v1/me/inquiries?as=${as}&pageSize=50`);
+}
+
+export function getInquiry(id: string) {
+  return api<SellerInquiryView>(`/v1/inquiries/${id}`);
 }
 
 export function quoteShipping(sellerId: string, method: ShippingMethod, comuna: string) {

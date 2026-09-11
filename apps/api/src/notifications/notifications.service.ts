@@ -25,6 +25,7 @@ const DEFAULTS: Record<NotificationType, { inApp: boolean; email: boolean; push:
   RATING_RECEIVED: { inApp: true, email: false, push: false },
   WISHLIST_HIT: { inApp: true, email: true, push: false },
   PRICE_DROP: { inApp: false, email: false, push: false },
+  SELLER_INQUIRY: { inApp: true, email: true, push: false },
 };
 
 export type NotificationEmitInput = {
@@ -125,7 +126,7 @@ export class NotificationsService {
 
   async emit(input: NotificationEmitInput): Promise<boolean> {
     const prefs = await this.preferenceFor(input.userId, input.type);
-    const persistInApp = input.type === "WISHLIST_HIT" || prefs.inApp;
+    const persistInApp = input.type === "WISHLIST_HIT" || input.type === "SELLER_INQUIRY" || prefs.inApp;
     if (persistInApp) {
       try {
         await this.prisma.notification.create({

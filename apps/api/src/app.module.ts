@@ -13,6 +13,7 @@ import { CatalogModule } from "./catalog/catalog.module";
 import { SearchModule } from "./search/search.module";
 import { ListingsModule } from "./listings/listings.module";
 import { CartModule } from "./cart/cart.module";
+import { InquiriesModule } from "./inquiries/inquiries.module";
 import { FilesModule } from "./files/files.module";
 import { OrdersModule } from "./orders/orders.module";
 import { PaymentsModule } from "./payments/payments.module";
@@ -47,6 +48,7 @@ import { SellerPlansModule } from "./seller-plans/seller-plans.module";
     SearchModule,
     ListingsModule,
     CartModule,
+    InquiriesModule,
     OrdersModule,
     PaymentsModule,
     ShippingModule,

@@ -5,26 +5,32 @@ import { useEffect, useMemo, useState } from "react";
 import {
   CARD_CONDITION_LABELS,
   CARD_CONDITIONS,
+  CARD_FINISH_LABELS,
+  CARD_LANGUAGE_LABELS,
   formatClp,
   formatReputation,
 } from "@tcg/config";
 import type { ListingView, Paginated, VariantView } from "@tcg/types";
 import { ApiError, api } from "../lib/api";
-import { AddToCartButton } from "./add-to-cart-button";
 import { AddToCollectionButton } from "./add-to-collection";
 import { AddToWishlistButton } from "./add-to-wishlist";
 import { PriceHistory } from "./price-history";
-import { ShareControls } from "./share-controls";
-import { WhatsappListingButton } from "./whatsapp-listing-button";
+import { ListingOfferCard } from "./listing-offer-card";
+import { ListingPurchaseActions } from "./listing-purchase-actions";
 import { buttonClassName } from "./ui/button-styles";
 import { controlClassName } from "./ui/input";
+import { EmptyState } from "./ui/empty-state";
 
 export function CardActions({
   variantId,
   variants,
+  cardName,
+  setName,
 }: {
   variantId: string;
   variants: VariantView[];
+  cardName: string;
+  setName: string;
 }) {
   const [current, setCurrent] = useState(variantId);
   const [message, setMessage] = useState<string | null>(null);
@@ -68,7 +74,7 @@ export function CardActions({
     <div className="mt-6 flex flex-col gap-4">
       {variants.length > 1 ? (
         <label className="text-sm">
-          Idioma / finish
+          Idioma / acabado
           <select
             className={`mt-1 ${controlClassName}`}
             value={current}
@@ -76,7 +82,7 @@ export function CardActions({
           >
             {variants.map((variant) => (
               <option key={variant.id} value={variant.id}>
-                {variant.language} · {variant.finish}
+                {CARD_LANGUAGE_LABELS[variant.language]} · {CARD_FINISH_LABELS[variant.finish]}
               </option>
             ))}
           </select>
@@ -120,7 +126,18 @@ export function CardActions({
         </label>
       </div>
       {listings.length === 0 ? (
-        <p className="text-sm text-text-muted">Nadie publica esta variante aún.</p>
+        <EmptyState
+          title={`Nadie vende ${cardName} en esta variante aún.`}
+          body="Guárdala en tu wishlist para que te avisemos, o publícala tú."
+          action={
+            <span className="flex flex-wrap justify-center gap-3">
+              <AddToWishlistButton variantId={current} />
+              <Link href={`/vender?variantId=${current}`} className={buttonClassName("primary")}>
+                Vender esta
+              </Link>
+            </span>
+          }
+        />
       ) : (
         <>
           <div className="hidden overflow-x-auto md:block">
@@ -138,7 +155,7 @@ export function CardActions({
               <tbody>
                 {listings.map((item) => (
                   <tr key={item.id} className="border-t border-border">
-                    <td className="py-3 pr-3 font-medium">{item.condition}</td>
+                    <td className="py-3 pr-3 font-medium">{CARD_CONDITION_LABELS[item.condition]}</td>
                     <td className="py-3 pr-3">
                       <Link href={`/vendedores/${item.seller.slug}`} className="underline underline-offset-2">
                         {item.seller.displayName}
@@ -156,17 +173,23 @@ export function CardActions({
                     </td>
                     <td className="py-3">
                       <div className="flex flex-col items-start gap-2">
-                        <AddToCartButton listingId={item.id} available={item.available} />
-                        {item.seller.contactWhatsappEnabled && item.seller.contactWhatsapp ? (
-                          <WhatsappListingButton
-                            phoneE164={item.seller.contactWhatsapp}
-                            cardName={item.variant.card.name}
-                            setName={item.variant.card.setSlug}
-                            condition={item.condition}
-                            priceClp={item.priceClp}
-                            listingPath={`/listings/${item.id}`}
-                          />
-                        ) : null}
+                        <ListingPurchaseActions
+                          listingId={item.id}
+                          available={item.available}
+                          whatsapp={
+                            item.seller.contactWhatsappEnabled && item.seller.contactWhatsapp
+                              ? {
+                                  phoneE164: item.seller.contactWhatsapp,
+                                  sellerName: item.seller.displayName,
+                                  cardName: item.variant.card.name,
+                                  setName,
+                                  condition: item.condition,
+                                  priceClp: item.priceClp,
+                                  listingPath: `/listings/${item.id}`,
+                                }
+                              : null
+                          }
+                        />
                       </div>
                     </td>
                   </tr>
@@ -176,37 +199,8 @@ export function CardActions({
           </div>
           <ul className="grid gap-3 md:hidden">
             {listings.map((item) => (
-              <li key={item.id} className="rounded-[16px] border border-border bg-surface p-4">
-                <p className="text-xs font-medium tracking-wide text-text-muted uppercase">{item.condition}</p>
-                <p className="mt-1 font-medium">
-                  <Link href={`/vendedores/${item.seller.slug}`} className="underline underline-offset-2">
-                    {item.seller.displayName}
-                  </Link>{" "}
-                  <span className="text-sm font-normal text-text-muted">
-                    {formatReputation(item.seller.reputation.averageStars, item.seller.reputation.count)}
-                  </span>
-                </p>
-                <p className="mt-2 text-xl font-medium tabular-nums">
-                  <Link href={`/listings/${item.id}`}>{formatClp(item.priceClp)}</Link>
-                </p>
-                <p className="mt-1 text-sm text-text-muted">
-                  {item.allowsShipping ? "Envío" : "Sin envío"}
-                  {item.allowsMeetup ? " · Encuentro" : ""} · {CARD_CONDITION_LABELS[item.condition]}
-                </p>
-                <div className="mt-3 flex flex-col gap-2">
-                  <AddToCartButton listingId={item.id} available={item.available} />
-                  {item.seller.contactWhatsappEnabled && item.seller.contactWhatsapp ? (
-                    <WhatsappListingButton
-                      phoneE164={item.seller.contactWhatsapp}
-                      cardName={item.variant.card.name}
-                      setName={item.variant.card.setSlug}
-                      condition={item.condition}
-                      priceClp={item.priceClp}
-                      listingPath={`/listings/${item.id}`}
-                    />
-                  ) : null}
-                  <ShareControls path={`/listings/${item.id}`} title={item.variant.card.name} />
-                </div>
+              <li key={item.id}>
+                <ListingOfferCard item={item} />
               </li>
             ))}
           </ul>

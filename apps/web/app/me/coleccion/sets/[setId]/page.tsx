@@ -84,7 +84,7 @@ export default function CollectionSetPage() {
         <ul className="mt-3 grid gap-3 sm:grid-cols-2">
           {missing.items.map((card) => (
             <li key={card.cardId} className="flex items-center gap-3 rounded-[16px] border border-border bg-surface p-3 text-sm">
-              <CardImage src={card.imageUrl} alt="" className="h-20 w-14 shrink-0" />
+              <CardImage src={card.imageUrl} alt={card.name} variant="thumb" className="h-20 w-14 shrink-0" />
               <span className="min-w-0 flex-1">
                 {card.name} · {card.number}
                 {card.hasActiveListing ? " · con publicaciones" : ""}

@@ -5,6 +5,7 @@ import {
   getGameFilterDefinition,
   isFilterVisible,
   isSyntheticCardAttributes,
+  mylSetEra,
   normalizeCatalogCode,
   presentAttributeFields,
   presentCardLore,
@@ -211,6 +212,22 @@ describe("CATALOG.1/2 filter definitions", () => {
     });
     expect(inspected.valid).toBe(true);
     expect(inspected.unknownKeys).toContain("extra");
+  });
+
+  it("groups MyL sets by era", () => {
+    expect(mylSetEra("el-reto")).toBe("pe");
+    expect(mylSetEra("helenica")).toBe("pb");
+    expect(mylSetEra("aguila-imperial")).toBe("imperio");
+    expect(mylSetEra("unknown-edition")).toBe("other");
+  });
+
+  it("keeps marketplace language/finish/condition as advanced filters", () => {
+    const language = getGameFilterDefinition("mitos-y-leyendas").filters.find((filter) => filter.key === "language");
+    const finish = getGameFilterDefinition("mitos-y-leyendas").filters.find((filter) => filter.key === "finish");
+    const coste = getGameFilterDefinition("mitos-y-leyendas").filters.find((filter) => filter.key === "coste");
+    expect(language?.tier).toBe("ADVANCED");
+    expect(finish?.tier).toBe("ADVANCED");
+    expect(coste?.tier).toBe("ADVANCED");
   });
 
   it("presents official MyL lore or the empty-historia legend", () => {

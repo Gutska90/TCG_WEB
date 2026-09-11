@@ -151,7 +151,7 @@ export const COMMON_MARKETPLACE_FILTERS: CatalogFilterDef[] = [
     type: "SELECT",
     source: { kind: "variant", field: "language" },
     order: 80,
-    tier: "PRIMARY",
+    tier: "ADVANCED",
   },
   {
     key: "finish",
@@ -160,7 +160,7 @@ export const COMMON_MARKETPLACE_FILTERS: CatalogFilterDef[] = [
     type: "SELECT",
     source: { kind: "variant", field: "finish" },
     order: 81,
-    tier: "PRIMARY",
+    tier: "ADVANCED",
   },
   {
     key: "condition",
@@ -342,9 +342,10 @@ const MYL: CatalogFilterDef[] = [
   }),
   cardSelect("raza", "Raza", 41, { kind: "json", path: "raza" }, {
     visibleWhen: { key: "cardType", oneOf: ["ALIADO"] },
+    tier: "ADVANCED",
   }),
-  cardRange("coste", "Coste de oro", 42, "coste"),
-  cardRange("fuerza", "Fuerza", 43, "fuerza", { visibleWhen: { key: "cardType", oneOf: ["ALIADO"] } }),
+  cardRange("coste", "Coste de oro", 42, "coste", { tier: "ADVANCED" }),
+  cardRange("fuerza", "Fuerza", 43, "fuerza", { visibleWhen: { key: "cardType", oneOf: ["ALIADO"] }, tier: "ADVANCED" }),
   cardSelect("edicion", "Edición", 44, { kind: "json", path: "edicion" }, { tier: "ADVANCED" }),
   cardSelect("era", "Época / bloque", 45, { kind: "json", path: "era" }, { tier: "ADVANCED" }),
 ];

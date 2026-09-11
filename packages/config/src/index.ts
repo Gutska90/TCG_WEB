@@ -73,11 +73,11 @@ export const CARD_CONDITIONS = ["NM", "LP", "MP", "HP", "DMG"] as const;
 export type CardCondition = (typeof CARD_CONDITIONS)[number];
 
 export const CARD_CONDITION_LABELS: Record<CardCondition, string> = {
-  NM: "Near Mint",
-  LP: "Lightly Played",
-  MP: "Moderately Played",
-  HP: "Heavily Played",
-  DMG: "Damaged",
+  NM: "Casi nueva (NM)",
+  LP: "Ligeramente jugada (LP)",
+  MP: "Moderadamente jugada (MP)",
+  HP: "Muy jugada (HP)",
+  DMG: "Dañada (DMG)",
 };
 
 export const CARD_LANGUAGES = [
@@ -123,8 +123,47 @@ export const CARD_FINISHES = [
 ] as const;
 export type CardFinish = (typeof CARD_FINISHES)[number];
 
+export const CARD_FINISH_LABELS: Record<CardFinish, string> = {
+  NORMAL: "Normal",
+  HOLO: "Holo",
+  REVERSE_HOLO: "Reverse holo",
+  FOIL: "Foil",
+  ETCHED: "Etched",
+  FIRST_EDITION: "Primera edición",
+  UNLIMITED: "Unlimited",
+  GRADED: "Graded",
+  OTHER: "Otro",
+};
+
+export const CARD_LANGUAGE_LABELS: Record<CardLanguage, string> = {
+  EN: "Inglés",
+  ES: "Español",
+  JA: "Japonés",
+  KO: "Coreano",
+  ZH: "Chino",
+  PT: "Portugués",
+  FR: "Francés",
+  DE: "Alemán",
+  IT: "Italiano",
+};
+
+export {
+  MYL_SET_ERAS,
+  MYL_SET_ERA_LABELS,
+  mylSetEra,
+} from "./myl-set-era";
+export type { MylSetEra } from "./myl-set-era";
 export { CHILE_REGIONS, findChilePlace, shippingZoneFromPlace } from "./chile";
-export { listingWhatsappMessage, normalizeWhatsappE164, whatsappMeHref } from "./whatsapp";
+export {
+  WHATSAPP_MESSAGE_MAX_CHARS,
+  cartSellerWhatsappMessage,
+  inquiryNumberLabel,
+  listingWhatsappMessage,
+  normalizeWhatsappE164,
+  storeWhatsappMessage,
+  whatsappMeHref,
+} from "./whatsapp";
+export type { WhatsappCartLine } from "./whatsapp";
 export type { ChilePlace, ChileRegion, ShippingZone } from "./chile";
 export {
   SHIPPING_RATE_SEED,
@@ -143,6 +182,7 @@ export const PLATFORM = {
   commissionBps: 600,
   orderConfirmTimeoutDays: 7,
   checkoutReservationMinutes: 30,
+  inquiryTtlHours: 24,
   shippingFlatClp: 3990,
   listingMaxImages: 8,
   listingMinImages: 1,
@@ -556,6 +596,14 @@ export const SHIPMENT_STATUS_LABELS: Record<ShipmentStatus, string> = {
   CANCELLED: "Cancelado",
 };
 
+export const SELLER_INQUIRY_STATUSES = ["OPEN", "EXPIRED"] as const;
+export type SellerInquiryStatus = (typeof SELLER_INQUIRY_STATUSES)[number];
+
+export const SELLER_INQUIRY_STATUS_LABELS: Record<SellerInquiryStatus, string> = {
+  OPEN: "Abierta",
+  EXPIRED: "Vencida",
+};
+
 export const ERROR_CODES = {
   VALIDATION_ERROR: "VALIDATION_ERROR",
   UNAUTHORIZED: "UNAUTHORIZED",
@@ -683,6 +731,7 @@ export const NOTIFICATION_TYPES = [
   "RATING_RECEIVED",
   "WISHLIST_HIT",
   "PRICE_DROP",
+  "SELLER_INQUIRY",
 ] as const;
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number];
 
@@ -701,6 +750,7 @@ export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
   RATING_RECEIVED: "Valoración",
   WISHLIST_HIT: "Aviso de wishlist",
   PRICE_DROP: "Bajada de precio",
+  SELLER_INQUIRY: "Consulta de lote",
 };
 
 export const JOB_RUN_STATUSES = ["RUNNING", "COMPLETED", "FAILED", "SKIPPED"] as const;

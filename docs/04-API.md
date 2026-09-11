@@ -93,7 +93,7 @@ Máximo `pageSize=100`.
 |--------|------|------|-------------|
 | GET | `/v1/games` | no | TCG activos |
 | GET | `/v1/games/:slug` | no | |
-| GET | `/v1/games/:slug/sets` | no | con `SHOW_SYNTHETIC_CATALOG=false`, omite sets solo-sintéticos |
+| GET | `/v1/games/:slug/sets` | no | `SetSummaryView` con `previewImageUrls` (hasta 3 artes). Con `SHOW_SYNTHETIC_CATALOG=false`, omite sets solo-sintéticos |
 | GET | `/v1/games/:slug/sets/:setSlug` | no | resolver SEO |
 | GET | `/v1/games/:slug/sets/:setSlug/cards/:cardSlug` | no | ficha por slugs |
 | GET | `/v1/games/:slug/cards` | no | paginado |
@@ -102,7 +102,7 @@ Máximo `pageSize=100`.
 | GET | `/v1/cards/:id` | no | carta + variantes + precios resumidos. `attributes` incluye lore MyL (`rulesText`, `flavorText`, `flavorTextStatus`) cuando el importer TOR lo llenó. |
 | GET | `/v1/variants/:id` | no | variante + listings activos |
 | GET | `/v1/games/:slug/filters` | no | CATALOG.1/2: filtros, tier PRIMARY/ADVANCED, options DISTINCT |
-| GET | `/v1/search/cards` | no | q, game, set, rarity, language, finish, sort, `attr.*` |
+| GET | `/v1/search/cards` | no | q, game, set, rarity, language, finish, sort, `attr.*`, `hasListings`. Cada ítem incluye `setName` y `minListingClp` (mínimo ACTIVE o `null`). |
 
 Respuesta de ficha `/v1/cards/:id` (MVP 2+ listings):
 
@@ -151,7 +151,7 @@ Sin `q` ni filtros: `{ items: [], total: 0 }`. Filtro de otro TCG: `400 FILTER_N
 
 `GET /v1/games/:slug/filters` devuelve `GameFiltersView` (support PARTIAL/FULL, options DISTINCT). Admin inspección: `GET /v1/admin/catalog/cards/:id/attributes`. Ver [catalog/GAME-FILTERS](catalog/GAME-FILTERS.md).
 
-Respuesta: `Paginated<SearchCardView>` (`CardSummaryView` + `gameName`, `setName`, `setCode`).
+Respuesta: `Paginated<SearchCardView>` (`CardSummaryView` + `gameName`, `setName`, `setCode`, `minListingClp`).
 
 ---
 
@@ -252,11 +252,11 @@ Aprobar dos veces → `CATALOG_SUBMISSION_NOT_REVIEWABLE`. PATCH fuera de `NEEDS
 
 Carga masiva de listings (CSV / BULK.1) **no** está en este incremento.
 
-Perfil público: `contactWhatsapp` solo si `contactWhatsappEnabled`. WhatsApp es CTA secundario; carrito/checkout siguen siendo el flujo principal.
+Perfil público: `contactWhatsapp` solo si `contactWhatsappEnabled`. WhatsApp es CTA **secundario** (CONTACT.1 listing; CONTACT.2 lote del carrito). El mensaje incluye cartas, cantidades, subtotal y deja claro que **no reserva stock**. Carrito/checkout (Mercado Pago) siguen siendo el flujo principal. CONTACT.2 persiste `SellerInquiry` con número humano (`Consulta N° 12`); no es una cotización ni un pedido.
 
 Historial (Fase 13, pública, flag `ENABLE_PRICES`): `GET /v1/variants/:id/prices?range=1m|3m|6m|1a` (default `3m`) → `{ currency, range, current, min, avg, max, volumeSold, lastSaleClp, avg30dClp, median30dClp, minListingClp, confidence, points, disclaimer }`. `current` es el índice interno TCG Market Chile (mediana de ventas COMPLETED 30d, outliers 0.5×–2× fuera; si no hay ventas, avg de listings). Job `card-prices` cada 6 h: `LISTING_MIN` / `LISTING_AVG` / `SALE` uno por (variante, source, día calendario America/Santiago). `SALE` imputa `Order.completedAt` (no `OrderItem.createdAt`). CLI `pnpm --filter @tcg/api prices:capture`. Job `collection-value` diario persiste `CollectionValueSnapshot`. Resumen de colección incluye `change30dClp`.
 
-Wishlist (Fase 14, flag `ENABLE_WISHLIST`): `GET /v1/me/wishlist`; `PUT /v1/me/wishlist/:variantId` `{ targetPriceClp, notifyBelow? }`; `DELETE` mismo path. Un ítem por `(userId, variantId)`. Job `wishlist-scan` (5 min) + ping al publicar/editar listing: si `min ACTIVE <= target` emite `WISHLIST_HIT` (in-app siempre; no spam del mismo listing+precio; si baja más, avisa de nuevo). `PRICE_DROP` (≥10% vs `LISTING_MIN` de hace 7 días) es opt-in (`GET/PATCH /v1/me/notification-preferences`). `GET /v1/me/notifications` lista in-app. B8 también persiste eventos de orden (`SALE_MADE`, `PURCHASE_MADE`, `ORDER_SHIPPED`, `ORDER_DELIVERED`, `ORDER_CONFIRMED`, `ORDER_CANCELLED`, `ORDER_DISPUTED`, `RATING_RECEIVED`). Push tokens siguen reservados.
+Wishlist (Fase 14, flag `ENABLE_WISHLIST`): `GET /v1/me/wishlist`; `PUT /v1/me/wishlist/:variantId` `{ targetPriceClp, notifyBelow? }`; `DELETE` mismo path. Un ítem por `(userId, variantId)`. Job `wishlist-scan` (5 min) + ping al publicar/editar listing: si `min ACTIVE <= target` emite `WISHLIST_HIT` (in-app siempre; no spam del mismo listing+precio; si baja más, avisa de nuevo). `PRICE_DROP` (≥10% vs `LISTING_MIN` de hace 7 días) es opt-in (`GET/PATCH /v1/me/notification-preferences`). `GET /v1/me/notifications` lista in-app. B8 también persiste eventos de orden (`SALE_MADE`, `PURCHASE_MADE`, `ORDER_SHIPPED`, `ORDER_DELIVERED`, `ORDER_CONFIRMED`, `ORDER_CANCELLED`, `ORDER_DISPUTED`, `RATING_RECEIVED`). CONTACT.2 emite `SELLER_INQUIRY`. Push tokens siguen reservados.
 
 ---
 
@@ -300,6 +300,22 @@ Respuesta:
 ```
 
 `issue`: `LISTING_NOT_ACTIVE` | `LISTING_INSUFFICIENT_STOCK` | `OWN_LISTING`. El envío se cotiza en `GET /v1/shipping/quote` (Fase 8). `POST /v1/checkout` es Fase 6.
+
+---
+
+## Consultas de lote — CONTACT.2
+
+Consulta persistida del **grupo de un vendedor en el carrito**. No reserva `quantityReserved`. El checkout y Mercado Pago no cambian.
+
+| Método | Path | Auth |
+|--------|------|------|
+| POST | `/v1/inquiries` | sí o guest (10/hora) | `{ sellerId, cartUrl? }` desde el grupo consultable |
+| GET | `/v1/me/inquiries?as=buyer\|seller` | sí | paginado |
+| GET | `/v1/inquiries/:id` | comprador, vendedor o cookie `cart` del guest | 404 si no es parte (sin leak IDOR) |
+
+`inquiryNumber` = `C-{n}` (secuencia `seller_inquiry_numbers`). UI: `Consulta N° {n}`. Status `OPEN` \| `EXPIRED`. TTL `PLATFORM.inquiryTtlHours` (24). Job `expire-inquiries` cada 5 min. Al crear: AuditLog `inquiry.created` y notificación `SELLER_INQUIRY` al vendedor. Grupo vacío o sin líneas `purchasable` → `CART_EMPTY`. Al login, las consultas guest con ese `guestToken` quedan ligadas al `buyerId`.
+
+WhatsApp sigue siendo opcional: si el vendedor no tiene número público, la consulta igual se persiste y se notifica in-app.
 
 ---
 

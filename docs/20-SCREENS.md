@@ -10,29 +10,30 @@ Cada pantalla lista: fase, ruta, datos (API), acciones, vacío, error. Si la API
 
 | Fase | Ruta | API | Acciones |
 |------|------|-----|----------|
-| 1 | `/` | games; search suggest opcional | ir a juego, buscar |
+| 1 | `/` | games; typeahead `GET /v1/search/cards` | ir a juego, buscar (default `hasListings`), ver marketplace |
 | 1 | `/ingresar` | login, OAuth Google | consentimiento OAuth si es alta nueva |
 | 1 | `/registro` | register | checkbox términos no preseleccionado; marketing opt-in separado |
 | 10.7 | `/terminos` `/privacidad` `/marketplace` `/refunds` `/ayuda` | config legal + feedback | páginas públicas de beta |
 | 1 | `/verificar-email` | verify | |
 | 1 | `/recuperar-password` | forgot/reset | |
-| 2 | `/{game}` | game + sets | |
+| 2 | `/{game}` | game + sets (`previewImageUrls`) | sets; MyL agrupado por época |
 | 2 | `/{game}/cartas` | search + `GET /v1/games/:slug/filters` | filtros por juego (set fijado no); URL compartible |
 | 2 | `/{game}/{set}` | search + `GET /v1/games/:slug/filters` | mismos filtros, juego y set fijados |
 | 2 | `/{game}/{set}/{card}` | card + variants | selector variante, favorito |
-| 3 | `/buscar` | search + `GET /v1/games/:slug/filters` | query, filtros por juego, URL compartible |
-| 4 | ficha + bloque vendedores | listings by variant | add cart |
-| 4 | `/listings/{id}` | listing | |
-| 4 | `/vendedores/{slug}` | user public + listings (`q`, game, set, condition, sort) | storefront |
+| 3 | `/buscar` | search + filters; `hasListings` | Catálogo / En venta, query, URL compartible |
+| 4 | ficha + bloque vendedores | listings by variant | add cart, qty +/−, consultar WhatsApp |
+| 4 | `/listings/{id}` | listing | qty +/− sobre la imagen, carrito, consultar WhatsApp |
+| 4 | `/vendedores/{slug}` | user public + listings (`q`, game, set, condition, sort) | storefront; qty +/− sobre la imagen |
 | M1 | `/planes` | config pública `sellerPlans` | comparar tarifas, ver promo de lanzamiento |
 | M1 | `/vender` | listing + fee-preview | wizard + estimación de comisión + “Ver planes” |
-| 5 | `/carrito` | cart | qty, quitar |
+| 5 | `/carrito` | cart + `POST /v1/inquiries` | qty +/− sobre la imagen, quitar, consultar lote (WhatsApp secundario) |
 | 6 | `/checkout` | checkout | address, shipping, pagar |
 | 6 | `/me/compras` | orders as=buyer | |
 | 6 | `/me/compras/{id}` | order | confirmar, abrir disputa |
 | 10.5 | `/me/disputas` `/me/disputas/{id}` | disputes | mensajes |
 | 6 | `/me/ventas` | orders as=seller | |
 | 6 | `/me/ventas/{id}` | order | preparar, despachar; snapshot de comisión (plan/promo) |
+| CONTACT.2 | `/me/consultas` `/me/consultas/{id}` | inquiries | ver lote consultado; WhatsApp secundario |
 | 4 | `/me/publicaciones` | listings mine | pausar, editar |
 | 1 | `/me` | me | datos de cuenta, privacidad, solicitud de baja |
 | 11.5 | `/me/seguridad` | identities + sessions | métodos, password, revoke |
@@ -69,7 +70,7 @@ Vacío paso 1: “No encontramos esa carta.” Enlace a `/vender/solicitar-carta
 2. Chips de variante (idioma, finish)
 3. Mercado: market, min, avg, #listings (0 en MVP 1)
 4. Acciones: Favorito, (Fase 4) Vender esta, (12) Colección, (14) Wishlist
-5. Vendedores (Fase 4): tabla condición, vendedor, ★, precio, [Agregar]
+5. Vendedores (Fase 4): tabla (desktop) o cartas con qty +/− sobre la imagen (móvil); condición, vendedor, ★, precio, [Agregar]
 6. Gráfico e índice TCG Market Chile (Fase 13)
 
 ### Estados vacíos / error
@@ -109,14 +110,15 @@ Tokens: [design/DESIGN-SYSTEM.md](design/DESIGN-SYSTEM.md).
 | Wishlist | `/(tabs)/wishlist` | `GET/PUT/DELETE /v1/me/wishlist` |
 | Perfil | `/(tabs)/profile` | `GET /v1/me` + selector de tema |
 | Favoritos | `/(tabs)/favorites` (oculto en tab bar) | `GET/PUT/DELETE /v1/me/favorites` |
-| Carrito | `/(tabs)/cart` (icono header + badge) | `GET/PUT/DELETE /v1/cart` (sesión) |
+| Carrito | `/(tabs)/cart` (icono header + badge) | `GET/PUT/DELETE /v1/cart`; qty +/− sobre la imagen; `POST /v1/inquiries` + WhatsApp |
 | Auth | `/login` `/register` `/verify-email` `/forgot-password` `/oauth` | email + Google/Apple |
 | Seguridad | `/security` | identities, sessions, password |
 | Carta | `/card/[id]` | `GET /v1/cards/:id` + listings |
-| Listing | `/listing/[id]` | listing, cart, `POST /v1/reports` |
+| Listing | `/listing/[id]` | listing, qty +/− sobre la imagen, cart, WhatsApp consult, `POST /v1/reports` |
 | Checkout | `/checkout` `/checkout-return` | checkout + poll + simulate |
 | Compras | `/purchases` `/purchases/[id]` | orders as=buyer |
 | Ventas | `/sales` `/sales/[id]` | orders as=seller; prepare/ship |
+| Consultas | `/inquiries` `/inquiries/[id]` | `GET /v1/me/inquiries`, `GET /v1/inquiries/:id` |
 | Reclamos | `/disputes` `/disputes/[id]` | disputes |
 | Publicaciones | `/sell` `/sell/new` `/sell/[id]` | listings seller |
 | Saldo / direcciones | `/balance` `/addresses` | me/balance, addresses |
@@ -154,5 +156,5 @@ No hay tab Escanear ni Tiendas. Rutas alineadas en intención, no clonan slugs S
 ## Copy UI (es-CL)
 
 - Botones: “Ingresar”, “Crear cuenta”, “Vender”, “Agregar al carrito”, “Pagar”, “Confirmar recepción”, “Abrir reclamo”
-- Condiciones: mostrar código + nombre (`NM · Near Mint`)
+- Condiciones: mostrar etiqueta es-CL (`Casi nueva (NM)`)
 - Nunca “Add to cart” en UI. Código interno sí en inglés.

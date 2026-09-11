@@ -690,6 +690,7 @@ export class CollectionsService {
           imageUrl: row.variant.card.imageUrl,
           gameSlug: row.variant.card.set.game.slug,
           setSlug: row.variant.card.set.slug,
+          setName: row.variant.card.set.name,
         },
       },
     };

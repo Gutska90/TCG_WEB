@@ -55,6 +55,7 @@ El cliente ramifica por `error.code`, no por el texto.
 | `commissionBps` | (legacy) | Reemplazado por `SELLER_PLANS_V1`. FREE = 600 bps / cap $25.000. Ver [SELLER-PLANS-AND-FEES](SELLER-PLANS-AND-FEES.md). |
 | `orderConfirmTimeoutDays` | 7 | auto-confirm |
 | `checkoutReservationMinutes` | 30 | |
+| `inquiryTtlHours` | 24 | CONTACT.2; job `expire-inquiries` |
 | `shippingFlatClp` | 3990 | tarifa Chilexpress RM→RM (semilla); el resto usa `ShippingRate` |
 | `listingMaxImages` | 8 | |
 | `listingMinImages` | 1 | |

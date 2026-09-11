@@ -75,7 +75,7 @@ function toFavoriteView(row: {
       number: string;
       rarity: string;
       imageUrl: string | null;
-      set: { slug: string; game: { slug: string } };
+      set: { slug: string; name: string; game: { slug: string } };
     };
   };
 }): FavoriteView {
@@ -97,6 +97,7 @@ function toFavoriteView(row: {
       imageUrl: row.variant.card.imageUrl,
       gameSlug: row.variant.card.set.game.slug,
       setSlug: row.variant.card.set.slug,
+      setName: row.variant.card.set.name,
     },
   };
 }

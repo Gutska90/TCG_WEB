@@ -55,6 +55,16 @@ export class SearchService {
       include: { set: { include: { game: true } } },
     });
     const byId = new Map(rows.map((row) => [row.id, row]));
+    const priceRows = await this.prisma.$queryRaw<Array<{ cardId: string; minListing: number }>>(
+      Prisma.sql`SELECT v.card_id AS "cardId", MIN(l.price_clp)::int AS "minListing"
+        FROM listings l
+        INNER JOIN card_variants v ON v.id = l.variant_id
+        WHERE v.card_id IN (${Prisma.join(ids.map((id) => Prisma.sql`${id}::uuid`))})
+          AND l.status = 'ACTIVE'
+          AND l.quantity > l.quantity_reserved
+        GROUP BY v.card_id`,
+    );
+    const minByCard = new Map(priceRows.map((row) => [row.cardId, row.minListing]));
     const items: SearchCardView[] = [];
     for (const id of ids) {
       const row = byId.get(id);
@@ -71,6 +81,7 @@ export class SearchService {
         setSlug: row.set.slug,
         setName: row.set.name,
         setCode: row.set.code,
+        minListingClp: minByCard.get(row.id) ?? null,
       });
     }
     this.metrics.observe("search_duration", Date.now() - started);

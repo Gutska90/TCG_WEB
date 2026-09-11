@@ -127,7 +127,9 @@ function optionalInt(raw: string): number | undefined {
 }
 
 export function eraForFormat(format: MylTorFormat): string {
-  return format === "pe" ? "PRIMERA_ERA" : "PRIMER_BLOQUE";
+  if (format === "pe") return "PRIMERA_ERA";
+  if (format === "pb") return "PRIMER_BLOQUE";
+  return "IMPERIO";
 }
 
 export function mapTorEditionCards(

@@ -110,6 +110,7 @@ export default function MePage() {
         <Link href="/me/compras" className="underline">Mis compras</Link>
         <Link href="/me/disputas" className="underline">Mis reclamos</Link>
         <Link href="/me/ventas" className="underline">Mis ventas</Link>
+        <Link href="/me/consultas" className="underline">Consultas</Link>
         <Link href="/me/balance" className="underline">Saldo vendedor</Link>
         <Link href="/vender" className="underline">Vender</Link>
         <Link href="/me/publicaciones" className="underline">Mis publicaciones</Link>
