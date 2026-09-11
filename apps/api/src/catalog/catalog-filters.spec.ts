@@ -7,6 +7,7 @@ import {
   isSyntheticCardAttributes,
   normalizeCatalogCode,
   presentAttributeFields,
+  presentCardLore,
   resolveAttrFilterKey,
   sortAllowedForGame,
 } from "@tcg/config";
@@ -210,5 +211,17 @@ describe("CATALOG.1/2 filter definitions", () => {
     });
     expect(inspected.valid).toBe(true);
     expect(inspected.unknownKeys).toContain("extra");
+  });
+
+  it("presents official MyL lore or the empty-historia legend", () => {
+    expect(
+      presentCardLore({
+        rulesText: "Única.",
+        flavorText: "Historia oficial.",
+        flavorTextStatus: "OFFICIAL",
+        sourceUrl: "https://tor.myl.cl/carta/aguila-imperial/mitra",
+      }).rulesText,
+    ).toBe("Única.");
+    expect(presentCardLore({ flavorTextStatus: "NO_OFFICIAL_FLAVOR_TEXT" }).flavorPlaceholder).toMatch(/texto histórico oficial/);
   });
 });

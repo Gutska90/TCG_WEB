@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CARD_CONDITIONS, PRICE_CONFIDENCE_LABELS, formatClp, formatReputation } from "@tcg/config";
+import { CARD_CONDITIONS, PRICE_CONFIDENCE_LABELS, formatClp, formatReputation, presentCardLore } from "@tcg/config";
 import type { CardCondition } from "@tcg/config";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
@@ -81,6 +81,7 @@ export default function CardScreen() {
   if (card.error) return <Screen title="Carta"><ErrorText message={userFacingError(card.error)} /></Screen>;
   const detail = card.data;
   if (!detail) return null;
+  const lore = presentCardLore(detail.attributes);
 
   return (
     <Screen title={detail.name}>
@@ -99,6 +100,11 @@ export default function CardScreen() {
           {field.label}: {field.value}
         </Text>
       ))}
+      {lore.rulesText ? <Text>Habilidad: {lore.rulesText}</Text> : null}
+      {lore.flavorText ? <Text>Historia: {lore.flavorText}</Text> : null}
+      {!lore.flavorText && lore.flavorPlaceholder ? (
+        <Text style={{ color: colors.muted }}>{lore.flavorPlaceholder}</Text>
+      ) : null}
       <Text>
         Precio orientativo {detail.market.minListing != null ? formatClp(detail.market.minListing) : "—"} · {detail.market.activeListings} publicaciones
       </Text>

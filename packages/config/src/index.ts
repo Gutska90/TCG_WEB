@@ -1034,6 +1034,12 @@ export {
   resolveAttrFilterKey,
   sortAllowedForGame,
 } from "./catalog-filters";
+export {
+  NO_OFFICIAL_FLAVOR_COPY,
+  NO_OFFICIAL_FLAVOR_STATUS,
+  presentCardLore,
+} from "./card-lore";
+export type { CardLoreView } from "./card-lore";
 export type {
   CatalogFilterDef,
   CatalogFilterGroup,

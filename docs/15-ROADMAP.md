@@ -39,6 +39,7 @@ PS.1      Final pre-staging cleanup      ✓
 
 MYL.1     Native MyL demo importer       ✓ pack curado (no scrape)
 MYL.2     MyL demo sellers/listings      ✓ `catalog:seed-myl-demo`
+MYL.3     Catalog media & TOR metadata   ✓ `catalog:import-myl-tor` / `catalog:enrich-myl`
 SELLER.1  Seller storefront              ✓ `/vendedores/{slug}`
 CAT.1     CatalogSubmission (user)       ✓ POST + PATCH `NEEDS_INFO`
 CAT.2     Admin catalog approval         ✓ setId xor createNewSet
@@ -362,6 +363,19 @@ Catálogo canónico vs inventario: el dueño/admin controla `Card`; el vendedor 
 - Pack curado en `apps/api/src/catalog/myl-demo` (`source=myl-demo-pack`, `sourceQuality=CURATED_VERIFIED`, `verified=false`). Stats incompletos a propósito (PARTIAL).
 - `pnpm catalog:import-myl` — upsert **solo** de cartas `source=myl-demo-pack`, sin listings. Otras fuentes → `Conflicts` salvo `--force`.
 - `pnpm catalog:seed-myl-demo` — reference + pack + 5 vendedores demo + listings. Idempotente. Correos `@example.test`. WhatsApp demo deshabilitado por defecto.
+
+## MYL.3 — Catalog media & metadata (TOR / Fénix) ✓
+
+Catálogo canónico completo de **Primera Era y Primer Bloque** desde la API oficial de Fénix (`https://api.myl.cl/cards/edition/{slug}`), la misma que consume [TOR](https://tor.myl.cl/). Habilidad, historia, coste, fuerza, raza, rareza, número e imagen oficial. **No** se scrapean MyL Serena, Stribog, Tradeck ni otros marketplaces.
+
+- `pnpm catalog:import-myl-tor` / `pnpm catalog:enrich-myl` — `--formats pe,pb` (default; ~5.700 cartas oficiales disponibles en la API). `--edition slug`, `--card mitra`, `--dry-run`, `--missing-only`, `--force`, `--strict`.
+- Algunas entradas del menú TOR no existen en `api.myl.cl` (404/400); el importer las omite y no aborta el resto.
+- Imágenes: URL oficial `https://api.myl.cl/static/cards/{editionId}/{edid}.png` (no se commitea el arte). Redistribución en CDN propio requiere autorización Fénix.
+- Si TOR no publica historia, `flavorTextStatus=NO_OFFICIAL_FLAVOR_TEXT` y la ficha muestra la leyenda oficial vacía. No se inventa texto.
+- El importer solo actualiza `source=tor.myl.cl` o `myl-demo-pack` salvo `--force`.
+- `catalog:seed-myl-demo` es **offline** (pack demo + listings). El catálogo TOR se carga con `catalog:import-myl-tor` (CI no llama `api.myl.cl`). `MYL_TOR_LIVE_IMPORT=true` en el seed es opcional para un operador local. Listings demo se recortan a ~250 cartas.
+
+**No en este incremento:** scrape de tiendas, Imperio/Nueva Era completo (usar `--formats` cuando se agregue el registro), Scanner, pagos live.
 
 ## SELLER.1 — Storefront del vendedor ✓
 

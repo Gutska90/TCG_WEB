@@ -70,6 +70,10 @@ MVP 1 nav: Logo, Buscar, Juegos, Favoritos, Login.
 
 ## UX de ficha de carta
 
+- Imagen grande a la izquierda (`Card.imageUrl` oficial cuando existe).
+- A la derecha: nombre, edición, número, rareza, tipo, raza, coste, fuerza, ilustrador, palabras clave.
+- MyL: bloques **Habilidad** (`attributes.rulesText`) e **Historia** (`flavorText`). Si TOR no publica historia, leyenda “No existe texto histórico oficial registrado para esta impresión.”
+- Enlace a la ficha TOR cuando hay `sourceUrl`.
 - Selector de variante (idioma / finish). Las ofertas de la ficha filtran por esa `variantId`; no hay filtros extra de idioma/finish que puedan contradecirla.
 - Bloque de precios.
 - Lista de listings con condición, vendedor, reputación, precio, CTA al carrito.

@@ -27,7 +27,7 @@ Provenance on every imported/reference card:
 
 `CURATED_VERIFIED` + `verified: false` is **intentional** for `source=myl-demo-pack` and `source=catalog-submission`. Retagging those as `SYNTHETIC` would hide the commercial MyL demo (and newly approved cards) when staging sets `SHOW_SYNTHETIC_CATALOG=false`.
 
-The MyL demo importer updates **only** rows with `source=myl-demo-pack` unless `--force` is passed. Approved submissions and provider/fixture cards stay in `Conflicts`.
+The MyL demo importer updates **only** rows with `source=myl-demo-pack` unless `--force` is passed. Approved submissions and provider/fixture cards stay in `Conflicts`. TOR enrichment may upgrade `myl-demo-pack` rows to `source=tor.myl.cl`.
 
 `CardVariant.externalIds` holds provider ids (`pokemonTcgApiId`, `scryfallId`, `konamiPassword`, `bandaiNumber`, `torPath`).
 
@@ -47,7 +47,9 @@ The MyL demo importer updates **only** rows with `source=myl-demo-pack` unless `
 
 **Magic:** `cardTypes[]` (ARTIFACT+CREATURE), `supertypes[]`, `subtypes[]`, `typeLine`, `powerText`/`toughnessText`, `powerNumeric`/`toughnessNumeric` only when `Number(value)` is finite, `colors[]`, `colorIdentity[]`, `manaValue`, `manaCost`, `keywords[]`, `legalities[]`. Do not store full oracle text in reference fixtures.
 
-**Mitos y Leyendas:** `cardType` ALIADO/TALISMAN/TOTEM/ARMA/ORO (MONUMENTO only if the product uses it), `raza` from catalog (ANCESTRAL, SOMBRA, … — never ANDINO/COSTERO/AUSTRAL), `coste`, `fuerza`, `keywords[]`, `edicion`, `era`. Rarity/frecuencia stays `Card.rarity`. Do not store unversioned `legalidad`.
+**Mitos y Leyendas:** `cardType` ALIADO/TALISMAN/TOTEM/ARMA/ORO (MONUMENTO only if the product uses it), `raza` from catalog (ANCESTRAL, SOMBRA, … — never ANDINO/COSTERO/AUSTRAL), `coste`, `fuerza`, `keywords[]`, `edicion`, `era`. Long text (max 5000, not the 160-char `optionalString`): `rulesText` (habilidad), `flavorText` (historia), `errataText`. If TOR has no historia, persist `flavorTextStatus=NO_OFFICIAL_FLAVOR_TEXT` and show the empty-historia legend — never invent flavor. Rarity/frecuencia stays `Card.rarity`. Official print image is `Card.imageUrl` from `api.myl.cl/static/cards/{editionId}/{edid}.png`. Do not store unversioned `legalidad`.
+
+The MyL TOR importer (`source=tor.myl.cl`, `sourceQuality=VERIFIED_PROVIDER`) updates **only** rows with `source` in `tor.myl.cl` or `myl-demo-pack` unless `--force`. Approved submissions stay in Conflicts.
 
 **One Piece:** `cardType` LEADER/CHARACTER/EVENT/STAGE, `colors[]`, `cost`, `power`, `counter`, `life`, `attribute`, `traits[]`, `blockIcon`, `illustrationType`, `trigger`.
 

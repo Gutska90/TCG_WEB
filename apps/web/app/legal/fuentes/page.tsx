@@ -13,7 +13,13 @@ export default function FuentesPage() {
             Scryfall API
           </a>
         </li>
-        <li>Pokémon y One Piece — seed de prueba en desarrollo; importadores oficiales después.</li>
+        <li>
+          Mitos y Leyendas — API oficial de Fénix consumida por{" "}
+          <a className="underline" href="https://tor.myl.cl/">
+            TOR
+          </a>{" "}
+          (<code>api.myl.cl</code>). No usamos catálogos de otras tiendas.
+        </li>
       </ul>
     </main>
   );

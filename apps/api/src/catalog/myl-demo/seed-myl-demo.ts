@@ -3,6 +3,7 @@ import type { CardCondition, PrismaClient } from "@prisma/client";
 import * as argon2 from "argon2";
 import { seedReferenceCatalog } from "../reference-catalog/seed";
 import { importMylDemoCards } from "./import-myl";
+import { importMylTorCatalog } from "../myl-tor/import-myl-tor";
 
 export const MYL_DEMO_SELLERS = [
   {
@@ -61,6 +62,17 @@ export const MYL_DEMO_SELLERS = [
     contactWhatsappEnabled: false,
   },
 ] as const;
+
+const DEMO_LISTING_SET_SLUGS = new Set([
+  "espada-sagrada",
+  "helenica",
+  "dominios-de-ra",
+  "el-reto",
+  "mundo-gotico",
+  "cruzadas",
+  "cofradia",
+]);
+const DEMO_LISTING_CAP = 250;
 
 const CONDITIONS: CardCondition[][] = [
   ["NM", "NM", "LP"],
@@ -197,7 +209,17 @@ export async function seedMylDemo(prisma: PrismaClient): Promise<{
   listings: number;
 }> {
   const reference = await seedReferenceCatalog(prisma);
-  const imported = await importMylDemoCards(prisma);
+  let imported = { cards: 0 };
+  if (process.env.MYL_TOR_LIVE_IMPORT === "true") {
+    try {
+      imported = await importMylTorCatalog(prisma, { formats: ["pe", "pb"] });
+    } catch (error) {
+      console.error("Importador TOR (api.myl.cl) no disponible; se usa el pack demo local.", error);
+    }
+  }
+  if (imported.cards === 0) {
+    imported = await importMylDemoCards(prisma);
+  }
   const sellers = [];
   for (const row of MYL_DEMO_SELLERS) {
     sellers.push(await upsertSeller(prisma, row));
@@ -205,10 +227,10 @@ export async function seedMylDemo(prisma: PrismaClient): Promise<{
 
   const variants = await prisma.cardVariant.findMany({
     where: { isDefault: true, card: { set: { game: { slug: "mitos-y-leyendas" } } } },
-    include: { card: true },
+    include: { card: { include: { set: true } } },
     orderBy: { card: { name: "asc" } },
   });
-  const sellable = variants.filter((row) => {
+  const catalog = variants.filter((row) => {
     const attributes = row.card.attributes;
     return !isSyntheticCardAttributes(
       attributes && typeof attributes === "object" && !Array.isArray(attributes)
@@ -216,6 +238,11 @@ export async function seedMylDemo(prisma: PrismaClient): Promise<{
         : null,
     );
   });
+  const preferred = catalog.filter((row) => DEMO_LISTING_SET_SLUGS.has(row.card.set.slug));
+  const rest = catalog.filter((row) => !preferred.some((item) => item.id === row.id));
+  const ranked = [...preferred, ...rest];
+  const withArt = ranked.filter((row) => row.card.imageUrl);
+  const sellable = (withArt.length >= DEMO_LISTING_CAP ? withArt : ranked).slice(0, DEMO_LISTING_CAP);
 
   const skip = new Set(sellable.map((row) => row.id));
   const leftover = variants.filter((row) => !skip.has(row.id));
