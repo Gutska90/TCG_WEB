@@ -5,8 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   CARD_CONDITION_LABELS,
   CARD_CONDITIONS,
-  CARD_FINISHES,
-  CARD_LANGUAGES,
   formatClp,
   formatReputation,
 } from "@tcg/config";
@@ -32,8 +30,6 @@ export function CardActions({
   const [message, setMessage] = useState<string | null>(null);
   const [listings, setListings] = useState<ListingView[]>([]);
   const [condition, setCondition] = useState("");
-  const [language, setLanguage] = useState("");
-  const [finish, setFinish] = useState("");
   const [shipping, setShipping] = useState("");
 
   const query = useMemo(() => {
@@ -43,12 +39,10 @@ export function CardActions({
       sort: "priceAsc",
     });
     if (condition) params.set("condition", condition);
-    if (language) params.set("language", language);
-    if (finish) params.set("finish", finish);
     if (shipping === "shipping") params.set("allowsShipping", "true");
     if (shipping === "meetup") params.set("allowsMeetup", "true");
     return params.toString();
-  }, [current, condition, language, finish, shipping]);
+  }, [current, condition, shipping]);
 
   useEffect(() => {
     api<Paginated<ListingView>>(`/v1/listings?${query}`)
@@ -104,7 +98,7 @@ export function CardActions({
       <p className="text-xs text-text-muted">
         El precio más bajo publicado no representa necesariamente una venta realizada.
       </p>
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-2 sm:grid-cols-2">
         <label className="text-sm">
           Condición
           <select className={`mt-1 ${controlClassName}`} value={condition} onChange={(e) => setCondition(e.target.value)}>
@@ -112,28 +106,6 @@ export function CardActions({
             {CARD_CONDITIONS.map((code) => (
               <option key={code} value={code}>
                 {code} · {CARD_CONDITION_LABELS[code]}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm">
-          Idioma
-          <select className={`mt-1 ${controlClassName}`} value={language} onChange={(e) => setLanguage(e.target.value)}>
-            <option value="">Todos</option>
-            {CARD_LANGUAGES.map((code) => (
-              <option key={code} value={code}>
-                {code}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="text-sm">
-          Finish
-          <select className={`mt-1 ${controlClassName}`} value={finish} onChange={(e) => setFinish(e.target.value)}>
-            <option value="">Todos</option>
-            {CARD_FINISHES.map((code) => (
-              <option key={code} value={code}>
-                {code}
               </option>
             ))}
           </select>

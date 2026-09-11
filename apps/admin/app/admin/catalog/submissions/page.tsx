@@ -1,23 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import { CATALOG_SUBMISSION_STATUSES, CATALOG_SUBMISSION_STATUS_LABELS } from "@tcg/config";
 import type { AdminCatalogSubmissionView, Paginated } from "@tcg/types";
+import { Pager } from "@/components/filters";
 import { api } from "@/lib/api";
 
-export default function AdminCatalogSubmissionsPage() {
-  const [status, setStatus] = useState("PENDING");
+function Inner() {
+  const search = useSearchParams();
+  const router = useRouter();
+  const qs = search?.toString() ?? "";
+  const params = new URLSearchParams(qs);
+  const status = params.get("status") ?? "PENDING";
   const [data, setData] = useState<Paginated<AdminCatalogSubmissionView> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (status) params.set("status", status);
-    void api<Paginated<AdminCatalogSubmissionView>>(`/v1/admin/catalog/submissions?${params.toString()}`)
+    const query = new URLSearchParams(qs);
+    const rawStatus = query.get("status");
+    if (rawStatus === null) query.set("status", "PENDING");
+    if (rawStatus === "") query.delete("status");
+    void api<Paginated<AdminCatalogSubmissionView>>(`/v1/admin/catalog/submissions?${query.toString()}`)
       .then(setData)
       .catch(() => setError("No se pudieron cargar las solicitudes"));
-  }, [status]);
+  }, [qs]);
 
   if (error) return <p className="text-sm text-red-400">{error}</p>;
   if (!data) return <p className="text-sm text-neutral-400">Cargando…</p>;
@@ -33,7 +41,12 @@ export default function AdminCatalogSubmissionsPage() {
         <select
           className="ml-2 rounded border border-neutral-700 bg-neutral-900 px-2 py-1"
           value={status}
-          onChange={(event) => setStatus(event.target.value)}
+          onChange={(event) => {
+            const next = new URLSearchParams(qs);
+            next.set("status", event.target.value);
+            next.delete("page");
+            router.push(`/admin/catalog/submissions?${next.toString()}`);
+          }}
         >
           <option value="">Todos</option>
           {CATALOG_SUBMISSION_STATUSES.map((code) => (
@@ -58,6 +71,15 @@ export default function AdminCatalogSubmissionsPage() {
         ))}
       </ul>
       {data.items.length === 0 ? <p className="text-sm text-neutral-400">No hay solicitudes en este filtro.</p> : null}
+      <Pager page={data.page} pageSize={data.pageSize} total={data.total} />
     </div>
+  );
+}
+
+export default function AdminCatalogSubmissionsPage() {
+  return (
+    <Suspense fallback={<p className="text-sm text-neutral-400">Cargando…</p>}>
+      <Inner />
+    </Suspense>
   );
 }

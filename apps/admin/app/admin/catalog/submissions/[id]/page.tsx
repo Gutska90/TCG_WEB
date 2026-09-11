@@ -4,15 +4,19 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { CATALOG_SUBMISSION_STATUS_LABELS } from "@tcg/config";
-import type { AdminCatalogSubmissionView } from "@tcg/types";
+import type { AdminCatalogSubmissionView, SetSummaryView } from "@tcg/types";
 import { api } from "@/lib/api";
 
 export default function AdminCatalogSubmissionDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id ?? "";
   const [row, setRow] = useState<AdminCatalogSubmissionView | null>(null);
+  const [sets, setSets] = useState<SetSummaryView[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
+  const [setMode, setSetMode] = useState<"existing" | "new">("existing");
+  const [setId, setSetId] = useState("");
+  const [newSetName, setNewSetName] = useState("");
   const [pending, setPending] = useState(false);
 
   const load = useCallback(() => {
@@ -21,6 +25,16 @@ export default function AdminCatalogSubmissionDetailPage() {
       .then((data) => {
         setRow(data);
         setNotes(data.reviewNotes ?? "");
+        if (data.set?.id) {
+          setSetMode("existing");
+          setSetId(data.set.id);
+        } else {
+          setSetMode("new");
+          setNewSetName(data.proposedSetName ?? "");
+        }
+        void api<SetSummaryView[]>(`/v1/games/${data.game.slug}/sets`)
+          .then(setSets)
+          .catch(() => setSets([]));
       })
       .catch(() => setError("No se pudo cargar la solicitud"));
   }, [id]);
@@ -29,7 +43,7 @@ export default function AdminCatalogSubmissionDetailPage() {
     load();
   }, [load]);
 
-  async function action(path: string, body: Record<string, string>) {
+  async function action(path: string, body: Record<string, unknown>) {
     setPending(true);
     setError(null);
     try {
@@ -44,6 +58,17 @@ export default function AdminCatalogSubmissionDetailPage() {
       setPending(false);
     }
   }
+
+  function approve() {
+    if (setMode === "existing") {
+      void action("approve", { reviewNotes: notes, setId });
+      return;
+    }
+    void action("approve", { reviewNotes: notes, createNewSet: true, newSetName: newSetName.trim() });
+  }
+
+  const canApprove =
+    !pending && (setMode === "existing" ? Boolean(setId) : Boolean(newSetName.trim()));
 
   if (!row) return <p className="text-sm text-neutral-400">{error ?? "Cargando…"}</p>;
 
@@ -93,6 +118,57 @@ export default function AdminCatalogSubmissionDetailPage() {
           Carta creada: {row.approvedCard.gameSlug}/{row.approvedCard.setSlug}/{row.approvedCard.slug}
         </p>
       ) : null}
+      <fieldset className="rounded border border-neutral-800 p-3">
+        <legend className="px-1 font-medium">Edición canónica</legend>
+        <p className="text-neutral-400">
+          Edición propuesta: {row.set?.name ?? row.proposedSetName ?? "sin nombre"}
+        </p>
+        <label className="mt-3 flex items-start gap-2">
+          <input
+            type="radio"
+            name="setMode"
+            checked={setMode === "existing"}
+            onChange={() => setSetMode("existing")}
+          />
+          <span className="flex-1">
+            Usar edición existente
+            <select
+              className="mt-1 w-full rounded border border-neutral-700 bg-neutral-900 p-2"
+              value={setId}
+              onChange={(event) => {
+                setSetMode("existing");
+                setSetId(event.target.value);
+              }}
+            >
+              <option value="">Selecciona</option>
+              {sets.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </span>
+        </label>
+        <label className="mt-3 flex items-start gap-2">
+          <input
+            type="radio"
+            name="setMode"
+            checked={setMode === "new"}
+            onChange={() => setSetMode("new")}
+          />
+          <span className="flex-1">
+            Crear edición nueva
+            <input
+              className="mt-1 w-full rounded border border-neutral-700 bg-neutral-900 p-2"
+              value={newSetName}
+              onChange={(event) => {
+                setSetMode("new");
+                setNewSetName(event.target.value);
+              }}
+            />
+          </span>
+        </label>
+      </fieldset>
       <label>
         Notas de revisión
         <textarea
@@ -103,7 +179,7 @@ export default function AdminCatalogSubmissionDetailPage() {
       </label>
       {error ? <p className="text-red-400">{error}</p> : null}
       <div className="flex flex-wrap gap-2">
-        <button type="button" disabled={pending} className="rounded border border-neutral-600 px-3 py-2" onClick={() => void action("approve", { reviewNotes: notes })}>
+        <button type="button" disabled={!canApprove} className="rounded border border-neutral-600 px-3 py-2" onClick={() => approve()}>
           Aprobar
         </button>
         <button type="button" disabled={pending} className="rounded border border-neutral-600 px-3 py-2" onClick={() => void action("reject", { reviewNotes: notes || "Rechazada" })}>

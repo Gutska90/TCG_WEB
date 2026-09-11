@@ -13,8 +13,8 @@ export const MYL_DEMO_SELLERS = [
     comuna: "Providencia",
     region: "Metropolitana de Santiago",
     bio: "Tienda demo de Mitos y Leyendas. Precios de vitrina, no son cotizaciones reales.",
-    contactWhatsapp: "+56911111111",
-    contactWhatsappEnabled: true,
+    contactWhatsapp: null,
+    contactWhatsappEnabled: false,
   },
   {
     email: "cartas.valparaiso.myl@example.test",
@@ -46,8 +46,8 @@ export const MYL_DEMO_SELLERS = [
     comuna: "Santiago",
     region: "Metropolitana de Santiago",
     bio: "Vendedor demo. Inventario de ejemplo para comparar ofertas.",
-    contactWhatsapp: "+56912222222",
-    contactWhatsappEnabled: true,
+    contactWhatsapp: null,
+    contactWhatsappEnabled: false,
   },
   {
     email: "cartas.del.sur.demo@example.test",

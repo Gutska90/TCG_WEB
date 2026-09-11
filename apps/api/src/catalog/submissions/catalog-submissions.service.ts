@@ -15,6 +15,7 @@ import type {
   AdminCatalogReviewInput,
   AdminCatalogSubmissionsQuery,
   CreateCatalogSubmissionInput,
+  PatchMyCatalogSubmissionInput,
 } from "@tcg/validation";
 import type { CatalogSubmissionStatus } from "@prisma/client";
 import { AppError } from "../../common/errors/app-error";
@@ -25,6 +26,10 @@ import { slugifyStable, uniqueSlug } from "../slug";
 import { isLikelyDuplicateCard, normalizeCatalogName } from "./duplicates";
 
 const REVIEWABLE: CatalogSubmissionStatus[] = ["PENDING", "NEEDS_INFO"];
+
+function isUniqueViolation(error: unknown): boolean {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+}
 
 type SubmissionRow = Prisma.CatalogSubmissionGetPayload<{
   include: {
@@ -133,6 +138,62 @@ export class CatalogSubmissionsService {
     return this.toDetail(row);
   }
 
+  async resubmit(
+    actor: RequestUser,
+    id: string,
+    input: PatchMyCatalogSubmissionInput,
+  ): Promise<CatalogSubmissionDetailView> {
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const locked = await this.lock(tx, id);
+      const current = await tx.catalogSubmission.findUniqueOrThrow({ where: { id }, include });
+      if (current.submittedById !== actor.id) {
+        throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Solicitud no encontrada");
+      }
+      if (locked.status !== "NEEDS_INFO") {
+        throw new AppError(
+          HttpStatus.CONFLICT,
+          ERROR_CODES.CATALOG_SUBMISSION_NOT_RESUBMITTABLE,
+          "Solo puedes completar una solicitud que pide más información",
+        );
+      }
+      if (input.setId) {
+        const set = await tx.tcgSet.findFirst({ where: { id: input.setId, gameId: current.gameId } });
+        if (!set) {
+          throw new AppError(HttpStatus.BAD_REQUEST, ERROR_CODES.VALIDATION_ERROR, "La edición no pertenece a ese juego");
+        }
+      }
+      const next = await tx.catalogSubmission.update({
+        where: { id },
+        data: {
+          status: "PENDING",
+          ...(input.setId !== undefined ? { setId: input.setId } : {}),
+          ...(input.proposedSetName !== undefined ? { proposedSetName: input.proposedSetName?.trim() || null } : {}),
+          ...(input.name !== undefined ? { name: input.name.trim() } : {}),
+          ...(input.number !== undefined ? { number: input.number?.trim() || null } : {}),
+          ...(input.rarity !== undefined ? { rarity: input.rarity?.trim() || null } : {}),
+          ...(input.supertype !== undefined ? { supertype: input.supertype?.trim() || null } : {}),
+          ...(input.attributes !== undefined ? { attributes: sanitizeAttributes(input.attributes) } : {}),
+          ...(input.imageUrl !== undefined ? { imageUrl: input.imageUrl } : {}),
+          ...(input.notes !== undefined ? { notes: input.notes?.trim() || null } : {}),
+          ...(input.sourceUrl !== undefined ? { sourceUrl: input.sourceUrl } : {}),
+        },
+        include,
+      });
+      await this.audit.log(
+        {
+          actorId: actor.id,
+          action: "catalog_submission.resubmitted",
+          entityType: "CatalogSubmission",
+          entityId: id,
+          metadata: { from: "NEEDS_INFO" },
+        },
+        tx,
+      );
+      return next;
+    });
+    return this.toDetail(updated);
+  }
+
   async listAdmin(query: AdminCatalogSubmissionsQuery): Promise<Paginated<AdminCatalogSubmissionView>> {
     const where: Prisma.CatalogSubmissionWhereInput = {
       ...(query.status ? { status: query.status } : {}),
@@ -178,7 +239,7 @@ export class CatalogSubmissionsService {
       const locked = await this.lock(tx, id);
       this.assertReviewable(locked.status);
       const current = await tx.catalogSubmission.findUniqueOrThrow({ where: { id } });
-      const setId = await this.resolveSetId(tx, current, input.setId);
+      const setId = await this.resolveSetId(tx, current, input);
       const number = current.number?.trim() || current.name;
       const exact = await tx.card.findUnique({
         where: { setId_number_name: { setId, number, name: current.name } },
@@ -203,18 +264,30 @@ export class CatalogSubmissionsService {
         sourceId: current.id,
         sourceRetrievedAt: new Date().toISOString(),
       };
-      const card = await tx.card.create({
-        data: {
-          setId,
-          number,
-          slug,
-          name: current.name,
-          rarity: current.rarity?.trim() || "Sin rareza",
-          supertype: current.supertype?.trim() || "Carta",
-          imageUrl: current.imageUrl,
-          attributes: attributes as Prisma.InputJsonValue,
-        },
-      });
+      let card: { id: string };
+      try {
+        card = await tx.card.create({
+          data: {
+            setId,
+            number,
+            slug,
+            name: current.name,
+            rarity: current.rarity?.trim() || "Sin rareza",
+            supertype: current.supertype?.trim() || "Carta",
+            imageUrl: current.imageUrl,
+            attributes: attributes as Prisma.InputJsonValue,
+          },
+        });
+      } catch (error) {
+        if (isUniqueViolation(error)) {
+          throw new AppError(
+            HttpStatus.CONFLICT,
+            ERROR_CODES.CONFLICT,
+            "Otra solicitud acaba de crear esta carta. Márcala como duplicado o recarga el catálogo.",
+          );
+        }
+        throw error;
+      }
       await tx.cardVariant.create({
         data: {
           cardId: card.id,
@@ -360,45 +433,70 @@ export class CatalogSubmissionsService {
 
   private async resolveSetId(
     tx: Prisma.TransactionClient,
-    current: { gameId: string; setId: string | null; proposedSetName: string | null; name: string },
-    overrideSetId?: string,
+    current: { gameId: string },
+    input: AdminCatalogApproveInput,
   ): Promise<string> {
-    const setId = overrideSetId ?? current.setId ?? null;
-    if (setId) {
-      const set = await tx.tcgSet.findFirst({ where: { id: setId, gameId: current.gameId } });
-      if (!set) {
-        throw new AppError(HttpStatus.BAD_REQUEST, ERROR_CODES.VALIDATION_ERROR, "Edición inválida");
+    if (input.createNewSet) {
+      const proposed = input.newSetName?.trim();
+      if (!proposed) {
+        throw new AppError(
+          HttpStatus.BAD_REQUEST,
+          ERROR_CODES.VALIDATION_ERROR,
+          "Indica el nombre de la edición nueva",
+        );
       }
-      return set.id;
+      const slug = slugifyStable(proposed, "edicion");
+      const existing =
+        (await tx.tcgSet.findFirst({ where: { gameId: current.gameId, slug } })) ??
+        (await tx.tcgSet.findFirst({
+          where: { gameId: current.gameId, name: { equals: proposed, mode: "insensitive" } },
+        }));
+      if (existing) {
+        throw new AppError(
+          HttpStatus.CONFLICT,
+          ERROR_CODES.CONFLICT,
+          "Ya existe una edición con ese nombre. Elige la edición existente.",
+        );
+      }
+      const takenCodes = new Set(
+        (await tx.tcgSet.findMany({ where: { gameId: current.gameId }, select: { code: true, slug: true } })).flatMap(
+          (row) => [row.code, row.slug],
+        ),
+      );
+      const code = uniqueSlug(slug.replace(/-/g, "").slice(0, 8).toUpperCase() || "SET", takenCodes).slice(0, 12);
+      try {
+        const created = await tx.tcgSet.create({
+          data: {
+            gameId: current.gameId,
+            code,
+            slug: uniqueSlug(slug, new Set(takenCodes)),
+            name: proposed,
+          },
+        });
+        return created.id;
+      } catch (error) {
+        if (isUniqueViolation(error)) {
+          throw new AppError(
+            HttpStatus.CONFLICT,
+            ERROR_CODES.CONFLICT,
+            "Otra revisión creó esta edición al mismo tiempo. Elige la edición existente.",
+          );
+        }
+        throw error;
+      }
     }
-    const proposed = current.proposedSetName?.trim();
-    if (!proposed) {
+    if (!input.setId) {
       throw new AppError(
         HttpStatus.BAD_REQUEST,
         ERROR_CODES.VALIDATION_ERROR,
-        "Indica una edición existente o un nombre de edición nueva",
+        "Elige una edición existente o crea una nueva de forma explícita",
       );
     }
-    const slug = slugifyStable(proposed, "edicion");
-    const existing =
-      (await tx.tcgSet.findFirst({ where: { gameId: current.gameId, slug } })) ??
-      (await tx.tcgSet.findFirst({ where: { gameId: current.gameId, name: { equals: proposed, mode: "insensitive" } } }));
-    if (existing) return existing.id;
-    const takenCodes = new Set(
-      (await tx.tcgSet.findMany({ where: { gameId: current.gameId }, select: { code: true, slug: true } })).flatMap(
-        (row) => [row.code, row.slug],
-      ),
-    );
-    const code = uniqueSlug(slug.replace(/-/g, "").slice(0, 8).toUpperCase() || "SET", takenCodes).slice(0, 12);
-    const created = await tx.tcgSet.create({
-      data: {
-        gameId: current.gameId,
-        code,
-        slug: uniqueSlug(slug, new Set(takenCodes)),
-        name: proposed,
-      },
-    });
-    return created.id;
+    const set = await tx.tcgSet.findFirst({ where: { id: input.setId, gameId: current.gameId } });
+    if (!set) {
+      throw new AppError(HttpStatus.BAD_REQUEST, ERROR_CODES.VALIDATION_ERROR, "Edición inválida");
+    }
+    return set.id;
   }
 
   private toView(row: SubmissionRow): CatalogSubmissionView {

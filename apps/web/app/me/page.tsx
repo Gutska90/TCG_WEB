@@ -114,6 +114,7 @@ export default function MePage() {
         <Link href="/vender" className="underline">Vender</Link>
         <Link href="/me/publicaciones" className="underline">Mis publicaciones</Link>
         <Link href="/vender/solicitar-carta" className="underline">Solicitar carta al catálogo</Link>
+        <Link href="/me/solicitudes-catalogo" className="underline">Mis solicitudes de catálogo</Link>
         <Link href="/me/vendedor" className="underline">Onboarding vendedor</Link>
         <Link href="/me/direcciones" className="underline">Direcciones</Link>
         <Link href="/me/seguridad" className="underline">Seguridad y sesiones</Link>

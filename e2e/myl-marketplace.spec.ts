@@ -23,12 +23,13 @@ test("myl marketplace: search, compare, storefront, missing-card request, admin 
   await expect(page.getByRole("link", { name: "Solicitar incorporación" })).toBeVisible();
   await page.getByRole("link", { name: "Solicitar incorporación" }).click();
   await expect(page.getByRole("heading", { name: "Solicitar incorporación" })).toBeVisible();
-  await page.getByLabel("Nombre de la carta").fill(`Carta E2E ${Date.now()}`);
+  const cardName = `Carta E2E ${Date.now()}`;
+  await page.getByLabel("Nombre de la carta").fill(cardName);
   await page.getByRole("button", { name: "Enviar solicitud" }).click();
   await expect(page.getByRole("heading", { name: "Solicitud enviada" })).toBeVisible();
 
   await loginAdmin(page);
   await page.goto(`${ADMIN_URL}/admin/catalog/submissions`);
   await expect(page.getByRole("heading", { name: "Solicitudes de catálogo" })).toBeVisible();
-  await expect(page.getByText(/Carta E2E/)).toBeVisible();
+  await expect(page.getByRole("link", { name: cardName })).toBeVisible();
 });

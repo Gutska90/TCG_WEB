@@ -5,6 +5,7 @@ import { MYL_DEMO_CARDS, type MylDemoCard } from "./cards";
 
 const GAME_SLUG = "mitos-y-leyendas";
 const NOW = "2026-09-10T00:00:00.000Z";
+export const MYL_DEMO_SOURCE = "myl-demo-pack";
 
 export type MylImportSummary = {
   sets: number;
@@ -30,19 +31,21 @@ function cardTypeToSupertype(cardType: MylDemoCard["cardType"]): string {
   }
 }
 
-function isVerifiedCard(attributes: Prisma.JsonValue): boolean {
-  return Boolean(
-    attributes &&
-      typeof attributes === "object" &&
-      !Array.isArray(attributes) &&
-      (attributes as { verified?: unknown }).verified === true,
-  );
+export function cardAttributeSource(attributes: Prisma.JsonValue): string | null {
+  if (!attributes || typeof attributes !== "object" || Array.isArray(attributes)) return null;
+  const source = (attributes as { source?: unknown }).source;
+  return typeof source === "string" && source.length > 0 ? source : null;
+}
+
+/** Demo importer may update only rows it previously wrote, unless `--force`. */
+export function isMylDemoPackCard(attributes: Prisma.JsonValue): boolean {
+  return cardAttributeSource(attributes) === MYL_DEMO_SOURCE;
 }
 
 export function toMylDemoAttributes(card: MylDemoCard): Record<string, unknown> {
   const sourceId = `${card.set.slug}/${slugifyStable(card.name, "carta")}`;
   return {
-    source: "myl-demo-pack",
+    source: MYL_DEMO_SOURCE,
     sourceQuality: "CURATED_VERIFIED",
     sourceUrl: "https://tor.myl.cl/",
     sourceId,
@@ -60,9 +63,10 @@ export function toMylDemoAttributes(card: MylDemoCard): Record<string, unknown> 
 export async function importMylDemoCards(
   prisma: PrismaClient,
   cards: MylDemoCard[] = MYL_DEMO_CARDS,
-  options: { dryRun?: boolean } = {},
+  options: { dryRun?: boolean; force?: boolean } = {},
 ): Promise<MylImportSummary> {
   const dryRun = options.dryRun === true;
+  const force = options.force === true;
   const game = dryRun
     ? await prisma.tcgGame.findUnique({ where: { slug: GAME_SLUG } })
     : await prisma.tcgGame.upsert({
@@ -122,7 +126,7 @@ export async function importMylDemoCards(
     const existingCard = await prisma.card.findUnique({
       where: { setId_number_name: { setId, number, name: row.name } },
     });
-    if (existingCard && isVerifiedCard(existingCard.attributes)) {
+    if (existingCard && !isMylDemoPackCard(existingCard.attributes) && !force) {
       conflicts += 1;
       continue;
     }

@@ -657,19 +657,17 @@ export {
   adminCatalogRejectSchema,
   adminCatalogReviewSchema,
   adminCatalogSubmissionsQuerySchema,
-  bulkListingPreviewSchema,
-  bulkListingRowSchema,
   catalogSubmissionIdParamSchema,
   createCatalogSubmissionSchema,
   listMyCatalogSubmissionsQuerySchema,
+  patchMyCatalogSubmissionSchema,
 } from "./catalog-submissions";
 export type {
   AdminCatalogApproveInput,
   AdminCatalogRejectInput,
   AdminCatalogReviewInput,
   AdminCatalogSubmissionsQuery,
-  BulkListingPreviewInput,
-  BulkListingRowInput,
   CreateCatalogSubmissionInput,
   ListMyCatalogSubmissionsQuery,
+  PatchMyCatalogSubmissionInput,
 } from "./catalog-submissions";

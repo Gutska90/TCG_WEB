@@ -27,6 +27,8 @@ Provenance on every imported/reference card:
 
 `CURATED_VERIFIED` + `verified: false` is **intentional** for `source=myl-demo-pack` and `source=catalog-submission`. Retagging those as `SYNTHETIC` would hide the commercial MyL demo (and newly approved cards) when staging sets `SHOW_SYNTHETIC_CATALOG=false`.
 
+The MyL demo importer updates **only** rows with `source=myl-demo-pack` unless `--force` is passed. Approved submissions and provider/fixture cards stay in `Conflicts`.
+
 `CardVariant.externalIds` holds provider ids (`pokemonTcgApiId`, `scryfallId`, `konamiPassword`, `bandaiNumber`, `torPath`).
 
 ## Common columns (not JSON)

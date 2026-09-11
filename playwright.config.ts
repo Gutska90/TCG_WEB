@@ -19,7 +19,7 @@ export default defineConfig({
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: [
     {
-      command: "bash scripts/bin/pnpm --filter @tcg/api start",
+      command: "node scripts/pnpm.mjs --filter @tcg/api start",
       url: `${api}/health`,
       reuseExistingServer: process.env.E2E_REUSE === "1",
       timeout: 120_000,
@@ -45,13 +45,13 @@ export default defineConfig({
       },
     },
     {
-      command: "bash scripts/bin/pnpm --filter @tcg/web start",
+      command: "node scripts/pnpm.mjs --filter @tcg/web start",
       url: web,
       reuseExistingServer: process.env.E2E_REUSE === "1",
       timeout: 120_000,
     },
     {
-      command: "bash scripts/bin/pnpm --filter @tcg/admin start",
+      command: "node scripts/pnpm.mjs --filter @tcg/admin start",
       url: admin,
       reuseExistingServer: process.env.E2E_REUSE === "1",
       timeout: 120_000,

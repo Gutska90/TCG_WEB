@@ -1199,23 +1199,3 @@ export type AdminCatalogSubmissionView = CatalogSubmissionDetailView & {
   reviewedBy: { id: string; displayName: string; slug: string } | null;
   possibleDuplicates: CatalogDuplicateHint[];
 };
-
-export type BulkListingPreviewRow = {
-  line: number;
-  status: "matched" | "missing" | "error";
-  game: string;
-  set: string;
-  cardNumber: string;
-  name: string;
-  variantId: string | null;
-  message: string | null;
-};
-
-export type BulkListingPreviewView = {
-  total: number;
-  matched: number;
-  missing: number;
-  errors: number;
-  rows: BulkListingPreviewRow[];
-  notice: string;
-};

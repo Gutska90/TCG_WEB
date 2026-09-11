@@ -97,7 +97,10 @@ describe("CatalogSubmission (postgres)", () => {
       expect(guard.canActivate(opsContext(actor(adminUser.id, ["ADMIN"])))).toBe(true);
       expect(guard.canActivate(opsContext(actor(adminUser.id, ["SUPER_ADMIN"])))).toBe(true);
 
-      const approved = await service.approve(actor(adminUser.id, ["ADMIN"]), created.id, {});
+      await expect(service.approve(actor(adminUser.id, ["ADMIN"]), created.id, {})).rejects.toMatchObject({
+        code: ERROR_CODES.VALIDATION_ERROR,
+      });
+      const approved = await service.approve(actor(adminUser.id, ["ADMIN"]), created.id, { setId: set.id });
       expect(approved.status).toBe("APPROVED");
       expect(approved.approvedCard?.name).toBe("Carta Propuesta");
       const card = await prisma.card.findUniqueOrThrow({
@@ -111,7 +114,7 @@ describe("CatalogSubmission (postgres)", () => {
       expect(logs.some((row) => row.action === "catalog_submission.created")).toBe(true);
       expect(logs.some((row) => row.action === "catalog_submission.approved")).toBe(true);
 
-      await expect(service.approve(actor(adminUser.id, ["ADMIN"]), created.id, {})).rejects.toMatchObject({
+      await expect(service.approve(actor(adminUser.id, ["ADMIN"]), created.id, { setId: set.id })).rejects.toMatchObject({
         code: ERROR_CODES.CATALOG_SUBMISSION_NOT_REVIEWABLE,
       });
     } finally {
@@ -159,6 +162,25 @@ describe("CatalogSubmission (postgres)", () => {
       expect((await service.getAdmin(a.id)).status).toBe("REJECTED");
       expect((await service.getAdmin(b.id)).status).toBe("DUPLICATE");
       expect((await service.getAdmin(c.id)).status).toBe("NEEDS_INFO");
+      const resubmitted = await service.resubmit(actor(user.id, ["USER"]), c.id, { number: "077" });
+      expect(resubmitted.status).toBe("PENDING");
+      expect(resubmitted.number).toBe("077");
+      const logs = await prisma.auditLog.findMany({
+        where: { entityId: c.id, action: "catalog_submission.resubmitted" },
+      });
+      expect(logs).toHaveLength(1);
+      await expect(service.resubmit(actor(user.id, ["USER"]), c.id, { number: "078" })).rejects.toMatchObject({
+        code: ERROR_CODES.CATALOG_SUBMISSION_NOT_RESUBMITTABLE,
+      });
+      await expect(service.approve(actor(adminUser.id, ["ADMIN"]), a.id, { setId: set.id })).rejects.toMatchObject({
+        code: ERROR_CODES.CATALOG_SUBMISSION_NOT_REVIEWABLE,
+      });
+      await expect(
+        service.approve(actor(adminUser.id, ["ADMIN"]), c.id, {
+          createNewSet: true,
+          newSetName: "IT Set",
+        }),
+      ).rejects.toMatchObject({ code: ERROR_CODES.CONFLICT });
     } finally {
       await prisma.catalogSubmission.deleteMany({ where: { gameId: game.id } });
       await prisma.tcgSet.delete({ where: { id: set.id } });

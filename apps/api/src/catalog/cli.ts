@@ -41,6 +41,7 @@ async function main() {
       const { MYL_DEMO_CARDS } = await import("./myl-demo/cards");
       const file = argAfter("--file") ?? (arg && !arg.startsWith("-") ? arg : undefined);
       const dryRun = flag("--dry-run");
+      const force = flag("--force");
       let cards = MYL_DEMO_CARDS;
       if (file) {
         const parsed = parseMylJsonDocument(JSON.parse(await readFile(file, "utf8")) as unknown);
@@ -49,7 +50,7 @@ async function main() {
           console.log(`Parser skipped: ${parsed.skipped.length}`);
         }
       }
-      const result = await importMylDemoCards(prisma, cards, { dryRun });
+      const result = await importMylDemoCards(prisma, cards, { dryRun, force });
       if (dryRun) console.log("Dry-run (no writes).");
       console.log(formatMylImportSummary(result));
       return;
@@ -87,7 +88,7 @@ async function main() {
       return;
     }
     throw new Error(
-      "Comandos: seed | seed-reference | seed-myl-demo | import-myl [--file path] [--dry-run] | import-scryfall <set> | import-pokemon <set> | reference-refresh --game <slug>",
+      "Comandos: seed | seed-reference | seed-myl-demo | import-myl [--file path] [--dry-run] [--force] | import-scryfall <set> | import-pokemon <set> | reference-refresh --game <slug>",
     );
   } finally {
     await prisma.$disconnect();

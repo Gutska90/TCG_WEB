@@ -205,10 +205,9 @@ Privada. Detalle en [COLLECTIONS.md](COLLECTIONS.md). Flag `ENABLE_COLLECTIONS`.
 
 | Método | Path | Auth | Descripción |
 |--------|------|------|-------------|
-| GET | `/v1/listings` | no | filtros: variantId, sellerId, q, game, set, condition, language, finish, min/max price, allowsShipping/allowsMeetup, cardType/raza/coste (MyL attributes), sort=`relevance\|priceAsc\|priceDesc\|newest\|nameAsc` |
+| GET | `/v1/listings` | no | filtros: variantId, sellerId, q, game, set, condition, language, finish, min/max price, allowsShipping/allowsMeetup, cardType/raza/coste (MyL attributes), sort=`relevance\|priceAsc\|priceDesc\|newest\|nameAsc` (`relevance` = `publishedAt` desc, igual que `newest`) |
 | GET | `/v1/listings/:id` | no | dueño también ve pausadas |
 | GET | `/v1/me/listings` | SELLER | las propias |
-| POST | `/v1/me/listings/bulk/preview` | SELLER | CSV → match de variantes; no crea listings ni Cards |
 | POST | `/v1/listings` | SELLER | crear |
 | PATCH | `/v1/listings/:id` | dueño | |
 | POST | `/v1/listings/:id/pause` | dueño | |
@@ -241,16 +240,17 @@ Sugerencia de precio: `GET /v1/variants/:id/price-suggestion` → `{ market, min
 | POST | `/v1/catalog/submissions` | sí (10/hora) | propuesta; no crea Card |
 | GET | `/v1/me/catalog-submissions` | sí | solo las propias |
 | GET | `/v1/me/catalog-submissions/:id` | sí | 404 si no es dueño |
-| GET | `/v1/admin/catalog/submissions` | ADMIN, SUPER_ADMIN | filtros status/game/fecha/usuario |
+| PATCH | `/v1/me/catalog-submissions/:id` | sí (10/hora) | solo `NEEDS_INFO` → `PENDING`; AuditLog `catalog_submission.resubmitted` |
+| GET | `/v1/admin/catalog/submissions` | ADMIN, SUPER_ADMIN | filtros status/game/fecha/usuario; paginado |
 | GET | `/v1/admin/catalog/submissions/:id` | ADMIN, SUPER_ADMIN | incluye `possibleDuplicates` |
-| POST | `/v1/admin/catalog/submissions/:id/approve` | ADMIN, SUPER_ADMIN | transacción: Card + CardVariant default + AuditLog |
+| POST | `/v1/admin/catalog/submissions/:id/approve` | ADMIN, SUPER_ADMIN | body: `setId` **xor** `{ createNewSet: true, newSetName }`; transacción: Card + CardVariant default + AuditLog |
 | POST | `/v1/admin/catalog/submissions/:id/reject` | ADMIN, SUPER_ADMIN | |
 | POST | `/v1/admin/catalog/submissions/:id/duplicate` | ADMIN, SUPER_ADMIN | |
 | POST | `/v1/admin/catalog/submissions/:id/needs-info` | ADMIN, SUPER_ADMIN | |
 
-Aprobar dos veces → `CATALOG_SUBMISSION_NOT_REVIEWABLE`. AuditLog: `catalog_submission.created|approved|rejected|duplicate|needs_info`. El DTO admin no incluye email ni teléfono.
+Aprobar dos veces → `CATALOG_SUBMISSION_NOT_REVIEWABLE`. PATCH fuera de `NEEDS_INFO` → `CATALOG_SUBMISSION_NOT_RESUBMITTABLE`. Unique de `Card`/`TcgSet` en carrera (`P2002`) → `409 CONFLICT`. Aprobar **no** crea una edición nueva salvo `createNewSet: true`. AuditLog: `catalog_submission.created|resubmitted|approved|rejected|duplicate|needs_info`. El DTO admin no incluye email ni teléfono.
 
-`POST /v1/me/listings/bulk/preview` body `{ csv }`. Columnas: `game,set,card_number,name,condition,quantity,price_clp,language,finish`. Filas sin match **no** crean Card (quedan `missing` para `CatalogSubmission`). Confirmar listings es un incremento futuro.
+Carga masiva de listings (CSV / BULK.1) **no** está en este incremento.
 
 Perfil público: `contactWhatsapp` solo si `contactWhatsappEnabled`. WhatsApp es CTA secundario; carrito/checkout siguen siendo el flujo principal.
 

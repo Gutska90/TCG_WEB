@@ -1,11 +1,13 @@
-import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common";
+import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common";
 import { Throttle } from "@nestjs/throttler";
 import {
   catalogSubmissionIdParamSchema,
   createCatalogSubmissionSchema,
   listMyCatalogSubmissionsQuerySchema,
+  patchMyCatalogSubmissionSchema,
   type CreateCatalogSubmissionInput,
   type ListMyCatalogSubmissionsQuery,
+  type PatchMyCatalogSubmissionInput,
 } from "@tcg/validation";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { Roles } from "../../common/decorators/roles.decorator";
@@ -43,5 +45,16 @@ export class CatalogSubmissionsController {
     @Param("id", new ZodPipe(catalogSubmissionIdParamSchema)) id: string,
   ) {
     return this.submissions.getMine(user.id, id);
+  }
+
+  @Roles("USER", "SELLER", "STORE", "MODERATOR", "ADMIN", "SUPER_ADMIN")
+  @Throttle({ default: { limit: 10, ttl: 60 * 60_000 } })
+  @Patch("me/catalog-submissions/:id")
+  resubmit(
+    @CurrentUser() user: RequestUser,
+    @Param("id", new ZodPipe(catalogSubmissionIdParamSchema)) id: string,
+    @Body(new ZodPipe(patchMyCatalogSubmissionSchema)) body: PatchMyCatalogSubmissionInput,
+  ) {
+    return this.submissions.resubmit(user, id, body);
   }
 }

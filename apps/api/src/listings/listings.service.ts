@@ -78,7 +78,7 @@ export class ListingsService {
     };
     const sort = query.sort ?? "priceAsc";
     const orderBy: Prisma.ListingOrderByWithRelationInput =
-      sort === "newest"
+      sort === "newest" || sort === "relevance"
         ? { publishedAt: "desc" }
         : sort === "priceDesc"
           ? { priceClp: "desc" }

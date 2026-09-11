@@ -92,8 +92,11 @@ export default function RequestCatalogCardPage() {
       <main id="contenido" className="mx-auto max-w-xl px-4 py-10 sm:px-6">
         <h1 className="text-3xl font-medium tracking-tight">Solicitud enviada</h1>
         <p className="mt-4 text-sm">La revisaremos antes de incorporarla al catálogo.</p>
-        <p className="mt-6">
-          <Link href="/vender" className={buttonClassName("primary")}>
+        <p className="mt-6 flex flex-wrap gap-4">
+          <Link href="/me/solicitudes-catalogo" className={buttonClassName("primary")}>
+            Ver mis solicitudes
+          </Link>
+          <Link href="/vender" className="underline underline-offset-2">
             Volver a vender
           </Link>
         </p>

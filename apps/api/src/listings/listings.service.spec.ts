@@ -89,4 +89,20 @@ describe("ListingsService", () => {
       }),
     );
   });
+
+  it("sorts relevance by recency, not by price", async () => {
+    prisma.listing.count.mockResolvedValue(0);
+    prisma.listing.findMany.mockResolvedValue([]);
+    prisma.$transaction.mockImplementation((ops: unknown[]) => Promise.all(ops as Promise<unknown>[]));
+    await service.listPublic({
+      page: 1,
+      pageSize: 24,
+      sort: "relevance",
+    });
+    expect(prisma.listing.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderBy: { publishedAt: "desc" },
+      }),
+    );
+  });
 });
