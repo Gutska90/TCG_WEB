@@ -373,7 +373,7 @@ Catálogo canónico completo de **Primera Era y Primer Bloque** desde la API ofi
 - Imágenes: URL oficial `https://api.myl.cl/static/cards/{editionId}/{edid}.png` (no se commitea el arte). Redistribución en CDN propio requiere autorización Fénix.
 - Si TOR no publica historia, `flavorTextStatus=NO_OFFICIAL_FLAVOR_TEXT` y la ficha muestra la leyenda oficial vacía. No se inventa texto.
 - El importer solo actualiza `source=tor.myl.cl` o `myl-demo-pack` salvo `--force`.
-- `catalog:seed-myl-demo` intenta TOR PE+PB y, si falla la red, cae al pack demo. Listings demo se recortan a ~250 cartas con imagen.
+- `catalog:seed-myl-demo` es **offline** (pack demo + listings). El catálogo TOR se carga con `catalog:import-myl-tor` (CI no llama `api.myl.cl`). `MYL_TOR_LIVE_IMPORT=true` en el seed es opcional para un operador local. Listings demo se recortan a ~250 cartas.
 
 **No en este incremento:** scrape de tiendas, Imperio/Nueva Era completo (usar `--formats` cuando se agregue el registro), Scanner, pagos live.
 

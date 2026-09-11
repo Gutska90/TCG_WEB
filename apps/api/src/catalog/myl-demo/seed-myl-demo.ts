@@ -209,12 +209,13 @@ export async function seedMylDemo(prisma: PrismaClient): Promise<{
   listings: number;
 }> {
   const reference = await seedReferenceCatalog(prisma);
-  let imported;
-  try {
-    imported = await importMylTorCatalog(prisma, { formats: ["pe", "pb"] });
-  } catch (error) {
-    console.error("Importador TOR (api.myl.cl) no disponible; se usa el pack demo local.", error);
-    imported = { cards: 0 };
+  let imported = { cards: 0 };
+  if (process.env.MYL_TOR_LIVE_IMPORT === "true") {
+    try {
+      imported = await importMylTorCatalog(prisma, { formats: ["pe", "pb"] });
+    } catch (error) {
+      console.error("Importador TOR (api.myl.cl) no disponible; se usa el pack demo local.", error);
+    }
   }
   if (imported.cards === 0) {
     imported = await importMylDemoCards(prisma);
@@ -237,9 +238,11 @@ export async function seedMylDemo(prisma: PrismaClient): Promise<{
         : null,
     );
   });
-  const preferred = catalog.filter((row) => DEMO_LISTING_SET_SLUGS.has(row.card.set.slug) && row.card.imageUrl);
-  const rest = catalog.filter((row) => !preferred.some((item) => item.id === row.id) && row.card.imageUrl);
-  const sellable = [...preferred, ...rest].slice(0, DEMO_LISTING_CAP);
+  const preferred = catalog.filter((row) => DEMO_LISTING_SET_SLUGS.has(row.card.set.slug));
+  const rest = catalog.filter((row) => !preferred.some((item) => item.id === row.id));
+  const ranked = [...preferred, ...rest];
+  const withArt = ranked.filter((row) => row.card.imageUrl);
+  const sellable = (withArt.length >= DEMO_LISTING_CAP ? withArt : ranked).slice(0, DEMO_LISTING_CAP);
 
   const skip = new Set(sellable.map((row) => row.id));
   const leftover = variants.filter((row) => !skip.has(row.id));

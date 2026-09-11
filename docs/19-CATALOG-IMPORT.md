@@ -65,7 +65,7 @@ pnpm catalog:reference:refresh -- --game pokemon
 
 `catalog:import-myl` acepta el pack curado del repo o un JSON local (`name`, `set`, `number`, `rarity`, `imageUrl`, `attributes`). Parser + normalizador + dedupe. Nunca borra cartas. Resumen: `Imported` / `Updated` / `Skipped` / `Conflicts`. `--dry-run` no escribe.
 
-`catalog:import-myl-tor` / `catalog:enrich-myl` leen **solo** `api.myl.cl` (Fénix). CI no llama la API en vivo: los tests usan payloads mock. `--strict` sale distinto de 0 si el reporte de completitud tiene huecos (sin imagen, sin habilidad oficial en no-Oro, historia ni marcada `NO_OFFICIAL_FLAVOR_TEXT`).
+`catalog:import-myl-tor` / `catalog:enrich-myl` leen **solo** `api.myl.cl` (Fénix). CI no llama la API en vivo: los tests usan payloads mock. `catalog:seed-myl-demo` es offline (pack demo + listings) salvo `MYL_TOR_LIVE_IMPORT=true`. `--strict` sale distinto de 0 si el reporte de completitud tiene huecos (sin imagen, sin habilidad oficial en no-Oro, historia ni marcada `NO_OFFICIAL_FLAVOR_TEXT`).
 
 El importer **solo actualiza** cartas con `attributes.source = myl-demo-pack`. Cualquier otra procedencia (`catalog-submission`, proveedor oficial, fixture curado, etc.) entra en `Conflicts` y no se sobrescribe. `--force` es la única excepción explícita. `catalog:seed-myl-demo` **no** pasa `--force`.
 
