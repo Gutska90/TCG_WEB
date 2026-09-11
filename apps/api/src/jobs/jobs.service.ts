@@ -7,6 +7,7 @@ import { OrdersService } from "../orders/orders.service";
 import { RefundsService } from "../payments/refunds.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { PricesService } from "../prices/prices.service";
+import { InquiriesService } from "../inquiries/inquiries.service";
 import { WishlistService } from "../wishlist/wishlist.service";
 import { ReconciliationService } from "../reconciliation/reconciliation.service";
 import { JobRunner } from "./job-runner";
@@ -25,6 +26,7 @@ export class JobsService {
     private readonly prices: PricesService,
     private readonly collections: CollectionsService,
     private readonly wishlist: WishlistService,
+    private readonly inquiries: InquiriesService,
   ) {}
 
   expireCheckouts(): Promise<JobRunView> {
@@ -40,6 +42,10 @@ export class JobsService {
       }
       return { scanned: rows.length, expired };
     });
+  }
+
+  expireInquiries(): Promise<JobRunView> {
+    return this.runner.run("expire-inquiries", async () => this.inquiries.expireOpen());
   }
 
   housekeeping(): Promise<JobRunView> {

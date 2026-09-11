@@ -1,13 +1,13 @@
 "use client";
 
-import { CARD_CONDITIONS, CARD_CONDITION_LABELS, CARD_FINISHES, CARD_LANGUAGES, isFilterVisible } from "@tcg/config";
+import { CARD_CONDITIONS, CARD_CONDITION_LABELS, CARD_FINISHES, CARD_FINISH_LABELS, CARD_LANGUAGES, CARD_LANGUAGE_LABELS, isFilterVisible } from "@tcg/config";
 import type { GameFilterView, GameFiltersView, GameView } from "@tcg/types";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../lib/api";
 import { omitSearchFilter, searchCardsHref, type SearchCardsInput } from "../lib/search";
 import { controlClassName } from "./ui/input";
-import { SearchInput } from "./ui/search-input";
+import { SearchSuggest } from "./search-suggest";
 import { buttonClassName } from "./ui/button-styles";
 
 export function SearchForm({
@@ -18,6 +18,8 @@ export function SearchForm({
   action = "/buscar",
   lockGame = false,
   lockSet = false,
+  inputId = "header-q",
+  defaultHasListings = false,
 }: {
   games?: GameView[];
   values?: SearchCardsInput;
@@ -26,20 +28,27 @@ export function SearchForm({
   action?: string;
   lockGame?: boolean;
   lockSet?: boolean;
+  inputId?: string;
+  /** Header/home: buyers land on En venta. Compact filters keep the current toggle. */
+  defaultHasListings?: boolean;
 }) {
   if (compact) {
+    const onSale = values?.hasListings === true || defaultHasListings;
     return (
-      <form action={action} method="get" className="w-full">
+      <form action={action} method="get" className="w-full min-w-0">
         {lockGame && values?.game ? <input type="hidden" name="game" value={values.game} /> : null}
         {lockSet && values?.set ? <input type="hidden" name="set" value={values.set} /> : null}
-        <label className="sr-only" htmlFor="header-q">
+        {onSale ? <input type="hidden" name="hasListings" value="true" /> : null}
+        <label className="sr-only" htmlFor={inputId}>
           Buscar cartas
         </label>
-        <SearchInput
-          id="header-q"
+        <SearchSuggest
+          id={inputId}
           name="q"
           defaultValue={values?.q ?? ""}
           placeholder="Buscar cartas..."
+          game={lockGame ? values?.game : undefined}
+          set={lockSet ? values?.set : undefined}
         />
       </form>
     );
@@ -116,9 +125,17 @@ function FullSearchForm({
 
   return (
     <form action={action} method="get" className="grid gap-4">
+      {values.hasListings ? <input type="hidden" name="hasListings" value="true" /> : null}
       <label className="text-sm">
         Nombre o número
-        <SearchInput id="q" name="q" defaultValue={values.q ?? ""} className="mt-1" placeholder="Nombre, número o set" />
+        <SearchSuggest
+          id="q"
+          name="q"
+          defaultValue={values.q ?? ""}
+          placeholder="Nombre, número o set"
+          game={lockGame ? values.game : game}
+          set={lockSet ? values.set : undefined}
+        />
       </label>
       {lockGame && values.game ? <input type="hidden" name="game" value={values.game} /> : null}
       {lockSet && values.set ? <input type="hidden" name="set" value={values.set} /> : null}
@@ -237,16 +254,21 @@ function GenericFallback({ values, lockSet }: { values: SearchCardsInput; lockSe
     <>
       {lockSet ? null : (
         <label className="text-sm">
-          Set (slug o código)
-          <input name="set" defaultValue={values.set ?? ""} className={`mt-1 ${controlClassName}`} />
+          Expansión
+          <input name="set" defaultValue={values.set ?? ""} className={`mt-1 ${controlClassName}`} placeholder="Nombre o código" />
         </label>
       )}
       <label className="text-sm">
         Rareza
         <input name="rarity" defaultValue={values.rarity ?? ""} className={`mt-1 ${controlClassName}`} />
       </label>
-      <LanguageFinish values={values} />
       <PriceFields values={values} />
+      <details>
+        <summary className="cursor-pointer text-sm">Más filtros</summary>
+        <div className="mt-3 grid gap-3">
+          <LanguageFinish values={values} />
+        </div>
+      </details>
     </>
   );
 }
@@ -281,12 +303,7 @@ function FilterControl({
     );
   }
   if (filter.key === "hasListings") {
-    return (
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="hasListings" value="true" defaultChecked={values.hasListings === true} />
-        {filter.label}
-      </label>
-    );
+    return null;
   }
   if (filter.key === "price" || (filter.range && filter.key === "price")) {
     return <PriceFields values={values} />;
@@ -368,7 +385,7 @@ function LanguageFinish({ values, only }: { values: SearchCardsInput; only?: "la
             <option value="">Todos</option>
             {CARD_LANGUAGES.map((language) => (
               <option key={language} value={language}>
-                {language}
+                {CARD_LANGUAGE_LABELS[language]}
               </option>
             ))}
           </select>
@@ -381,7 +398,7 @@ function LanguageFinish({ values, only }: { values: SearchCardsInput; only?: "la
             <option value="">Todos</option>
             {CARD_FINISHES.map((finish) => (
               <option key={finish} value={finish}>
-                {finish}
+                {CARD_FINISH_LABELS[finish]}
               </option>
             ))}
           </select>
@@ -468,20 +485,27 @@ export function SearchFilterChips({
   values,
   pathname = "/buscar",
   lockedKeys = [],
+  games = [],
+  setLabel,
 }: {
   values: SearchCardsInput;
   pathname?: string;
   lockedKeys?: string[];
+  games?: GameView[];
+  setLabel?: string;
 }) {
   const locked = new Set(lockedKeys);
   const chips: Array<{ key: string; label: string }> = [];
-  if (values.game && !locked.has("game")) chips.push({ key: "game", label: values.game });
-  if (values.set && !locked.has("set")) chips.push({ key: "set", label: values.set });
+  if (values.game && !locked.has("game")) {
+    chips.push({ key: "game", label: games.find((game) => game.slug === values.game)?.name ?? values.game });
+  }
+  if (values.set && !locked.has("set")) chips.push({ key: "set", label: setLabel ?? values.set });
   if (values.rarity) chips.push({ key: "rarity", label: values.rarity });
   if (values.supertype) chips.push({ key: "supertype", label: values.supertype });
-  if (values.language) chips.push({ key: "language", label: values.language });
-  if (values.finish) chips.push({ key: "finish", label: values.finish });
-  if (values.condition) chips.push({ key: "condition", label: values.condition });
+  if (values.language) chips.push({ key: "language", label: CARD_LANGUAGE_LABELS[values.language as keyof typeof CARD_LANGUAGE_LABELS] ?? values.language });
+  if (values.finish) chips.push({ key: "finish", label: CARD_FINISH_LABELS[values.finish as keyof typeof CARD_FINISH_LABELS] ?? values.finish });
+  if (values.condition) chips.push({ key: "condition", label: CARD_CONDITION_LABELS[values.condition as keyof typeof CARD_CONDITION_LABELS] ?? values.condition });
+  if (values.hasListings) chips.push({ key: "hasListings", label: "En venta" });
   if (values.priceMin || values.priceMax) chips.push({ key: "price", label: "Precio" });
   for (const [key, items] of Object.entries(values.attrs ?? {})) {
     chips.push({ key, label: `${key}: ${items.join(", ")}` });

@@ -52,7 +52,8 @@ export class CatalogService {
       orderBy: [{ releasedAt: "desc" }, { name: "asc" }],
       include: { _count: { select: { cards: { where: visibility } } } },
     });
-    return rows.map((row) => toSetView(row, row._count.cards));
+    const previews = await this.setPreviewImages(rows.map((row) => row.id));
+    return rows.map((row) => toSetView(row, row._count.cards, previews.get(row.id) ?? []));
   }
 
   async getSetById(id: string): Promise<SetSummaryView & { game: GameView }> {
@@ -179,6 +180,7 @@ export class CatalogService {
           imageUrl: row.card.imageUrl,
           gameSlug: row.card.set.game.slug,
           setSlug: row.card.set.slug,
+          setName: row.card.set.name,
         },
       },
       listings: listings.items,
@@ -218,6 +220,29 @@ export class CatalogService {
 
   private hiddenEmptySet(publicCardCount: number): boolean {
     return Object.keys(publicCatalogCardWhere()).length > 0 && publicCardCount === 0;
+  }
+
+  private async setPreviewImages(setIds: string[]): Promise<Map<string, string[]>> {
+    const grouped = new Map<string, string[]>();
+    if (setIds.length === 0) return grouped;
+    const rows = await this.prisma.$queryRaw<Array<{ setId: string; imageUrl: string }>>(
+      Prisma.sql`
+        SELECT set_id AS "setId", image_url AS "imageUrl"
+        FROM (
+          SELECT set_id, image_url,
+            row_number() OVER (PARTITION BY set_id ORDER BY number ASC, id ASC) AS rn
+          FROM cards
+          WHERE set_id IN (${Prisma.join(setIds.map((id) => Prisma.sql`${id}::uuid`))})
+            AND image_url IS NOT NULL AND image_url <> ''
+        ) ranked
+        WHERE rn <= 3`,
+    );
+    for (const row of rows) {
+      const current = grouped.get(row.setId) ?? [];
+      current.push(row.imageUrl);
+      grouped.set(row.setId, current);
+    }
+    return grouped;
   }
 
   private async pageCards(
@@ -265,6 +290,7 @@ function toSetView(
     imageUrl: string | null;
   },
   cardCount: number,
+  previewImageUrls: string[] = [],
 ): SetSummaryView {
   return {
     id: row.id,
@@ -274,6 +300,7 @@ function toSetView(
     releasedAt: row.releasedAt?.toISOString() ?? null,
     cardCount,
     imageUrl: row.imageUrl,
+    previewImageUrls,
   };
 }
 
@@ -284,7 +311,7 @@ function toCardSummary(row: {
   number: string;
   rarity: string;
   imageUrl: string | null;
-  set: { slug: string; game: { slug: string } };
+  set: { slug: string; name: string; game: { slug: string } };
 }): CardSummaryView {
   return {
     id: row.id,
@@ -295,6 +322,7 @@ function toCardSummary(row: {
     imageUrl: row.imageUrl,
     gameSlug: row.set.game.slug,
     setSlug: row.set.slug,
+    setName: row.set.name,
   };
 }
 

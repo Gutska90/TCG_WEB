@@ -1,11 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { buttonClassName } from "./ui/button-styles";
 
+/** Copy/share uses a relative path on SSR, then the absolute origin after mount (avoids hydration mismatch). */
 export function ShareControls({ path, title }: { path: string; title: string }) {
   const [copied, setCopied] = useState(false);
-  const url = typeof window === "undefined" ? path : `${window.location.origin}${path}`;
+  const [url, setUrl] = useState(path);
+
+  useEffect(() => {
+    setUrl(`${window.location.origin}${path}`);
+  }, [path]);
 
   async function copy() {
     await navigator.clipboard.writeText(url);

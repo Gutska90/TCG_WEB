@@ -29,6 +29,7 @@ import type {
   ReportStatus,
   ReportTargetType,
   Role,
+  SellerInquiryStatus,
   ShipmentStatus,
   ShippingMethod,
   ShippingZone,
@@ -63,6 +64,7 @@ export type {
   ReportStatus,
   ModerationActionType,
   NotificationType,
+  SellerInquiryStatus,
   ShipmentStatus,
   ShippingZone,
 } from "@tcg/config";
@@ -311,6 +313,8 @@ export type SetSummaryView = {
   releasedAt: string | null;
   cardCount: number;
   imageUrl: string | null;
+  /** Up to 3 official card arts for the set hub mosaic. */
+  previewImageUrls: string[];
 };
 
 export type CardSummaryView = {
@@ -322,6 +326,8 @@ export type CardSummaryView = {
   imageUrl: string | null;
   gameSlug: string;
   setSlug: string;
+  /** Human set name for mosaics and chips (not the slug). */
+  setName: string;
 };
 
 export type VariantView = {
@@ -447,8 +453,8 @@ export type NotificationPreferenceView = {
 
 export type SearchCardView = CardSummaryView & {
   gameName: string;
-  setName: string;
   setCode: string;
+  minListingClp: number | null;
 };
 
 export type CartItemIssue = "LISTING_NOT_ACTIVE" | "LISTING_INSUFFICIENT_STOCK" | "OWN_LISTING";
@@ -474,6 +480,28 @@ export type CartView = {
   items: CartItemView[];
   productTotalClp: number;
   itemCount: number;
+};
+
+export type SellerInquiryItemView = {
+  listingId: string;
+  variantId: string;
+  titleSnapshot: string;
+  condition: CardCondition;
+  quantity: number;
+  unitPriceClp: number;
+  lineTotalClp: number;
+};
+
+export type SellerInquiryView = {
+  id: string;
+  inquiryNumber: string;
+  status: SellerInquiryStatus;
+  seller: ListingSellerView;
+  subtotalClp: number;
+  messageText: string;
+  expiresAt: string;
+  createdAt: string;
+  items: SellerInquiryItemView[];
 };
 
 export type OrderItemView = {

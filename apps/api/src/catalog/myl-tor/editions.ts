@@ -1,6 +1,12 @@
 /** Official TOR edition slugs (tor.myl.cl cards dropdown). Not a marketplace scrape. */
 
-export type MylTorFormat = "pe" | "pb";
+export type MylTorFormat = "pe" | "pb" | "imperio";
+
+export const MYL_TOR_FORMATS: readonly MylTorFormat[] = ["pe", "pb", "imperio"];
+
+export function isMylTorFormat(value: string): value is MylTorFormat {
+  return (MYL_TOR_FORMATS as readonly string[]).includes(value);
+}
 
 export type MylTorEditionRef = {
   slug: string;
@@ -76,7 +82,17 @@ export const MYL_TOR_PB_EDITIONS: readonly MylTorEditionRef[] = [
   { slug: "espada-sagrada", label: "Espada Sagrada", format: "pb" },
 ];
 
-export const MYL_TOR_EDITIONS: readonly MylTorEditionRef[] = [...MYL_TOR_PE_EDITIONS, ...MYL_TOR_PB_EDITIONS];
+/** TOR Imperio-era editions. Default importer stays PE+PB; use `--formats imperio` or `--edition`. */
+export const MYL_TOR_IMP_EDITIONS: readonly MylTorEditionRef[] = [
+  { slug: "aguila-imperial", label: "Águila Imperial", format: "imperio" },
+  { slug: "tierra-austral", label: "Tierra Austral", format: "imperio" },
+];
+
+export const MYL_TOR_EDITIONS: readonly MylTorEditionRef[] = [
+  ...MYL_TOR_PE_EDITIONS,
+  ...MYL_TOR_PB_EDITIONS,
+  ...MYL_TOR_IMP_EDITIONS,
+];
 
 export function editionsForFormats(formats: readonly MylTorFormat[]): MylTorEditionRef[] {
   const wanted = new Set(formats);

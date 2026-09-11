@@ -10,7 +10,9 @@ import { getApiBaseUrl } from "../../src/lib/config";
 import { fetchCart, fetchListing, putCartItem } from "../../src/lib/endpoints";
 import { useAuth } from "../../src/lib/auth";
 import { userFacingError } from "../../src/lib/errors";
+import { listingConsultHref, openWhatsappHref } from "../../src/lib/whatsapp";
 import { Button, EmptyState, ErrorText, LoadingState, Screen, SuccessText } from "../../src/ui/screen";
+import { QtyStepper } from "../../src/ui/qty-stepper";
 import { Field } from "../../src/ui/field";
 import { TextLink } from "../../src/ui/nav";
 
@@ -20,6 +22,8 @@ export default function ListingScreen() {
   const { me } = useAuth();
   const qc = useQueryClient();
   const [notice, setNotice] = useState<string | null>(null);
+  const [qty, setQty] = useState(1);
+  const [consultError, setConsultError] = useState<string | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const [reason, setReason] = useState<ReportReason>("COUNTERFEIT");
   const [description, setDescription] = useState("");
@@ -33,7 +37,9 @@ export default function ListingScreen() {
     mutationFn: async () => {
       const cart = await fetchCart();
       const current = cart.items.find((item) => item.listingId === id)?.quantity ?? 0;
-      return putCartItem(id, current + 1);
+      const addQty = Math.max(1, qty);
+      const cap = listing.data?.available ?? addQty;
+      return putCartItem(id, Math.min(current + addQty, cap));
     },
     onSuccess: () => {
       track("add_to_cart");
@@ -72,6 +78,21 @@ export default function ListingScreen() {
         Vendedor {row.seller.displayName} · {formatReputation(row.seller.reputation.averageStars, row.seller.reputation.count)}
       </Text>
       {row.description ? <Text>{row.description}</Text> : null}
+      {row.variant.card.imageUrl ? (
+        <View style={{ width: "100%", height: 280, backgroundColor: "#111", borderRadius: 12, overflow: "hidden", justifyContent: "flex-end" }}>
+          <Image
+            source={{ uri: row.variant.card.imageUrl }}
+            style={{ position: "absolute", width: "100%", height: "100%" }}
+            resizeMode="contain"
+            accessibilityLabel="Arte oficial del catálogo"
+          />
+          {!unavailable ? (
+            <View style={{ alignItems: "center", paddingBottom: 8 }}>
+              <QtyStepper value={qty} max={row.available} onChange={setQty} />
+            </View>
+          ) : null}
+        </View>
+      ) : null}
       {row.images.length > 0 ? (
         row.images.map((image) => (
           <Image
@@ -79,19 +100,40 @@ export default function ListingScreen() {
             source={{ uri: `${getApiBaseUrl()}${image.url}` }}
             style={{ width: "100%", height: 220, backgroundColor: "#f5f5f5" }}
             resizeMode="contain"
+            resizeMethod="resize"
             accessibilityLabel="Foto de la publicación"
           />
         ))
-      ) : (
+      ) : !row.variant.card.imageUrl ? (
         <EmptyState>Sin fotos.</EmptyState>
-      )}
+      ) : null}
       {unavailable ? <EmptyState>Esta publicación no se puede agregar al carrito.</EmptyState> : null}
       <Button
-        label="Agregar al carrito"
+        label={qty > 1 ? `Agregar ${qty} al carrito` : "Agregar al carrito"}
         disabled={!me || unavailable}
         pending={add.isPending}
         onPress={() => add.mutate()}
       />
+      {row.seller.contactWhatsappEnabled && row.seller.contactWhatsapp ? (
+        <Button
+          variant="secondary"
+          label="Consultar por WhatsApp"
+          disabled={unavailable}
+          onPress={() => {
+            setConsultError(null);
+            const addQty = Math.max(1, qty);
+            const href = listingConsultHref(row, addQty, me?.displayName ?? null);
+            if (!href) {
+              setConsultError("Este vendedor no tiene WhatsApp público.");
+              return;
+            }
+            void openWhatsappHref(href).catch((err: unknown) => setConsultError(userFacingError(err)));
+          }}
+        />
+      ) : null}
+      {row.seller.contactWhatsappEnabled && row.seller.contactWhatsapp ? (
+        <Text>Consultar no reserva stock. Para tomarlo, agrégala al carrito y paga.</Text>
+      ) : null}
       {!me ? <TextLink href="/login" label="Ingresa para comprar" /> : null}
       <Button variant="secondary" label="Reportar" onPress={() => setReportOpen(true)} />
       {reportOpen ? (
@@ -109,7 +151,11 @@ export default function ListingScreen() {
         </View>
       ) : null}
       <SuccessText message={notice} />
-      <ErrorText message={add.error ? userFacingError(add.error) : report.error ? userFacingError(report.error) : null} />
+      <ErrorText
+        message={
+          add.error ? userFacingError(add.error) : report.error ? userFacingError(report.error) : consultError
+        }
+      />
       <TextLink href="/cart" label="Carrito" />
       <Button variant="secondary" label="Ver carta" onPress={() => router.push(`/card/${row.variant.card.id}`)} />
     </Screen>

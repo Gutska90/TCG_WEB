@@ -44,7 +44,8 @@ SELLER.1  Seller storefront              ✓ `/vendedores/{slug}`
 CAT.1     CatalogSubmission (user)       ✓ POST + PATCH `NEEDS_INFO`
 CAT.2     Admin catalog approval         ✓ setId xor createNewSet
 MARKET.1  Canonical card + offers        ✓
-CONTACT.1 Optional seller WhatsApp       ✓
+CONTACT.1 Optional seller WhatsApp       ✓ listing + lote carrito (no reserva)
+CONTACT.2 Persisted seller inquiry       ✓ Consulta N° + aviso vendedor (no reserva)
 BULK.1    Listing CSV preview contract   ⏸ diferido (fuera de este PR)
 
 --- BETA RELEASE PROGRAM (feature freeze) ---
@@ -362,24 +363,29 @@ Catálogo canónico vs inventario: el dueño/admin controla `Card`; el vendedor 
 - **No scrapear** MyL Serena, Stribog, Tradeck ni otros marketplaces. Los scripts Java/Python de un repo anterior no se portan.
 - Pack curado en `apps/api/src/catalog/myl-demo` (`source=myl-demo-pack`, `sourceQuality=CURATED_VERIFIED`, `verified=false`). Stats incompletos a propósito (PARTIAL).
 - `pnpm catalog:import-myl` — upsert **solo** de cartas `source=myl-demo-pack`, sin listings. Otras fuentes → `Conflicts` salvo `--force`.
-- `pnpm catalog:seed-myl-demo` — reference + pack + 5 vendedores demo + listings. Idempotente. Correos `@example.test`. WhatsApp demo deshabilitado por defecto.
+- `pnpm catalog:seed-myl-demo` — reference + pack + 5 vendedores demo + listings. Idempotente. Correos `@example.test`. Un vendedor demo tiene WhatsApp de prueba habilitado para CONTACT.2; el resto queda deshabilitado.
 
 ## MYL.3 — Catalog media & metadata (TOR / Fénix) ✓
 
 Catálogo canónico completo de **Primera Era y Primer Bloque** desde la API oficial de Fénix (`https://api.myl.cl/cards/edition/{slug}`), la misma que consume [TOR](https://tor.myl.cl/). Habilidad, historia, coste, fuerza, raza, rareza, número e imagen oficial. **No** se scrapean MyL Serena, Stribog, Tradeck ni otros marketplaces.
 
-- `pnpm catalog:import-myl-tor` / `pnpm catalog:enrich-myl` — `--formats pe,pb` (default; ~5.700 cartas oficiales disponibles en la API). `--edition slug`, `--card mitra`, `--dry-run`, `--missing-only`, `--force`, `--strict`.
+- `pnpm catalog:import-myl-tor` / `pnpm catalog:enrich-myl` — `--formats pe,pb` (default; ~5.700 cartas oficiales). `--formats imperio` o `--edition aguila-imperial` / `--edition tierra-austral` para esas ediciones Fénix. `--card mitra`, `--dry-run`, `--missing-only`, `--force`, `--strict`.
 - Algunas entradas del menú TOR no existen en `api.myl.cl` (404/400); el importer las omite y no aborta el resto.
 - Imágenes: URL oficial `https://api.myl.cl/static/cards/{editionId}/{edid}.png` (no se commitea el arte). Redistribución en CDN propio requiere autorización Fénix.
 - Si TOR no publica historia, `flavorTextStatus=NO_OFFICIAL_FLAVOR_TEXT` y la ficha muestra la leyenda oficial vacía. No se inventa texto.
 - El importer solo actualiza `source=tor.myl.cl` o `myl-demo-pack` salvo `--force`.
-- `catalog:seed-myl-demo` es **offline** (pack demo + listings). El catálogo TOR se carga con `catalog:import-myl-tor` (CI no llama `api.myl.cl`). `MYL_TOR_LIVE_IMPORT=true` en el seed es opcional para un operador local. Listings demo se recortan a ~250 cartas.
+- `catalog:seed-myl-demo` es **offline** (pack demo + listings). El catálogo TOR se carga con `catalog:import-myl-tor` (CI no llama `api.myl.cl`). `MYL_TOR_LIVE_IMPORT=true` en el seed es opcional para un operador local. Si ya hay cartas TOR con imagen, el seed no reinyecta el pack demo. Listings demo se recortan a ~250 cartas.
+- `pnpm catalog:prune-myl-without-images` — operador local: borra cartas MyL sin `imageUrl` (pack demo / leftovers) y ediciones vacías. No toca cartas con órdenes. El importer TOR **no** borra cartas.
 
-**No en este incremento:** scrape de tiendas, Imperio/Nueva Era completo (usar `--formats` cuando se agregue el registro), Scanner, pagos live.
+**No en este incremento:** scrape de tiendas, resto de ediciones Imperio/Nueva Era/FX, Scanner, pagos live.
 
 ## SELLER.1 — Storefront del vendedor ✓
 
-`/vendedores/{slug}` es una mini tienda: header (comuna, reputación, ventas, stock), búsqueda/filtros (q, juego, edición, condición, orden) y grid de `ProductCard`. CTA principal sigue siendo el listing → carrito. **No** WhatsApp como checkout. **No** Fase 16 Stores B2B.
+`/vendedores/{slug}` es una mini tienda: header (comuna, reputación, ventas, stock), búsqueda/filtros (q, juego, edición, condición, orden) y grid de `ProductCard`. CTA principal sigue siendo el listing → carrito. WhatsApp (CONTACT.1) es consulta de una publicación; el lote del carrito persiste CONTACT.2 (`Consulta N°`, aviso al vendedor, TTL 24 h) y **no** reserva stock ni es checkout. **No** Fase 16 Stores B2B.
+
+## CONTACT.2 — Consulta persistida de lote ✓
+
+El comprador consulta el grupo de un vendedor en el carrito. Se crea `SellerInquiry` con número humano (`Consulta N° 12`), se notifica al vendedor (`SELLER_INQUIRY`) y WhatsApp sigue siendo el canal secundario con el texto ya numerado. No hay reserva de stock. Estados MVP: `OPEN` / `EXPIRED` (job `expire-inquiries`). UI web `/me/consultas`; mobile `/inquiries`. Copy: **consulta**, nunca “cotización”.
 
 **No en este incremento:** BULK.1, CART.1/2, Scanner, Auctions, pagos live.
 

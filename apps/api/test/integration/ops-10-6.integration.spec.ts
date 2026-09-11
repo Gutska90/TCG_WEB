@@ -52,6 +52,7 @@ describe("Fase 10.6 ops safety (postgres)", () => {
     { captureDay: async () => ({ listings: 0, sales: 0 }) } as never,
     { captureDailyValues: async () => ({ collections: 0 }) } as never,
     { scanAll: async () => ({ variants: 0, hits: 0, drops: 0 }) } as never,
+    { expireOpen: async () => ({ expired: 0 }) } as never,
   );
   const revisions = new ListingRevisionService(prisma);
   const log = new ModerationLogService(prisma, audit);

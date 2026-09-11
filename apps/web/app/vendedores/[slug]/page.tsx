@@ -198,7 +198,7 @@ export default async function SellerPage({
             </form>
 
             <p className="mt-4 text-sm text-text-muted">{listings.total} publicaciones</p>
-            <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="mt-4 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3">
               {listings.items.map((item) => (
                 <li key={item.id}>
                   <ListingOfferCard item={item} />

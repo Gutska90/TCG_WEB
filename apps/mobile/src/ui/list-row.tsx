@@ -2,6 +2,10 @@ import { Image, Pressable, Text, View } from "react-native";
 import { space } from "./theme";
 import { useColors } from "./theme-provider";
 
+/**
+ * Catalog list row. `resizeMethod="resize"` downsamples on Android so list scroll
+ * does not decode full Fénix PNGs into GPU memory.
+ */
 export function ListRow({
   title,
   subtitle,
@@ -23,6 +27,7 @@ export function ListRow({
           source={{ uri: imageUrl }}
           style={{ width: 48, height: 68, borderRadius: 8, backgroundColor: colors.fill }}
           resizeMode="contain"
+          resizeMethod="resize"
           accessibilityLabel={title}
         />
       ) : (

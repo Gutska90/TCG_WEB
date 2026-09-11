@@ -36,6 +36,7 @@
     "catalog:import-myl-tor": "node scripts/pnpm.mjs --filter @tcg/api catalog:import-myl-tor",
     "catalog:enrich-myl": "node scripts/pnpm.mjs --filter @tcg/api catalog:enrich-myl",
     "catalog:seed-myl-demo": "node scripts/pnpm.mjs --filter @tcg/api catalog:seed-myl-demo",
+    "catalog:prune-myl-without-images": "node scripts/pnpm.mjs --filter @tcg/api catalog:prune-myl-without-images",
     "catalog:import-scryfall": "node scripts/pnpm.mjs --filter @tcg/api run catalog:import-scryfall --",
     "catalog:import-pokemon": "node scripts/pnpm.mjs --filter @tcg/api run catalog:import-pokemon --",
     "catalog:reference:refresh": "node scripts/pnpm.mjs --filter @tcg/api run catalog:reference:refresh --",

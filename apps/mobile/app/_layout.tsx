@@ -44,6 +44,8 @@ export default function RootLayout() {
               <Stack.Screen name="purchases/[id]" options={{ title: "Compra" }} />
               <Stack.Screen name="sales/index" options={{ title: "Mis ventas" }} />
               <Stack.Screen name="sales/[id]" options={{ title: "Venta" }} />
+              <Stack.Screen name="inquiries/index" options={{ title: "Consultas" }} />
+              <Stack.Screen name="inquiries/[id]" options={{ title: "Consulta" }} />
               <Stack.Screen name="disputes/index" options={{ title: "Reclamos" }} />
               <Stack.Screen name="disputes/[id]" options={{ title: "Reclamo" }} />
               <Stack.Screen name="sell/index" options={{ title: "Publicaciones" }} />

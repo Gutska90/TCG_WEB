@@ -46,6 +46,7 @@ describe("CartService", () => {
     listing: { findUnique: vi.fn() },
     cart: { findUnique: vi.fn(), create: vi.fn(), update: vi.fn(), delete: vi.fn() },
     cartItem: { upsert: vi.fn(), deleteMany: vi.fn(), create: vi.fn(), update: vi.fn() },
+    sellerInquiry: { updateMany: vi.fn() },
     $transaction: vi.fn(),
   };
   const service = new CartService(prisma as never);
@@ -164,6 +165,10 @@ describe("CartService", () => {
       data: { quantity: 3 },
     });
     expect(prisma.cart.delete).toHaveBeenCalledWith({ where: { id: "guest-cart" } });
+    expect(prisma.sellerInquiry.updateMany).toHaveBeenCalledWith({
+      where: { guestToken: "guest-token-value-16", buyerId: null },
+      data: { buyerId: "buyer-1" },
+    });
     expect(result.clearGuestCookie).toBe(true);
     expect(result.view.productTotalClp).toBe(3000);
   });

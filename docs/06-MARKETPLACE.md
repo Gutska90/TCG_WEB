@@ -88,7 +88,7 @@ Sugerido (MVP): `min(market, minListing)` redondeado a 10 pesos, no por debajo d
 
 - `quantity` disponible total.
 - `quantityReserved` en checkouts no pagados / órdenes pagadas no enviadas según política:
-  - Al agregar al carrito: **no** reservar (evita abandono bloqueando stock).
+  - Al agregar al carrito **o consultar por WhatsApp / consulta persistida (CONTACT.2)**: **no** reservar (evita abandono bloqueando stock).
   - Al `POST /checkout`: reservar.
   - Preferencia MP expira (p. ej. 30 min) → liberar si no hay pago **y** el checkout sigue `PENDING_PAYMENT` bajo lock.
   - Si llega `approved` **antes** de que la expiración commitee: se cobra y se consume la reserva (la unidad sigue siendo de ese comprador).

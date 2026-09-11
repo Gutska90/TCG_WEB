@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CARD_CONDITION_LABELS, CARD_CONDITIONS, formatClp } from "@tcg/config";
+import { CARD_CONDITION_LABELS, CARD_CONDITIONS, CARD_FINISH_LABELS, CARD_LANGUAGE_LABELS, formatClp } from "@tcg/config";
 import type { CardCondition } from "@tcg/config";
 import type { CollectionItemView } from "@tcg/types";
 import { ApiError, api } from "../../../../lib/api";
@@ -114,11 +114,17 @@ export default function CollectionItemPage() {
         </Link>
       </p>
       <div className="mt-4 grid gap-6 sm:grid-cols-[120px_1fr]">
-        <CardImage src={item.variant.card.imageUrl} alt={item.variant.card.name} />
+        <CardImage
+          src={item.variant.card.imageUrl}
+          alt={item.variant.card.name}
+          name={item.variant.card.name}
+          gameSlug={item.variant.card.gameSlug}
+          variant="detail"
+        />
         <div>
           <h1 className="text-3xl font-medium tracking-tight">{item.variant.card.name}</h1>
           <p className="mt-1 text-text-muted">
-            {item.variant.card.setSlug} · {item.variant.card.number} · {item.variant.language} · {item.variant.finish}
+            {item.variant.card.setName} · {item.variant.card.number} · {CARD_LANGUAGE_LABELS[item.variant.language]} · {CARD_FINISH_LABELS[item.variant.finish]}
           </p>
           <p className="mt-4 text-sm">Costo: {item.registeredCostClp != null ? formatClp(item.registeredCostClp) : "Sin costo"}</p>
           <p className="text-sm">

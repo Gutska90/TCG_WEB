@@ -4,10 +4,15 @@ import type { GameFiltersView, GameView } from "@tcg/types";
 import { Filter } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import type { SearchCardsInput } from "../lib/search";
+import { CatalogModeToggle } from "./catalog-mode-toggle";
 import { SearchForm } from "./search-form";
 import { Button } from "./ui/button";
 import { Sheet } from "./ui/sheet";
 
+/**
+ * Catalog search chrome: sticky filters on desktop, sheet + compact search on small screens.
+ * Counts unlocked query params so the mobile "Filtros" button shows how many are active.
+ */
 export function SearchLayout({
   games,
   values,
@@ -39,17 +44,20 @@ export function SearchLayout({
           </div>
         </div>
       </aside>
-      <div>
-        <div className="sticky top-[3.25rem] z-20 -mx-4 mb-4 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-sm lg:hidden">
+      <div className="min-w-0">
+        <div className="sticky top-14 z-20 -mx-4 mb-4 border-b border-border bg-background/95 px-4 py-3 backdrop-blur-sm lg:hidden">
           <div className="flex gap-2">
             <div className="min-w-0 flex-1">
-              <SearchForm compact values={values} action={action} lockGame={lockGame} lockSet={lockSet} />
+              <SearchForm compact inputId="filters-q" values={values} action={action} lockGame={lockGame} lockSet={lockSet} />
             </div>
             <Button variant="secondary" onClick={() => setOpen(true)}>
               <Filter className="h-4 w-4" aria-hidden />
               Filtros{count ? ` (${count})` : ""}
             </Button>
           </div>
+        </div>
+        <div className="mb-4">
+          <CatalogModeToggle values={values} pathname={action} />
         </div>
         {children}
       </div>

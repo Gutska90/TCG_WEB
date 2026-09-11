@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { CARD_FINISH_LABELS, CARD_LANGUAGE_LABELS } from "@tcg/config";
 import type { FavoriteView, Paginated } from "@tcg/types";
 import { ApiError, api } from "../../../lib/api";
 
@@ -45,7 +46,8 @@ export default function FavoritesPage() {
               href={`/${item.card.gameSlug}/${item.card.setSlug}/${item.card.slug}`}
               className="block rounded-lg border p-4"
             >
-              {item.card.name} · {item.variant.language} {item.variant.finish}
+              {item.card.name} · {item.card.setName} · {CARD_LANGUAGE_LABELS[item.variant.language]} ·{" "}
+              {CARD_FINISH_LABELS[item.variant.finish]}
             </Link>
           </li>
         ))}

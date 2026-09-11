@@ -4,7 +4,7 @@ import { CatalogPager } from "../../../components/catalog-pager";
 import { SearchFilterChips } from "../../../components/search-form";
 import { SearchLayout } from "../../../components/search-layout";
 import { EmptyState } from "../../../components/ui/empty-state";
-import { ProductCard } from "../../../components/ui/product-card";
+import { CATALOG_CARD_GRID, ProductCard } from "../../../components/ui/product-card";
 import { CatalogRequestError, getGameFilters, getSet } from "../../../lib/catalog";
 import { searchCards, searchCardsHref, searchInputFromParams, type SearchCardsInput } from "../../../lib/search";
 
@@ -65,33 +65,49 @@ export default async function SetPage({
             lockSet
           >
             <div className="mb-4">
-              <SearchFilterChips values={values} pathname={pathname} lockedKeys={["game", "set"]} />
+              <SearchFilterChips
+                values={values}
+                pathname={pathname}
+                lockedKeys={["game", "set"]}
+                games={[setView.game]}
+                setLabel={setView.name}
+              />
             </div>
             {error ? <p className="text-sm text-danger">{error}</p> : null}
             {results ? (
               <>
                 <p className="text-sm text-text-muted">{results.total} resultados</p>
-                <ul className="mt-4 grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-3">
+                <ul className={CATALOG_CARD_GRID}>
                   {results.items.map((card) => (
                     <li key={card.id}>
                       <ProductCard
                         href={`/${game}/${set}/${card.slug}`}
                         name={card.name}
+                        setName={card.setName}
                         number={card.number}
                         imageUrl={card.imageUrl}
                         gameSlug={card.gameSlug}
                         meta={card.rarity}
+                        priceClp={card.minListingClp}
                       />
                     </li>
                   ))}
                 </ul>
                 {results.items.length === 0 ? (
                   <EmptyState
-                    title="No hay cartas que coincidan."
+                    title={values.hasListings ? "Nadie vende cartas de esta edición con esos filtros." : "No hay cartas que coincidan."}
+                    body={values.hasListings ? "Prueba el catálogo o quita filtros." : undefined}
                     action={
-                      <Link href={pathname} className="underline">
-                        Quitar filtros
-                      </Link>
+                      <span className="flex flex-wrap justify-center gap-3">
+                        {values.hasListings ? (
+                          <Link href={searchCardsHref({ ...values, hasListings: undefined, page: 1 }, pathname)} className="underline">
+                            Ver catálogo
+                          </Link>
+                        ) : null}
+                        <Link href={pathname} className="underline">
+                          Quitar filtros
+                        </Link>
+                      </span>
                     }
                   />
                 ) : null}

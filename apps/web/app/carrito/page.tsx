@@ -8,8 +8,10 @@ import { userFacingError } from "../../lib/errors";
 import { getCart, putCartItem, removeCartItem } from "../../lib/cart";
 import { FormError, LoadingBlock, PageMain } from "../../components/ui-feedback";
 import { buttonClassName } from "../../components/ui/button-styles";
-import { controlClassName } from "../../components/ui/input";
 import { EmptyState } from "../../components/ui/empty-state";
+import { CardImage } from "../../components/ui/product-card";
+import { QtyOnImage } from "../../components/qty-on-image";
+import { WhatsappCartSellerButton } from "../../components/whatsapp-cart-seller-button";
 
 const ISSUE_COPY: Record<NonNullable<CartView["items"][number]["issue"]>, string> = {
   LISTING_NOT_ACTIVE: "Esta publicación ya no está activa.",
@@ -114,57 +116,72 @@ export default function CartPage() {
                   </Link>
                 </h2>
                 <ul className="mt-3 grid gap-3">
-                  {group.items.map((item) => (
+                  {group.items.map((item) => {
+                    const imageSrc = item.listing.images[0]?.url ?? item.listing.variant.card.imageUrl;
+                    return (
                     <li key={item.listingId} className="rounded-[12px] border border-border p-3">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <Link href={`/listings/${item.listingId}`} className="font-medium underline underline-offset-2">
-                            {item.listing.title}
-                          </Link>
-                          <p className="mt-1 text-sm text-text-muted">
-                            {item.listing.condition} · {CARD_CONDITION_LABELS[item.listing.condition]} ·{" "}
-                            {formatClp(item.listing.priceClp)}
-                          </p>
-                          {item.issue ? (
-                            <p className="mt-1 text-sm text-danger">{ISSUE_COPY[item.issue]}</p>
-                          ) : null}
-                        </div>
-                        <p className="text-sm font-medium tabular-nums">{formatClp(item.lineTotalClp)}</p>
-                      </div>
-                      <div className="mt-3 flex items-center gap-3 text-sm">
-                        <label>
-                          Cantidad
-                          <input
-                            type="number"
-                            min={1}
-                            max={item.listing.available}
-                            value={item.quantity}
-                            disabled={pendingId === item.listingId}
-                            onChange={(event) =>
-                              void changeQty(
-                                item.listingId,
-                                Number(event.target.value),
-                                item.listing.available,
-                              )
-                            }
-                            className={`ml-2 w-20 ${controlClassName}`}
-                          />
-                        </label>
-                        <button
-                          type="button"
-                          className="underline underline-offset-2"
+                      <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-[200px_1fr]">
+                        <QtyOnImage
+                          available={item.listing.available}
+                          value={item.quantity}
+                          onChange={(next) => void changeQty(item.listingId, next, item.listing.available)}
                           disabled={pendingId === item.listingId}
-                          onClick={() => void changeQty(item.listingId, 0, item.listing.available)}
                         >
-                          Quitar
-                        </button>
+                          <Link href={`/listings/${item.listingId}`} className="block">
+                            <CardImage
+                              src={imageSrc}
+                              alt={item.listing.variant.card.name}
+                              name={item.listing.variant.card.name}
+                              gameSlug={item.listing.variant.card.gameSlug}
+                              variant="grid"
+                            />
+                          </Link>
+                        </QtyOnImage>
+                        <div className="min-w-0">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <Link href={`/listings/${item.listingId}`} className="font-medium underline underline-offset-2">
+                                {item.listing.title}
+                              </Link>
+                              <p className="mt-1 text-sm text-text-muted">
+                                {item.listing.condition} · {CARD_CONDITION_LABELS[item.listing.condition]} ·{" "}
+                                {formatClp(item.listing.priceClp)}
+                              </p>
+                              {item.issue ? (
+                                <p className="mt-1 text-sm text-danger">{ISSUE_COPY[item.issue]}</p>
+                              ) : null}
+                            </div>
+                            <p className="text-sm font-medium tabular-nums">{formatClp(item.lineTotalClp)}</p>
+                          </div>
+                          <div className="mt-3">
+                            <button
+                              type="button"
+                              className="underline underline-offset-2"
+                              disabled={pendingId === item.listingId}
+                              onClick={() => void changeQty(item.listingId, 0, item.listing.available)}
+                            >
+                              Quitar
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     </li>
-                  ))}
+                    );
+                  })}
                 </ul>
-                <p className="mt-3 text-sm text-text-muted">
-                  Envío: se calcula al pagar · Subtotal {formatClp(group.subtotalClp)}
-                </p>
+                <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                  <p className="text-sm text-text-muted">
+                    Envío: se calcula al pagar · Subtotal {formatClp(group.subtotalClp)}
+                  </p>
+                  {group.seller.contactWhatsappEnabled && group.seller.contactWhatsapp ? (
+                    <WhatsappCartSellerButton sellerId={group.seller.id} onCart={setCart} />
+                  ) : null}
+                </div>
+                {group.seller.contactWhatsappEnabled && group.seller.contactWhatsapp ? (
+                  <p className="mt-2 text-xs text-text-muted">
+                    Consultar no reserva stock. Para tomarlo, paga en la plataforma.
+                  </p>
+                ) : null}
               </li>
             ))}
           </ul>

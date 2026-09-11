@@ -133,6 +133,9 @@ export class CartService {
       if (guest?.userId === userId) {
         await this.prisma.cart.update({ where: { id: guest.id }, data: { guestToken: null } });
       }
+      if (guest) {
+        await this.claimGuestInquiries(userId, guestToken);
+      }
       return;
     }
     const userCart = await this.prisma.cart.findUnique({
@@ -178,6 +181,14 @@ export class CartService {
         }
       }
       await tx.cart.delete({ where: { id: guest.id } });
+    });
+    await this.claimGuestInquiries(userId, guestToken);
+  }
+
+  private async claimGuestInquiries(userId: string, guestToken: string): Promise<void> {
+    await this.prisma.sellerInquiry.updateMany({
+      where: { guestToken, buyerId: null },
+      data: { buyerId: userId },
     });
   }
 }

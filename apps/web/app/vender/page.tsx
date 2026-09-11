@@ -171,7 +171,7 @@ function SellWizard() {
                     });
                   }}
                 >
-                  {hit.name} · {hit.setSlug}
+                  {hit.name} · {hit.setName}
                 </button>
               </li>
             ))}

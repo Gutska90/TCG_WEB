@@ -19,6 +19,7 @@ Tres canales: **in-app**, **email**, **push** (Expo, Fase 11+). El dominio gener
 | `RATING_RECEIVED` | | ✓ | | ✓ | 9 |
 | `WISHLIST_HIT` | listing ≤ objetivo | ✓ | ✓ | ✓ | 14 |
 | `PRICE_DROP` | min listing bajó X% vs 7d (opt-in) | ✓ | ✓ | ✓ | 14 |
+| `SELLER_INQUIRY` | comprador consulta un lote (CONTACT.2) | ✓ | ✓ | | CONTACT.2 |
 | `AUCTION_BID` | | ✓ | | ✓ | 16 |
 | `AUCTION_ENDING` | | ✓ | ✓ | ✓ | 16 |
 | `AUCTION_WON` / `AUCTION_OUTBID` | | ✓ | ✓ | ✓ | 16 |
@@ -51,6 +52,7 @@ Defaults al crear usuario: transaccionales (venta/compra/envío) on en los tres 
 - Push: Expo Push API. Token por dispositivo.
 - In-app: persistir siempre que el type tenga In-app ✓ y la preferencia lo permita (`WISHLIST_HIT` siempre). Badge = unread count.
 - B8 emite eventos de orden (`SALE_MADE`, `PURCHASE_MADE`, envío, entrega, confirmación, cancelación, disputa, `RATING_RECEIVED`) **después** del commit de dinero. Dedupe por `dedupeKey`. Fallo de email/in-app no revierte la orden. Push sigue diferido (`push: false`).
+- CONTACT.2 emite `SELLER_INQUIRY` al vendedor después de persistir la consulta. In-app siempre; email según preferencia (default on).
 - No se emite `PAYMENT_APPROVED` (solo `PURCHASE_MADE` + `SALE_MADE`). Auction/MESSAGE/ADMIN_BROADCAST no están en esta beta.
 
 ## Copy (es-CL, ejemplos)
@@ -58,5 +60,6 @@ Defaults al crear usuario: transaccionales (venta/compra/envío) on en los tres 
 - `SALE_MADE`: “Vendiste {cardName} por ${price}.”
 - `ORDER_SHIPPED`: “{sellerName} despachó tu pedido {orderNumber}.”
 - `WISHLIST_HIT`: “{cardName} apareció por ${price}.”
+- `SELLER_INQUIRY`: “Nueva Consulta N° {n} por ${subtotal}. No reserva stock.”
 
 No HTML de competidores. Templates propios en `apps/api/src/mail/mail.templates.ts` (`verificationEmailHtml`, `passwordResetEmailHtml`, `notificationEmailHtml`). Texto plano se mantiene; HTML se envía cuando Resend/SMTP está configurado.

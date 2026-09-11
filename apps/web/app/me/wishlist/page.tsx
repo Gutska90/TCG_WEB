@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { formatClp } from "@tcg/config";
 import type { Paginated, WishlistItemView } from "@tcg/types";
 import { ApiError, api } from "../../../lib/api";
-import { loginHref, userFacingError } from "../../../lib/errors";
+import { userFacingError } from "../../../lib/errors";
 import { FormError, LoadingBlock, PageMain } from "../../../components/ui-feedback";
 import { Badge } from "../../../components/ui/badge";
 import { buttonClassName } from "../../../components/ui/button-styles";
@@ -25,7 +25,7 @@ export default function WishlistPage() {
       .then(setPage)
       .catch((err: unknown) => {
         if (err instanceof ApiError && err.status === 401) {
-          router.replace(loginHref("/me/wishlist"));
+          router.replace("/ingresar?next=/me/wishlist");
           return;
         }
         setError(userFacingError(err));
@@ -89,7 +89,7 @@ export default function WishlistPage() {
             return (
               <li key={item.id} className="rounded-[16px] border border-border bg-surface p-4">
                 <div className="flex gap-3">
-                  <CardImage src={item.card.imageUrl} alt="" className="h-24 w-[68px] shrink-0" />
+                  <CardImage src={item.card.imageUrl} alt={item.card.name} variant="thumb" className="h-24 w-[68px] shrink-0" />
                   <div className="min-w-0 flex-1">
                     <Link
                       href={`/${item.card.gameSlug}/${item.card.setSlug}/${item.card.slug}`}

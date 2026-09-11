@@ -1,11 +1,11 @@
 import { PLATFORM } from "@tcg/config";
-import { cx, gameAccentForSlug } from "@tcg/ui";
 import Link from "next/link";
 import { getGames } from "../lib/catalog";
 import { getListings } from "../lib/listings";
 import { buttonClassName } from "../components/ui/button-styles";
 import { ProductCard } from "../components/ui/product-card";
-import { SearchInput } from "../components/ui/search-input";
+import { SearchSuggest } from "../components/search-suggest";
+import { GameTile } from "../components/game-tile";
 
 const GAME_BLURBS: Record<string, string> = {
   pokemon: "Criaturas y sets para completar.",
@@ -45,16 +45,17 @@ export default async function HomePage() {
           Precios en {PLATFORM.currency}. Envíos cotizados y reputación de vendedores. Esta versión está en prueba.
         </p>
         <form action="/buscar" method="get" className="mt-8 flex max-w-xl flex-col gap-3 sm:flex-row">
+          <input type="hidden" name="hasListings" value="true" />
           <label className="sr-only" htmlFor="home-q">
-            Buscar cartas
+            Buscar cartas en venta
           </label>
-          <SearchInput id="home-q" name="q" placeholder="Nombre, número o set" />
+          <SearchSuggest id="home-q" name="q" placeholder="Nombre, número o set" />
           <button type="submit" className={buttonClassName("primary", "sm:w-auto")}>
             Buscar
           </button>
         </form>
         <div className="mt-5 flex flex-wrap gap-3">
-          <Link href="/buscar" className={buttonClassName("secondary")}>
+          <Link href="/buscar?hasListings=true" className={buttonClassName("secondary")}>
             Explorar marketplace
           </Link>
           <Link href="/vender" className={buttonClassName("ghost")}>
@@ -65,22 +66,17 @@ export default async function HomePage() {
 
       <section className="mt-14">
         <h2 className="text-2xl font-medium tracking-tight">Juegos</h2>
-        <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {games.map((game) => {
-            const accent = gameAccentForSlug(game.slug);
-            return (
-              <li key={game.id}>
-                <Link
-                  href={`/${game.slug}`}
-                  className={cx("elevate-hover block rounded-[16px] border border-border bg-surface p-5")}
-                  style={accent ? { borderTopWidth: 3, borderTopColor: accent } : undefined}
-                >
-                  <p className="text-lg font-medium">{game.name}</p>
-                  <p className="mt-1 text-sm text-text-muted">{GAME_BLURBS[game.slug] ?? game.publisher}</p>
-                </Link>
-              </li>
-            );
-          })}
+        <ul className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+          {games.map((game) => (
+            <li key={game.id}>
+              <GameTile
+                href={`/${game.slug}`}
+                name={game.name}
+                slug={game.slug}
+                blurb={GAME_BLURBS[game.slug] ?? game.publisher}
+              />
+            </li>
+          ))}
         </ul>
         {games.length === 0 ? (
           <p className="mt-6 text-sm text-text-muted">Aún no hay juegos publicados.</p>
@@ -89,19 +85,24 @@ export default async function HomePage() {
 
       {listings.length > 0 ? (
         <section className="mt-14">
-          <h2 className="text-2xl font-medium tracking-tight">Publicaciones en el marketplace</h2>
-          <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="flex items-end justify-between gap-3">
+            <h2 className="text-2xl font-medium tracking-tight">Publicaciones en el marketplace</h2>
+            <Link href="/buscar?hasListings=true" className="text-sm underline underline-offset-2">
+              Ver todas
+            </Link>
+          </div>
+          <ul className="mt-5 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             {listings.map((item) => (
               <li key={item.id}>
                 <ProductCard
                   href={`/listings/${item.id}`}
                   name={item.variant.card.name}
-                  setName={item.variant.card.setSlug}
+                  setName={item.variant.card.setName}
                   number={item.variant.card.number}
                   imageUrl={item.variant.card.imageUrl}
                   priceClp={item.priceClp}
                   gameSlug={item.variant.card.gameSlug}
-                  meta={item.seller.displayName}
+                  meta={item.variant.card.rarity}
                 />
               </li>
             ))}

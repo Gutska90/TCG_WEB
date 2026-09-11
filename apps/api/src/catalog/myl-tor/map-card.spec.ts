@@ -87,6 +87,22 @@ describe("mapTorEditionCards", () => {
     expect(oro?.imageUrl).toBe("https://api.myl.cl/static/cards/19/220.png");
   });
 
+  it("tags Imperio editions with era IMPERIO", () => {
+    const [card] = mapTorEditionCards(
+      {
+        ...PAYLOAD,
+        edition: { id: "13", slug: "aguila-imperial", title: "Águila Imperial" },
+      },
+      {
+        requestSlug: "aguila-imperial",
+        format: "imperio",
+        retrievedAt: "2026-09-11T00:00:00.000Z",
+      },
+    );
+    expect(card?.attributes.era).toBe("IMPERIO");
+    expect(card?.imageUrl).toBe("https://api.myl.cl/static/cards/13/001.png");
+  });
+
   it("reports incomplete cards instead of inventing text", () => {
     const incomplete: TorEditionPayload = {
       ...PAYLOAD,

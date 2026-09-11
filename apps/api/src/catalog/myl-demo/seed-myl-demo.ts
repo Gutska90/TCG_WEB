@@ -14,8 +14,8 @@ export const MYL_DEMO_SELLERS = [
     comuna: "Providencia",
     region: "Metropolitana de Santiago",
     bio: "Tienda demo de Mitos y Leyendas. Precios de vitrina, no son cotizaciones reales.",
-    contactWhatsapp: null,
-    contactWhatsappEnabled: false,
+    contactWhatsapp: "+56959182596",
+    contactWhatsappEnabled: true,
   },
   {
     email: "cartas.valparaiso.myl@example.test",
@@ -218,7 +218,12 @@ export async function seedMylDemo(prisma: PrismaClient): Promise<{
     }
   }
   if (imported.cards === 0) {
-    imported = await importMylDemoCards(prisma);
+    const withOfficialArt = await prisma.card.count({
+      where: { set: { game: { slug: "mitos-y-leyendas" } }, imageUrl: { not: null } },
+    });
+    if (withOfficialArt === 0) {
+      imported = await importMylDemoCards(prisma);
+    }
   }
   const sellers = [];
   for (const row of MYL_DEMO_SELLERS) {

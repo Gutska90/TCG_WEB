@@ -77,6 +77,7 @@ export class JobScheduler implements OnModuleInit, OnModuleDestroy {
       setInterval(() => void this.safe("collection-value", () => this.jobs.collectionValue()), 24 * 60 * 60_000),
     );
     this.workTimers.push(setInterval(() => void this.safe("wishlist-scan", () => this.jobs.wishlistScan()), 5 * 60_000));
+    this.workTimers.push(setInterval(() => void this.safe("expire-inquiries", () => this.jobs.expireInquiries()), 5 * 60_000));
     this.logger.log("Job intervals armed (leader)");
   }
 

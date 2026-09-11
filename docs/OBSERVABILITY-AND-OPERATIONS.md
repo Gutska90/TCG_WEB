@@ -66,7 +66,7 @@ Son env. Admin `/admin/system` es **read-only**. Cambiar exige redeploy.
 
 Sin BullMQ. `JobRunner` inserta `JobRun RUNNING` con unique parcial un RUNNING por `jobName` (igual espíritu que recon). Segunda ejecución concurrente → `SKIPPED`. Si hay `REDIS_URL`, un solo proceso arma los `setInterval` (lock `tcg:jobs:leader`). Sin Redis, todos los procesos con `JOBS_ENABLED` intentan; el unique evita el doble trabajo.
 
-Jobs: `expire-checkouts`, `housekeeping` (RUNNING stale → FAILED), `reconciliation`, `refund-retry`, `card-prices` (6 h), `collection-value` (diario), `wishlist-scan` (5 min).
+Jobs: `expire-checkouts`, `expire-inquiries` (5 min), `housekeeping` (RUNNING stale → FAILED), `reconciliation`, `refund-retry`, `card-prices` (6 h), `collection-value` (diario), `wishlist-scan` (5 min).
 
 Checkout/pago/refund crítico/payout **no** se mueven a cola.
 

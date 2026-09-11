@@ -78,6 +78,7 @@ export default function NotificationsPage() {
 
   const priceDrop = prefs.find((row) => row.type === "PRICE_DROP");
   const wishlistHit = prefs.find((row) => row.type === "WISHLIST_HIT");
+  const sellerInquiry = prefs.find((row) => row.type === "SELLER_INQUIRY");
 
   return (
     <PageMain>
@@ -115,6 +116,16 @@ export default function NotificationsPage() {
           <input
             type="checkbox"
             className="mt-1"
+            checked={sellerInquiry?.email ?? true}
+            disabled={pending === "SELLER_INQUIRY:email"}
+            onChange={(event) => void patchPref("SELLER_INQUIRY", "email", event.target.checked)}
+          />
+          <span>Correo cuando me consultan un lote</span>
+        </label>
+        <label className="mt-3 flex items-start gap-2">
+          <input
+            type="checkbox"
+            className="mt-1"
             checked={priceDrop?.email ?? false}
             disabled={pending === "PRICE_DROP:email"}
             onChange={(event) => void patchPref("PRICE_DROP", "email", event.target.checked)}
@@ -131,13 +142,23 @@ export default function NotificationsPage() {
         <p className="mt-8 text-text-muted">No hay notificaciones todavía.</p>
       ) : (
         <ul className="mt-8 grid gap-3">
-          {data.items.map((row) => (
+          {data.items.map((row) => {
+            const inquiryId = typeof row.data.inquiryId === "string" ? row.data.inquiryId : null;
+            return (
             <li key={row.id} className={`rounded-[16px] border border-border bg-surface p-4 text-sm ${row.readAt ? "text-text-muted" : "bg-surface-elevated"}`}>
               <p className="font-medium">{row.title}</p>
               <p className="mt-1">{row.body}</p>
+              {inquiryId ? (
+                <p className="mt-2">
+                  <Link href={`/me/consultas/${inquiryId}`} className="underline">
+                    Ver consulta
+                  </Link>
+                </p>
+              ) : null}
               <p className="mt-2 text-xs text-text-muted">{new Date(row.createdAt).toLocaleString("es-CL")}</p>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
       <p className="mt-8 text-sm">

@@ -6,6 +6,7 @@ import { PaymentsModule } from "../payments/payments.module";
 import { ReconciliationModule } from "../reconciliation/reconciliation.module";
 import { CollectionsModule } from "../collections/collections.module";
 import { PricesModule } from "../prices/prices.module";
+import { InquiriesModule } from "../inquiries/inquiries.module";
 import { WishlistModule } from "../wishlist/wishlist.module";
 import { RedisModule } from "../redis/redis.module";
 import { JobRunner } from "./job-runner";
@@ -20,7 +21,16 @@ import {
 } from "./scheduler-lock";
 
 @Module({
-  imports: [RedisModule, OrdersModule, PaymentsModule, ReconciliationModule, PricesModule, CollectionsModule, WishlistModule],
+  imports: [
+    RedisModule,
+    OrdersModule,
+    PaymentsModule,
+    ReconciliationModule,
+    PricesModule,
+    CollectionsModule,
+    WishlistModule,
+    InquiriesModule,
+  ],
   providers: [
     JobRunner,
     JobsService,

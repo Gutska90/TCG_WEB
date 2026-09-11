@@ -297,6 +297,22 @@ CartItem
   cartId, listingId, quantity
   unique(cartId, listingId)
 
+SellerInquiry              // CONTACT.2 consulta de lote. No reserva stock.
+  inquiryNumber unique     // `C-{n}` via sequence seller_inquiry_numbers
+  buyerId nullable
+  guestToken nullable
+  sellerId
+  status OPEN | EXPIRED
+  subtotalClp
+  messageText
+  expiresAt                // PLATFORM.inquiryTtlHours (24)
+  // CHECK: buyerId IS NOT NULL OR guestToken IS NOT NULL
+  indexes (sellerId, createdAt), (buyerId, createdAt), (status, expiresAt)
+
+SellerInquiryItem
+  inquiryId, listingId, variantId
+  titleSnapshot, condition, quantity, unitPriceClp, lineTotalClp
+
 SellerSubscription          // M1 entitlement; no es factura
   sellerId, plan, status, source, startsAt, endsAt?, reason
   status ACTIVE | CANCELLED | EXPIRED
@@ -534,6 +550,7 @@ ShippingRate            // Fase 8
 | 3 Búsqueda | extensiones `pg_trgm` + `unaccent`, índices GIN (sin tablas) |
 | 4 Marketplace | Address, Listing, ListingImage, CardPrice (mínimo) |
 | 5 Carrito | Cart, CartItem |
+| CONTACT.2 | SellerInquiry, SellerInquiryItem |
 | 6 Órdenes | Checkout, Order, OrderItem |
 | 7 | Payment, AuditLog (si no está antes — **AuditLog desde Fase 1**) |
 | 8 | Shipment, ShippingRate |

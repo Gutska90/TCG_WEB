@@ -86,7 +86,7 @@ export default function CardScreen() {
   return (
     <Screen title={detail.name}>
       {detail.imageUrl ? (
-        <Image source={{ uri: detail.imageUrl }} style={{ width: "100%", height: 220, borderRadius: 8, backgroundColor: colors.fill }} accessibilityLabel={detail.name} />
+        <Image source={{ uri: detail.imageUrl }} style={{ width: "100%", height: 220, borderRadius: 8, backgroundColor: colors.fill }} resizeMode="contain" resizeMethod="resize" accessibilityLabel={detail.name} />
       ) : (
         <View style={{ height: 120, backgroundColor: colors.fill, borderRadius: 8, alignItems: "center", justifyContent: "center" }}>
           <Text style={{ color: colors.muted }}>Sin imagen</Text>

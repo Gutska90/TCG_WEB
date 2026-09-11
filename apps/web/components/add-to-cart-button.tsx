@@ -9,12 +9,15 @@ import { Button } from "./ui/button";
 export function AddToCartButton({
   listingId,
   available,
+  quantityToAdd = 1,
 }: {
   listingId: string;
   available: number;
+  quantityToAdd?: number;
 }) {
   const [message, setMessage] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const addQty = Math.max(1, quantityToAdd);
 
   async function add() {
     setMessage(null);
@@ -22,7 +25,7 @@ export function AddToCartButton({
     try {
       const cart = await getCart();
       const current = cart.items.find((item) => item.listingId === listingId)?.quantity ?? 0;
-      const next = Math.min(current + 1, available);
+      const next = Math.min(current + addQty, available);
       if (next === current) {
         setMessage("No hay más stock de esta publicación.");
         return;
@@ -43,7 +46,7 @@ export function AddToCartButton({
   return (
     <div className="flex flex-col gap-2">
       <Button onClick={() => void add()} disabled={pending} className="w-fit">
-        {pending ? "Agregando…" : "Agregar al carrito"}
+        {pending ? "Agregando…" : addQty > 1 ? `Agregar ${addQty} al carrito` : "Agregar al carrito"}
       </Button>
       {message ? (
         <p className="text-sm text-text-muted">
