@@ -22,5 +22,11 @@ describe("catalog visibility", () => {
     expect(isHiddenSyntheticCard({ source: "synthetic-showcase" })).toBe(true);
     expect(isHiddenSyntheticCard({ source: "showcase-seed" })).toBe(true);
     expect(isHiddenSyntheticCard({ sourceQuality: "CURATED_VERIFIED", source: "tor.myl.cl" })).toBe(false);
+    expect(
+      isHiddenSyntheticCard({ sourceQuality: "CURATED_VERIFIED", source: "myl-demo-pack", verified: false }),
+    ).toBe(false);
+    expect(
+      isHiddenSyntheticCard({ sourceQuality: "CURATED_VERIFIED", source: "catalog-submission", verified: false }),
+    ).toBe(false);
   });
 });

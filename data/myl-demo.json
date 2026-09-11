@@ -1,0 +1,22 @@
+{
+  "cards": [
+    {
+      "name": "Brunhild",
+      "set": "Espada Sagrada",
+      "number": "Brunhild",
+      "rarity": "Ultra Real",
+      "attributes": {
+        "cardType": "ALIADO",
+        "era": "PRIMERA_ERA"
+      }
+    },
+    {
+      "name": "Zeus",
+      "set": "Helénica",
+      "rarity": "Ultra Real",
+      "attributes": {
+        "cardType": "ALIADO"
+      }
+    }
+  ]
+}

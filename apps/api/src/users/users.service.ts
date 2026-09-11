@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
 import type { Role } from "@prisma/client";
-import { ERROR_CODES, LEGAL, legalAcceptanceIsCurrent } from "@tcg/config";
+import { ERROR_CODES, LEGAL, legalAcceptanceIsCurrent, normalizeWhatsappE164 } from "@tcg/config";
 import type { AccountDeletionView, AddressView, MeView, PublicUserView } from "@tcg/types";
 import type { CreateAddressInput, PatchMeInput, SellerOnboardingInput } from "@tcg/validation";
 import { AppError } from "../common/errors/app-error";
@@ -29,6 +29,32 @@ export class UsersService {
   }
 
   async updateMe(actor: RequestUser, input: PatchMeInput): Promise<MeView> {
+    const existing = await this.prisma.profile.findUnique({ where: { userId: actor.id } });
+    let contactWhatsapp = existing?.contactWhatsapp ?? null;
+    let contactWhatsappEnabled = existing?.contactWhatsappEnabled ?? false;
+    if (input.contactWhatsapp !== undefined) {
+      const trimmed = input.contactWhatsapp.trim();
+      if (!trimmed) {
+        contactWhatsapp = null;
+        contactWhatsappEnabled = false;
+      } else {
+        const normalized = normalizeWhatsappE164(trimmed);
+        if (!normalized) {
+          throw new AppError(HttpStatus.BAD_REQUEST, ERROR_CODES.VALIDATION_ERROR, "Número de WhatsApp inválido");
+        }
+        contactWhatsapp = normalized;
+      }
+    }
+    if (input.contactWhatsappEnabled !== undefined) {
+      contactWhatsappEnabled = input.contactWhatsappEnabled;
+    }
+    if (contactWhatsappEnabled && !contactWhatsapp) {
+      throw new AppError(
+        HttpStatus.BAD_REQUEST,
+        ERROR_CODES.VALIDATION_ERROR,
+        "Indica un WhatsApp público para habilitar el contacto",
+      );
+    }
     await this.prisma.$transaction(async (tx) => {
       if (input.displayName) {
         await tx.user.update({
@@ -48,6 +74,8 @@ export class UsersService {
           ...(input.bio !== undefined ? { bio: input.bio } : {}),
           ...(input.comuna !== undefined ? { comuna: input.comuna } : {}),
           ...(input.region !== undefined ? { region: input.region } : {}),
+          contactWhatsapp,
+          contactWhatsappEnabled,
         },
         create: {
           userId: actor.id,
@@ -55,6 +83,8 @@ export class UsersService {
           comuna: input.comuna,
           region: input.region,
           country: "CL",
+          contactWhatsapp,
+          contactWhatsappEnabled,
         },
       });
     });
@@ -72,6 +102,11 @@ export class UsersService {
     if (!user) {
       throw new AppError(HttpStatus.NOT_FOUND, ERROR_CODES.NOT_FOUND, "Usuario no encontrado");
     }
+    const [reputation, activeListingCount, completedSaleCount] = await Promise.all([
+      this.ratings.summarizeOne(user.id),
+      this.prisma.listing.count({ where: { sellerId: user.id, status: "ACTIVE", quantity: { gt: 0 } } }),
+      this.prisma.order.count({ where: { sellerId: user.id, status: "COMPLETED" } }),
+    ]);
     return {
       id: user.id,
       displayName: user.displayName,
@@ -83,7 +118,12 @@ export class UsersService {
         country: user.profile?.country ?? "CL",
       },
       createdAt: user.createdAt.toISOString(),
-      reputation: await this.ratings.summarizeOne(user.id),
+      reputation,
+      activeListingCount,
+      completedSaleCount,
+      contactWhatsappEnabled: Boolean(user.profile?.contactWhatsappEnabled && user.profile.contactWhatsapp),
+      contactWhatsapp:
+        user.profile?.contactWhatsappEnabled && user.profile.contactWhatsapp ? user.profile.contactWhatsapp : null,
     };
   }
 
@@ -263,6 +303,8 @@ function toMeView(user: {
     comuna: string | null;
     country: string;
     sellerOnboardedAt: Date | null;
+    contactWhatsapp: string | null;
+    contactWhatsappEnabled: boolean;
   } | null;
 }): MeView {
   return {
@@ -278,6 +320,8 @@ function toMeView(user: {
       comuna: user.profile?.comuna ?? null,
       country: user.profile?.country ?? "CL",
       sellerOnboardedAt: user.profile?.sellerOnboardedAt?.toISOString() ?? null,
+      contactWhatsapp: user.profile?.contactWhatsapp ?? null,
+      contactWhatsappEnabled: user.profile?.contactWhatsappEnabled ?? false,
     },
     createdAt: user.createdAt.toISOString(),
     legal: {

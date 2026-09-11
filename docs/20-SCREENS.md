@@ -23,7 +23,7 @@ Cada pantalla lista: fase, ruta, datos (API), acciones, vacío, error. Si la API
 | 3 | `/buscar` | search + `GET /v1/games/:slug/filters` | query, filtros por juego, URL compartible |
 | 4 | ficha + bloque vendedores | listings by variant | add cart |
 | 4 | `/listings/{id}` | listing | |
-| 4 | `/vendedores/{slug}` | user public + listings | |
+| 4 | `/vendedores/{slug}` | user public + listings (`q`, game, set, condition, sort) | storefront |
 | M1 | `/planes` | config pública `sellerPlans` | comparar tarifas, ver promo de lanzamiento |
 | M1 | `/vender` | listing + fee-preview | wizard + estimación de comisión + “Ver planes” |
 | 5 | `/carrito` | cart | qty, quitar |
@@ -61,7 +61,7 @@ Legales (contenido estático, Fase 1): `/terminos`, `/privacidad`, `/fuentes`.
 5. Fotos (1–8) + meetup/envío + descripción
 6. Confirmar y publicar
 
-Vacío paso 1: “No encontramos esa carta. Puedes reportarla.”
+Vacío paso 1: “No encontramos esa carta.” Enlace a `/vender/solicitar-carta` (CatalogSubmission). No se crea Card.
 
 ### Ficha de carta — bloques
 

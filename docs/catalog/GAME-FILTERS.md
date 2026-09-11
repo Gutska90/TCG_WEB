@@ -8,7 +8,7 @@ Options for SELECT/MULTI_SELECT come from **DISTINCT catalog values**. Labels ma
 
 Filters have `tier`: `PRIMARY` (sidebar) or `ADVANCED` (`Más filtros`). `visibleWhen` is a typed expression (`key`/`oneOf`/`all`/`noneOf`). UI must not branch `if (game === "pokemon")`. The same `SearchLayout` is on `/buscar`, `/{game}/cartas` (game locked) and `/{game}/{set}` (game + set locked).
 
-Showcase cards are `sourceQuality=SYNTHETIC`. Public staging hides them with `SHOW_SYNTHETIC_CATALOG=false` (search, DISTINCT facets, and REST game/set/card pages).
+Showcase cards are `sourceQuality=SYNTHETIC`. Public staging hides them with `SHOW_SYNTHETIC_CATALOG=false` (search, DISTINCT facets, and REST game/set/card pages). Curated MyL demo rows (`source=myl-demo-pack`, `sourceQuality=CURATED_VERIFIED`, `verified=false`) stay visible — `verified` is not a visibility flag. See [CARD-ATTRIBUTES.md](CARD-ATTRIBUTES.md).
 
 ## Support matrix (CATALOG.2)
 
@@ -19,7 +19,7 @@ FULL requires a live importer, populated principal attributes, real filter optio
 | Pokémon | `pokemon` | PARTIAL | Pokémon TCG API importer + `xy1-1` fixture | live catalog size; regulationMark only when provider sends it |
 | Magic | `magic` | PARTIAL | Scryfall importer + reference snapshots | artist facet; default DB is showcase unless imported |
 | Yu-Gi-Oh! | `yugioh` | PARTIAL | curated LOB-EN001 fixture | licensed bulk importer (no Konami scrape) |
-| Mitos y Leyendas | `mitos-y-leyendas` | PARTIAL | curated tor.myl.cl fixtures | official frecuencia importer; versioned banlist (legality filter omitted) |
+| Mitos y Leyendas | `mitos-y-leyendas` | PARTIAL | curated tor.myl.cl fixtures + MYL.1 demo pack | official frecuencia importer; versioned banlist (legality filter omitted) |
 | One Piece | `one-piece` | PARTIAL | curated Bandai list fixtures | Bandai bulk import |
 | Digimon | `digimon` | PARTIAL | curated BT14-007 + game row | official bulk importer |
 | Gundam | `gundam` | PARTIAL | curated GD01-001 + game row | official bulk importer |

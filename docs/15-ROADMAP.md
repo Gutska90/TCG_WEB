@@ -37,6 +37,15 @@ UI.1      Visual Refresh                 ✓
 PS        Pre-Staging Readiness          ✓
 PS.1      Final pre-staging cleanup      ✓
 
+MYL.1     Native MyL demo importer       ✓ pack curado (no scrape)
+MYL.2     MyL demo sellers/listings      ✓ `catalog:seed-myl-demo`
+SELLER.1  Seller storefront              ✓ `/vendedores/{slug}`
+CAT.1     CatalogSubmission (user)       ✓ POST + PATCH `NEEDS_INFO`
+CAT.2     Admin catalog approval         ✓ setId xor createNewSet
+MARKET.1  Canonical card + offers        ✓
+CONTACT.1 Optional seller WhatsApp       ✓
+BULK.1    Listing CSV preview contract   ⏸ diferido (fuera de este PR)
+
 --- BETA RELEASE PROGRAM (feature freeze) ---
 B0        Release Audit                  ✓
 B1        Staging                        🟡 contrato + storage/email (hosting operador)
@@ -344,6 +353,21 @@ Entregado en repo:
 Deja `main` listo para B1: `.env.staging.example` con `SHOW_SYNTHETIC_CATALOG=false`, preflight WARNING si el showcase sintético sigue visible, hide en search **y** `GET /v1/games|sets|cards`, seed-reference sin listings, runbook [STAGING-CATALOG](runbooks/STAGING-CATALOG.md). No Scanner.
 
 **Estado: listo.** Siguiente: cuentas B1 (operador). No Fase 15.
+
+## MYL.1 / MYL.2 — Demo Mitos y Leyendas ✓
+
+Catálogo canónico vs inventario: el dueño/admin controla `Card`; el vendedor solo crea `Listing` sobre un `variantId`. CAT.1/CAT.2: `CatalogSubmission` + aprobación admin (edición explícita; no se crea `TcgSet` por typo). El importer demo no sobrescribe cartas de otra fuente.
+
+- **No scrapear** MyL Serena, Stribog, Tradeck ni otros marketplaces. Los scripts Java/Python de un repo anterior no se portan.
+- Pack curado en `apps/api/src/catalog/myl-demo` (`source=myl-demo-pack`, `sourceQuality=CURATED_VERIFIED`, `verified=false`). Stats incompletos a propósito (PARTIAL).
+- `pnpm catalog:import-myl` — upsert **solo** de cartas `source=myl-demo-pack`, sin listings. Otras fuentes → `Conflicts` salvo `--force`.
+- `pnpm catalog:seed-myl-demo` — reference + pack + 5 vendedores demo + listings. Idempotente. Correos `@example.test`. WhatsApp demo deshabilitado por defecto.
+
+## SELLER.1 — Storefront del vendedor ✓
+
+`/vendedores/{slug}` es una mini tienda: header (comuna, reputación, ventas, stock), búsqueda/filtros (q, juego, edición, condición, orden) y grid de `ProductCard`. CTA principal sigue siendo el listing → carrito. **No** WhatsApp como checkout. **No** Fase 16 Stores B2B.
+
+**No en este incremento:** BULK.1, CART.1/2, Scanner, Auctions, pagos live.
 
 ## Feature freeze (B0–B8)
 

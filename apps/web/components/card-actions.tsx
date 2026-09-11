@@ -1,14 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { CARD_CONDITION_LABELS, formatClp, formatReputation } from "@tcg/config";
+import { useEffect, useMemo, useState } from "react";
+import {
+  CARD_CONDITION_LABELS,
+  CARD_CONDITIONS,
+  formatClp,
+  formatReputation,
+} from "@tcg/config";
 import type { ListingView, Paginated, VariantView } from "@tcg/types";
 import { ApiError, api } from "../lib/api";
 import { AddToCartButton } from "./add-to-cart-button";
 import { AddToCollectionButton } from "./add-to-collection";
 import { AddToWishlistButton } from "./add-to-wishlist";
 import { PriceHistory } from "./price-history";
+import { ShareControls } from "./share-controls";
+import { WhatsappListingButton } from "./whatsapp-listing-button";
 import { buttonClassName } from "./ui/button-styles";
 import { controlClassName } from "./ui/input";
 
@@ -22,12 +29,26 @@ export function CardActions({
   const [current, setCurrent] = useState(variantId);
   const [message, setMessage] = useState<string | null>(null);
   const [listings, setListings] = useState<ListingView[]>([]);
+  const [condition, setCondition] = useState("");
+  const [shipping, setShipping] = useState("");
+
+  const query = useMemo(() => {
+    const params = new URLSearchParams({
+      variantId: current,
+      pageSize: "40",
+      sort: "priceAsc",
+    });
+    if (condition) params.set("condition", condition);
+    if (shipping === "shipping") params.set("allowsShipping", "true");
+    if (shipping === "meetup") params.set("allowsMeetup", "true");
+    return params.toString();
+  }, [current, condition, shipping]);
 
   useEffect(() => {
-    api<Paginated<ListingView>>(`/v1/listings?variantId=${current}&pageSize=40`)
+    api<Paginated<ListingView>>(`/v1/listings?${query}`)
       .then((data) => setListings(data.items))
       .catch(() => setListings([]));
-  }, [current]);
+  }, [query]);
 
   async function toggleFavorite() {
     setMessage(null);
@@ -73,7 +94,31 @@ export function CardActions({
       </div>
       {message ? <p className="text-sm text-text-muted">{message}</p> : null}
       <PriceHistory variantId={current} />
-      <h2 className="mt-4 text-xl font-medium tracking-tight">Publicaciones</h2>
+      <h2 className="mt-4 text-xl font-medium tracking-tight">Ofertas</h2>
+      <p className="text-xs text-text-muted">
+        El precio más bajo publicado no representa necesariamente una venta realizada.
+      </p>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <label className="text-sm">
+          Condición
+          <select className={`mt-1 ${controlClassName}`} value={condition} onChange={(e) => setCondition(e.target.value)}>
+            <option value="">Todas</option>
+            {CARD_CONDITIONS.map((code) => (
+              <option key={code} value={code}>
+                {code} · {CARD_CONDITION_LABELS[code]}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="text-sm">
+          Entrega
+          <select className={`mt-1 ${controlClassName}`} value={shipping} onChange={(e) => setShipping(e.target.value)}>
+            <option value="">Todas</option>
+            <option value="shipping">Con envío</option>
+            <option value="meetup">Encuentro</option>
+          </select>
+        </label>
+      </div>
       {listings.length === 0 ? (
         <p className="text-sm text-text-muted">Nadie publica esta variante aún.</p>
       ) : (
@@ -82,11 +127,11 @@ export function CardActions({
             <table className="w-full text-left text-sm">
               <thead className="text-xs tracking-wide text-text-muted uppercase">
                 <tr>
-                  <th className="py-2 pr-3 font-medium">Condition</th>
-                  <th className="py-2 pr-3 font-medium">Seller</th>
-                  <th className="py-2 pr-3 font-medium">Rating</th>
-                  <th className="py-2 pr-3 font-medium">Shipping</th>
-                  <th className="py-2 pr-3 font-medium">Price</th>
+                  <th className="py-2 pr-3 font-medium">Condición</th>
+                  <th className="py-2 pr-3 font-medium">Vendedor</th>
+                  <th className="py-2 pr-3 font-medium">Reputación</th>
+                  <th className="py-2 pr-3 font-medium">Entrega</th>
+                  <th className="py-2 pr-3 font-medium">Precio</th>
                   <th className="py-2 font-medium"> </th>
                 </tr>
               </thead>
@@ -110,7 +155,19 @@ export function CardActions({
                       <Link href={`/listings/${item.id}`}>{formatClp(item.priceClp)}</Link>
                     </td>
                     <td className="py-3">
-                      <AddToCartButton listingId={item.id} available={item.available} />
+                      <div className="flex flex-col items-start gap-2">
+                        <AddToCartButton listingId={item.id} available={item.available} />
+                        {item.seller.contactWhatsappEnabled && item.seller.contactWhatsapp ? (
+                          <WhatsappListingButton
+                            phoneE164={item.seller.contactWhatsapp}
+                            cardName={item.variant.card.name}
+                            setName={item.variant.card.setSlug}
+                            condition={item.condition}
+                            priceClp={item.priceClp}
+                            listingPath={`/listings/${item.id}`}
+                          />
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -136,8 +193,19 @@ export function CardActions({
                   {item.allowsShipping ? "Envío" : "Sin envío"}
                   {item.allowsMeetup ? " · Encuentro" : ""} · {CARD_CONDITION_LABELS[item.condition]}
                 </p>
-                <div className="mt-3">
+                <div className="mt-3 flex flex-col gap-2">
                   <AddToCartButton listingId={item.id} available={item.available} />
+                  {item.seller.contactWhatsappEnabled && item.seller.contactWhatsapp ? (
+                    <WhatsappListingButton
+                      phoneE164={item.seller.contactWhatsapp}
+                      cardName={item.variant.card.name}
+                      setName={item.variant.card.setSlug}
+                      condition={item.condition}
+                      priceClp={item.priceClp}
+                      listingPath={`/listings/${item.id}`}
+                    />
+                  ) : null}
+                  <ShareControls path={`/listings/${item.id}`} title={item.variant.card.name} />
                 </div>
               </li>
             ))}

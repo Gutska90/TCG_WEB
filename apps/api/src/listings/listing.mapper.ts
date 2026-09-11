@@ -19,7 +19,12 @@ type ListingRow = {
   grade: string | null;
   publishedAt: Date | null;
   createdAt: Date;
-  seller: { id: string; displayName: string; slug: string };
+  seller: {
+    id: string;
+    displayName: string;
+    slug: string;
+    profile: { contactWhatsapp: string | null; contactWhatsappEnabled: boolean } | null;
+  };
   images: Array<{ fileId: string; sortOrder: number }>;
   variant: {
     id: string;
@@ -40,7 +45,14 @@ type ListingRow = {
 };
 
 export const listingInclude = {
-  seller: { select: { id: true, displayName: true, slug: true } },
+  seller: {
+    select: {
+      id: true,
+      displayName: true,
+      slug: true,
+      profile: { select: { contactWhatsapp: true, contactWhatsappEnabled: true } },
+    },
+  },
   images: { orderBy: { sortOrder: "asc" as const }, select: { fileId: true, sortOrder: true } },
   variant: { include: { card: { include: { set: { include: { game: true } } } } } },
 } as const;
@@ -68,8 +80,15 @@ export function toListingView(row: ListingRow): ListingView {
     publishedAt: row.publishedAt?.toISOString() ?? null,
     createdAt: row.createdAt.toISOString(),
     seller: {
-      ...row.seller,
+      id: row.seller.id,
+      displayName: row.seller.displayName,
+      slug: row.seller.slug,
       reputation: EMPTY_REPUTATION,
+      contactWhatsappEnabled: Boolean(row.seller.profile?.contactWhatsappEnabled && row.seller.profile.contactWhatsapp),
+      contactWhatsapp:
+        row.seller.profile?.contactWhatsappEnabled && row.seller.profile.contactWhatsapp
+          ? row.seller.profile.contactWhatsapp
+          : null,
     },
     variant: {
       id: row.variant.id,

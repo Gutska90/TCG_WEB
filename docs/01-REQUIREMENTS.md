@@ -63,7 +63,7 @@ Orden de código en [15-ROADMAP](15-ROADMAP.md). Inventario completo en [23-PROD
 | Wishlist | Precio objetivo, condición, idioma, alertas agrupadas |
 | Scanner | Identificar → precio → colección → vender; modo lote |
 | Optimizador de carrito | Menor precio / menos vendedores / más rápido |
-| Importación masiva | CSV de listings para tiendas/vendedores |
+| Importación masiva | CSV de listings (BULK.1): no entregado en este incremento; confirmación/UI pendiente |
 | Tiendas | Cuenta `STORE`, branding, retiro en local |
 
 ## Tercera etapa (diferenciación)

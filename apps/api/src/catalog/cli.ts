@@ -34,6 +34,35 @@ async function main() {
       console.log(`Reference catalog: ${result.games} juegos, ${result.cards} cartas verificadas.`);
       return;
     }
+    if (command === "import-myl") {
+      const { readFile } = await import("node:fs/promises");
+      const { importMylDemoCards, formatMylImportSummary } = await import("./myl-demo/import-myl");
+      const { parseMylJsonDocument } = await import("./myl-demo/parse-myl-json");
+      const { MYL_DEMO_CARDS } = await import("./myl-demo/cards");
+      const file = argAfter("--file") ?? (arg && !arg.startsWith("-") ? arg : undefined);
+      const dryRun = flag("--dry-run");
+      const force = flag("--force");
+      let cards = MYL_DEMO_CARDS;
+      if (file) {
+        const parsed = parseMylJsonDocument(JSON.parse(await readFile(file, "utf8")) as unknown);
+        cards = parsed.cards;
+        if (parsed.skipped.length > 0) {
+          console.log(`Parser skipped: ${parsed.skipped.length}`);
+        }
+      }
+      const result = await importMylDemoCards(prisma, cards, { dryRun, force });
+      if (dryRun) console.log("Dry-run (no writes).");
+      console.log(formatMylImportSummary(result));
+      return;
+    }
+    if (command === "seed-myl-demo") {
+      const { seedMylDemo } = await import("./myl-demo/seed-myl-demo");
+      const result = await seedMylDemo(prisma);
+      console.log(
+        `MyL demo: ${result.cards} cartas, ${result.sellers} vendedores, ${result.listings} publicaciones.`,
+      );
+      return;
+    }
     if (command === "import-scryfall") {
       if (!arg) {
         throw new Error("Uso: catalog:import-scryfall <codigo-set>  (staging: mh3 blb dsk fdn)");
@@ -58,7 +87,9 @@ async function main() {
       await refreshReferenceCatalog({ game, write: flag("--write") });
       return;
     }
-    throw new Error("Comandos: seed | seed-reference | import-scryfall <set> | import-pokemon <set> | reference-refresh --game <slug>");
+    throw new Error(
+      "Comandos: seed | seed-reference | seed-myl-demo | import-myl [--file path] [--dry-run] [--force] | import-scryfall <set> | import-pokemon <set> | reference-refresh --game <slug>",
+    );
   } finally {
     await prisma.$disconnect();
   }

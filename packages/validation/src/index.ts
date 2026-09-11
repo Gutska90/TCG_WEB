@@ -26,6 +26,8 @@ import {
   ROLES,
   SELLER_PLANS,
   SHIPPING_METHODS,
+  CARD_LANGUAGES,
+  CARD_FINISHES,
 } from "@tcg/config";
 
 export const healthResponseSchema = z.object({
@@ -116,6 +118,8 @@ export const patchMeSchema = z.object({
   comuna: z.string().trim().max(80).optional(),
   region: z.string().trim().max(80).optional(),
   marketingOptIn: z.boolean().optional(),
+  contactWhatsapp: z.string().trim().max(32).optional(),
+  contactWhatsappEnabled: z.boolean().optional(),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
@@ -254,9 +258,23 @@ export const patchListingSchema = z
 export const listListingsQuerySchema = paginationQuerySchema.extend({
   variantId: z.preprocess(emptyToUndefined, z.string().uuid().optional()),
   sellerId: z.preprocess(emptyToUndefined, z.string().uuid().optional()),
+  q: z.preprocess(emptyToUndefined, z.string().trim().max(80).optional()),
+  game: z.preprocess(emptyToUndefined, z.string().trim().max(80).optional()),
+  set: z.preprocess(emptyToUndefined, z.string().trim().max(80).optional()),
   condition: z.preprocess(emptyToUndefined, z.enum(CARD_CONDITIONS).optional()),
   minPrice: z.preprocess(emptyToUndefined, z.coerce.number().int().min(1).optional()),
   maxPrice: z.preprocess(emptyToUndefined, z.coerce.number().int().min(1).optional()),
+  language: z.preprocess(emptyToUndefined, z.enum(CARD_LANGUAGES).optional()),
+  finish: z.preprocess(emptyToUndefined, z.enum(CARD_FINISHES).optional()),
+  allowsShipping: z.preprocess(emptyToUndefined, z.enum(["true", "false"]).optional()),
+  allowsMeetup: z.preprocess(emptyToUndefined, z.enum(["true", "false"]).optional()),
+  cardType: z.preprocess(emptyToUndefined, z.string().trim().max(40).optional()),
+  raza: z.preprocess(emptyToUndefined, z.string().trim().max(80).optional()),
+  coste: z.preprocess(emptyToUndefined, z.coerce.number().int().min(0).max(99).optional()),
+  sort: z.preprocess(
+    emptyToUndefined,
+    z.enum(["relevance", "priceAsc", "priceDesc", "newest", "nameAsc"]).optional(),
+  ),
 });
 
 export const putCartItemSchema = z.object({
@@ -633,3 +651,23 @@ export type CreateFileUploadInput = z.infer<typeof createFileUploadSchema>;
 export type CreateListingInput = z.infer<typeof createListingSchema>;
 export type PatchListingInput = z.infer<typeof patchListingSchema>;
 export type ListListingsQuery = z.infer<typeof listListingsQuerySchema>;
+
+export {
+  adminCatalogApproveSchema,
+  adminCatalogRejectSchema,
+  adminCatalogReviewSchema,
+  adminCatalogSubmissionsQuerySchema,
+  catalogSubmissionIdParamSchema,
+  createCatalogSubmissionSchema,
+  listMyCatalogSubmissionsQuerySchema,
+  patchMyCatalogSubmissionSchema,
+} from "./catalog-submissions";
+export type {
+  AdminCatalogApproveInput,
+  AdminCatalogRejectInput,
+  AdminCatalogReviewInput,
+  AdminCatalogSubmissionsQuery,
+  CreateCatalogSubmissionInput,
+  ListMyCatalogSubmissionsQuery,
+  PatchMyCatalogSubmissionInput,
+} from "./catalog-submissions";

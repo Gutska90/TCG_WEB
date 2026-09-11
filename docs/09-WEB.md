@@ -56,9 +56,12 @@ MVP 1 nav: Logo, Buscar, Juegos, Favoritos, Login.
 
 | Ruta | Contenido |
 |------|-----------|
-| `/vender` | Wizard publicación |
+| `/vender` | Wizard publicación + enlace a solicitar carta |
+| `/vender/solicitar-carta` | CatalogSubmission (no crea Card) |
+| `/me/solicitudes-catalogo` | Lista de solicitudes propias |
+| `/me/solicitudes-catalogo/{id}` | Detalle; completar `NEEDS_INFO` |
 | `/me/publicaciones` | CRUD listings |
-| `/vendedores/{slug}` | Perfil público |
+| `/vendedores/{slug}` | Mini tienda: tabs productos/valoraciones/información, filtros, contacto opcional |
 | `/carrito` | Multi-seller |
 | `/checkout` | Direcciones, envío, MP |
 | `/me/compras` `/me/compras/{id}` | |
@@ -67,7 +70,7 @@ MVP 1 nav: Logo, Buscar, Juegos, Favoritos, Login.
 
 ## UX de ficha de carta
 
-- Selector de variante (idioma / finish).
+- Selector de variante (idioma / finish). Las ofertas de la ficha filtran por esa `variantId`; no hay filtros extra de idioma/finish que puedan contradecirla.
 - Bloque de precios.
 - Lista de listings con condición, vendedor, reputación, precio, CTA al carrito.
 - Fotos del listing al expandir.

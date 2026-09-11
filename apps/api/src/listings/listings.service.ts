@@ -28,17 +28,64 @@ export class ListingsService {
   ) {}
 
   async listPublic(query: ListListingsQuery): Promise<Paginated<ListingView>> {
-    const where = {
-      status: "ACTIVE" as const,
+    const q = query.q?.trim();
+    const cardWhere: Prisma.CardWhereInput = {
+      ...(query.game || query.set
+        ? {
+            set: {
+              ...(query.set ? { slug: query.set } : {}),
+              ...(query.game ? { game: { slug: query.game } } : {}),
+            },
+          }
+        : {}),
+      ...(query.cardType || query.raza || query.coste != null
+        ? {
+            AND: [
+              ...(query.cardType ? [{ attributes: { path: ["cardType"], equals: query.cardType } }] : []),
+              ...(query.raza ? [{ attributes: { path: ["raza"], equals: query.raza } }] : []),
+              ...(query.coste != null ? [{ attributes: { path: ["coste"], equals: query.coste } }] : []),
+            ],
+          }
+        : {}),
+    };
+    const variantWhere: Prisma.CardVariantWhereInput = {
+      ...(query.language ? { language: query.language } : {}),
+      ...(query.finish ? { finish: query.finish } : {}),
+      ...(Object.keys(cardWhere).length > 0 ? { card: cardWhere } : {}),
+    };
+    const where: Prisma.ListingWhereInput = {
+      status: "ACTIVE",
       quantity: { gt: 0 },
       ...(query.variantId ? { variantId: query.variantId } : {}),
       ...(query.sellerId ? { sellerId: query.sellerId } : {}),
       ...(query.condition ? { condition: query.condition } : {}),
+      ...(query.allowsShipping === "true" ? { allowsShipping: true } : {}),
+      ...(query.allowsShipping === "false" ? { allowsShipping: false } : {}),
+      ...(query.allowsMeetup === "true" ? { allowsMeetup: true } : {}),
+      ...(query.allowsMeetup === "false" ? { allowsMeetup: false } : {}),
       ...(query.minPrice || query.maxPrice
         ? { priceClp: { gte: query.minPrice, lte: query.maxPrice } }
         : {}),
+      ...(q
+        ? {
+            OR: [
+              { title: { contains: q, mode: "insensitive" } },
+              { variant: { card: { name: { contains: q, mode: "insensitive" } } } },
+            ],
+          }
+        : {}),
+      ...(Object.keys(variantWhere).length > 0 ? { variant: variantWhere } : {}),
     };
-    return this.page(where, query.page, query.pageSize, { priceClp: "asc" });
+    const sort = query.sort ?? "priceAsc";
+    const orderBy: Prisma.ListingOrderByWithRelationInput =
+      sort === "newest" || sort === "relevance"
+        ? { publishedAt: "desc" }
+        : sort === "priceDesc"
+          ? { priceClp: "desc" }
+          : sort === "nameAsc"
+            ? { title: "asc" }
+            : { priceClp: "asc" };
+    return this.page(where, query.page, query.pageSize, orderBy);
   }
 
   async listMine(userId: string, page: number, pageSize: number): Promise<Paginated<ListingView>> {
@@ -280,9 +327,10 @@ export class ListingsService {
       }),
     ]);
     let items = await this.attachMany(rows.map(toListingView));
-    if (orderBy.priceClp === "asc") {
+    if (orderBy.priceClp === "asc" || orderBy.priceClp === "desc") {
+      const dir = orderBy.priceClp === "desc" ? -1 : 1;
       items = [...items].sort((a, b) => {
-        if (a.priceClp !== b.priceClp) return a.priceClp - b.priceClp;
+        if (a.priceClp !== b.priceClp) return (a.priceClp - b.priceClp) * dir;
         return (b.seller.reputation.averageStars ?? 0) - (a.seller.reputation.averageStars ?? 0);
       });
     }

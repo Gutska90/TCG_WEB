@@ -30,7 +30,7 @@ Onboarding SELLER (dirección, teléfono, términos)
 
 `confirm()` del comprador deja la orden `COMPLETED` y el pago `RELEASED` y asienta `SELLER_PAYABLE` + `PLATFORM_FEE` en el mismo commit. El admin liquida a mano (`POST /v1/admin/payouts` → approve → mark-processing → mark-paid con `providerRef`). Detalle: [FINANCIAL-LEDGER](FINANCIAL-LEDGER.md). No hay transferencia bancaria/MP en 10C.
 
-No puede publicar singles que no existan en catálogo. Si falta la carta: reportar “carta no encontrada” (admin/importer), no título libre.
+No puede publicar singles que no existan en catálogo. Si falta la carta: `CatalogSubmission` (web `/vender/solicitar-carta`). Admin aprueba → `Card` + `CardVariant`. El listing no espera moderación.
 
 ## Tienda (Fase 15)
 

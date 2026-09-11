@@ -9,6 +9,7 @@ import { userFacingError, loginHref } from "../../lib/errors";
 import { FormError, LoadingBlock, PageMain, SuccessNote, buttonSecondaryClass } from "../../components/ui-feedback";
 import { buttonClassName } from "../../components/ui/button-styles";
 import { SellerPlanCard } from "../../components/seller-plan-card";
+import { PublicContactForm } from "../../components/public-contact-form";
 
 export default function MePage() {
   const router = useRouter();
@@ -94,9 +95,12 @@ export default function MePage() {
         <p className="mt-2">Novedades opcionales: {me.legal.marketingOptIn ? "sí" : "no"}</p>
       </section>
       {me.roles.includes("SELLER") || me.profile.sellerOnboardedAt ? (
-        <div className="mt-6">
-          <SellerPlanCard />
-        </div>
+        <>
+          <div className="mt-6">
+            <SellerPlanCard />
+          </div>
+          <PublicContactForm me={me} />
+        </>
       ) : null}
       <nav className="mt-6 grid gap-2 text-sm">
         <Link href="/me/coleccion" className="underline">Mi colección</Link>
@@ -109,6 +113,8 @@ export default function MePage() {
         <Link href="/me/balance" className="underline">Saldo vendedor</Link>
         <Link href="/vender" className="underline">Vender</Link>
         <Link href="/me/publicaciones" className="underline">Mis publicaciones</Link>
+        <Link href="/vender/solicitar-carta" className="underline">Solicitar carta al catálogo</Link>
+        <Link href="/me/solicitudes-catalogo" className="underline">Mis solicitudes de catálogo</Link>
         <Link href="/me/vendedor" className="underline">Onboarding vendedor</Link>
         <Link href="/me/direcciones" className="underline">Direcciones</Link>
         <Link href="/me/seguridad" className="underline">Seguridad y sesiones</Link>
