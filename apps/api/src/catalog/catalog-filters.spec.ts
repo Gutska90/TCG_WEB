@@ -6,6 +6,7 @@ import {
   isFilterVisible,
   isSyntheticCardAttributes,
   mylSetEra,
+  MYL_TOR_EDITIONS,
   normalizeCatalogCode,
   presentAttributeFields,
   presentCardLore,
@@ -218,6 +219,12 @@ describe("CATALOG.1/2 filter definitions", () => {
     expect(mylSetEra("el-reto")).toBe("pe");
     expect(mylSetEra("helenica")).toBe("pb");
     expect(mylSetEra("aguila-imperial")).toBe("imperio");
+    expect(mylSetEra("onyria")).toBe("imperio");
+    expect(mylSetEra("excalibur")).toBe("fx");
+    expect(mylSetEra("guerrero-jaguar")).toBe("segundo");
+    expect(mylSetEra("leyendas_bloque_furia")).toBe("lbf");
+    expect(MYL_TOR_EDITIONS).toHaveLength(164);
+    expect(new Set(MYL_TOR_EDITIONS.map((row) => row.slug)).size).toBe(164);
     expect(mylSetEra("unknown-edition")).toBe("other");
   });
 

@@ -61,6 +61,7 @@ Este repositorio no es una copia de TCGMatch. TCGMatch es **referencia funcional
 | — | [MOBILE-BETA-QA](release/MOBILE-BETA-QA.md) | Checklist tester mobile B4 |
 | — | [ADMIN-BETA-QA](release/ADMIN-BETA-QA.md) | Checklist staff B4 |
 | — | [B4-QA](release/B4-QA.md) | Índice QA beta (Playwright + Maestro opcional) |
+| — | [WEB-USER-GUIDE](release/WEB-USER-GUIDE.md) | Cómo usar el sitio (comprar, vender, catálogo, consultas) |
 | — | [TESTER-GUIDE](release/TESTER-GUIDE.md) | PS: guía rápida testers (sandbox, qué no probar) |
 | — | [QA-MANUAL](release/QA-MANUAL.md) | PS: checklist buyer / seller / admin |
 | — | [PRE-STAGING-READINESS](audits/PRE-STAGING-READINESS.md) | PS: P0 operador vs código |

@@ -97,14 +97,10 @@ async function main() {
     }
     if (command === "import-myl-tor" || command === "enrich-myl") {
       const { importMylTorCatalog, formatMylTorImportSummary } = await import("./myl-tor/import-myl-tor");
-      const { isMylTorFormat } = await import("./myl-tor/editions");
-      const formatsRaw = argAfter("--formats") ?? "pe,pb";
-      const formats = formatsRaw
-        .split(",")
-        .map((row) => row.trim())
-        .filter(isMylTorFormat);
+      const { MYL_TOR_FORMATS, parseMylTorFormats } = await import("./myl-tor/editions");
+      const formats = parseMylTorFormats(argAfter("--formats"));
       const result = await importMylTorCatalog(prisma, {
-        formats: formats.length ? formats : ["pe", "pb"],
+        formats: formats.length ? formats : [...MYL_TOR_FORMATS],
         editionSlug: argAfter("--edition"),
         dryRun: flag("--dry-run"),
         force: flag("--force"),
@@ -121,7 +117,7 @@ async function main() {
       return;
     }
     throw new Error(
-      "Comandos: seed | seed-reference | seed-myl-demo | import-myl [--file path] [--dry-run] [--force] | import-myl-tor|enrich-myl [--formats pe,pb,imperio] [--edition slug] [--card slug] [--dry-run] [--force] [--missing-only] [--strict] | prune-myl-without-images | import-scryfall <set> | import-pokemon <set> | reference-refresh --game <slug>",
+      "Comandos: seed | seed-reference | seed-myl-demo | import-myl [--file path] [--dry-run] [--force] | import-myl-tor|enrich-myl [--formats all|pe,pb,imperio,fx,segundo,lbf] [--edition slug] [--card slug] [--dry-run] [--force] [--missing-only] [--strict] | prune-myl-without-images | import-scryfall <set> | import-pokemon <set> | reference-refresh --game <slug>",
     );
   } finally {
     await prisma.$disconnect();

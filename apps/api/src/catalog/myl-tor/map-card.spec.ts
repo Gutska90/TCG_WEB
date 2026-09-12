@@ -87,6 +87,21 @@ describe("mapTorEditionCards", () => {
     expect(oro?.imageUrl).toBe("https://api.myl.cl/static/cards/19/220.png");
   });
 
+  it("tags FX editions with era FX", () => {
+    const [card] = mapTorEditionCards(
+      {
+        ...PAYLOAD,
+        edition: { id: "80", slug: "excalibur", title: "Excalibur FX" },
+      },
+      {
+        requestSlug: "excalibur",
+        format: "fx",
+        retrievedAt: "2026-09-11T00:00:00.000Z",
+      },
+    );
+    expect(card?.attributes.era).toBe("FX");
+  });
+
   it("tags Imperio editions with era IMPERIO", () => {
     const [card] = mapTorEditionCards(
       {

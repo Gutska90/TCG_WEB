@@ -367,17 +367,17 @@ Catálogo canónico vs inventario: el dueño/admin controla `Card`; el vendedor 
 
 ## MYL.3 — Catalog media & metadata (TOR / Fénix) ✓
 
-Catálogo canónico completo de **Primera Era y Primer Bloque** desde la API oficial de Fénix (`https://api.myl.cl/cards/edition/{slug}`), la misma que consume [TOR](https://tor.myl.cl/). Habilidad, historia, coste, fuerza, raza, rareza, número e imagen oficial. **No** se scrapean MyL Serena, Stribog, Tradeck ni otros marketplaces.
+Catálogo canónico de **todas las ediciones publicadas en TOR** (PE, PB, Segundo Bloque, FX, Imperio / Nueva Era, LBF) desde la API oficial de Fénix (`https://api.myl.cl/cards/edition/{slug}`), la misma que consume [TOR](https://tor.myl.cl/). Habilidad, historia, coste, fuerza, raza, rareza, número e imagen oficial. **No** se scrapean MyL Serena, Stribog, Tradeck ni otros marketplaces.
 
-- `pnpm catalog:import-myl-tor` / `pnpm catalog:enrich-myl` — `--formats pe,pb` (default; ~5.700 cartas oficiales). `--formats imperio` o `--edition aguila-imperial` / `--edition tierra-austral` para esas ediciones Fénix. `--card mitra`, `--dry-run`, `--missing-only`, `--force`, `--strict`.
-- Algunas entradas del menú TOR no existen en `api.myl.cl` (404/400); el importer las omite y no aborta el resto.
+- `pnpm catalog:import-myl-tor` / `pnpm catalog:enrich-myl` — `--formats all` (default; menú TOR completo). `--formats pe,pb` o `--edition onyria` para un recorte. `--card mitra`, `--dry-run`, `--missing-only`, `--force`, `--strict`.
+- Algunas entradas del menú TOR no existen en `api.myl.cl` (404/400); el importer las omite y no aborta el resto. El catálogo de cartas **no** implica listings ni precios.
 - Imágenes: URL oficial `https://api.myl.cl/static/cards/{editionId}/{edid}.png` (no se commitea el arte). Redistribución en CDN propio requiere autorización Fénix.
 - Si TOR no publica historia, `flavorTextStatus=NO_OFFICIAL_FLAVOR_TEXT` y la ficha muestra la leyenda oficial vacía. No se inventa texto.
 - El importer solo actualiza `source=tor.myl.cl` o `myl-demo-pack` salvo `--force`.
 - `catalog:seed-myl-demo` es **offline** (pack demo + listings). El catálogo TOR se carga con `catalog:import-myl-tor` (CI no llama `api.myl.cl`). `MYL_TOR_LIVE_IMPORT=true` en el seed es opcional para un operador local. Si ya hay cartas TOR con imagen, el seed no reinyecta el pack demo. Listings demo se recortan a ~250 cartas.
 - `pnpm catalog:prune-myl-without-images` — operador local: borra cartas MyL sin `imageUrl` (pack demo / leftovers) y ediciones vacías. No toca cartas con órdenes. El importer TOR **no** borra cartas.
 
-**No en este incremento:** scrape de tiendas, resto de ediciones Imperio/Nueva Era/FX, Scanner, pagos live.
+**No en este incremento:** scrape de tiendas, Scanner, pagos live.
 
 ## SELLER.1 — Storefront del vendedor ✓
 

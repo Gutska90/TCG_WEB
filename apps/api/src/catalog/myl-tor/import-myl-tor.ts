@@ -3,7 +3,7 @@ import type { PrismaClient } from "@prisma/client";
 import { uniqueSlug } from "../slug";
 import { delay, fetchTorEdition } from "./client";
 import { completenessFromMapped, type MylTorCompletenessReport } from "./completeness";
-import { editionsForFormats, findTorEdition, type MylTorFormat } from "./editions";
+import { MYL_TOR_FORMATS, editionsForFormats, findTorEdition, type MylTorFormat } from "./editions";
 import {
   cardAttributeSource,
   isTorOwnedSource,
@@ -129,7 +129,7 @@ export async function importMylTorCatalog(
 ): Promise<MylTorImportSummary> {
   const dryRun = options.dryRun === true;
   const force = options.force === true;
-  const formats = options.formats?.length ? options.formats : (["pe", "pb"] as MylTorFormat[]);
+  const formats = options.formats?.length ? options.formats : [...MYL_TOR_FORMATS];
   const retrievedAt = options.now ?? new Date().toISOString();
   const fetchImpl = options.fetchImpl ?? fetch;
 
