@@ -2,6 +2,8 @@
 
 Documento de **beta**. No hay dinero real. `ENABLE_REAL_PAYMENTS=false`.
 
+Cómo se usa el sitio (comprar, vender, catálogo): [WEB-USER-GUIDE](WEB-USER-GUIDE.md).
+
 Aviso: *sujeto a revisión legal antes de producción real.*
 
 Si aún no hay staging en la nube, usar **localhost**. El operador publica URLs reales en B1.

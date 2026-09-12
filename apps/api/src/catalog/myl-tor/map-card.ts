@@ -129,6 +129,9 @@ function optionalInt(raw: string): number | undefined {
 export function eraForFormat(format: MylTorFormat): string {
   if (format === "pe") return "PRIMERA_ERA";
   if (format === "pb") return "PRIMER_BLOQUE";
+  if (format === "segundo") return "SEGUNDO_BLOQUE";
+  if (format === "fx") return "FX";
+  if (format === "lbf") return "LEYENDAS_BLOQUE_FURIA";
   return "IMPERIO";
 }
 

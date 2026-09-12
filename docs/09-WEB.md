@@ -4,6 +4,8 @@
 
 Cliente público principal para SEO y compra. Next.js App Router. Consume **solo** `/v1`.
 
+Guía para usuarios (no IA): [release/WEB-USER-GUIDE.md](release/WEB-USER-GUIDE.md).
+
 PWA (installable, offline catálogo limitado) **después** de MVP 2, no en Fase 1.
 
 ## SEO (crítico)
@@ -37,7 +39,7 @@ MVP 1 nav: Logo, Buscar, Juegos, Wishlist, Login.
 
 Home: búsqueda, juegos con marca de color, publicaciones con “Ver todas” a `/buscar?hasListings=true`. El submit del hero y el typeahead del header/menú envían `hasListings=true` (comprar). Hubs `/{game}` y `/{game}/{set}` siguen en catálogo salvo que el usuario pulse **En venta**.
 
-`/buscar` y hubs de catálogo: interruptor **Catálogo / En venta** (`hasListings`). Autocompletar reusa `GET /v1/search/cards`; el clic en una sugerencia abre la ficha (no se cierra el listado por blur). MyL `/{game}` agrupa ediciones por época (PE / PB / Imperio).
+`/buscar` y hubs de catálogo: interruptor **Catálogo / En venta** (`hasListings`). Autocompletar reusa `GET /v1/search/cards`; el clic en una sugerencia abre la ficha (no se cierra el listado por blur). MyL `/{game}` agrupa ediciones por época (PE / PB / 2B / FX / Imperio / LBF).
 
 ## Pantallas MVP 1
 

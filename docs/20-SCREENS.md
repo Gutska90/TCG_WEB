@@ -16,7 +16,7 @@ Cada pantalla lista: fase, ruta, datos (API), acciones, vacío, error. Si la API
 | 10.7 | `/terminos` `/privacidad` `/marketplace` `/refunds` `/ayuda` | config legal + feedback | páginas públicas de beta |
 | 1 | `/verificar-email` | verify | |
 | 1 | `/recuperar-password` | forgot/reset | |
-| 2 | `/{game}` | game + sets (`previewImageUrls`) | sets; MyL agrupado por época |
+| 2 | `/{game}` | game + sets (`previewImageUrls`) | sets; MyL agrupado por época (PE/PB/2B/FX/Imperio/LBF) |
 | 2 | `/{game}/cartas` | search + `GET /v1/games/:slug/filters` | filtros por juego (set fijado no); URL compartible |
 | 2 | `/{game}/{set}` | search + `GET /v1/games/:slug/filters` | mismos filtros, juego y set fijados |
 | 2 | `/{game}/{set}/{card}` | card + variants | selector variante, favorito |

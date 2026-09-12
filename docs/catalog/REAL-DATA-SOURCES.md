@@ -51,7 +51,7 @@ Games without a safe API stay **manual** (edit the JSON + `retrievedAt`).
 | Source | Official Fénix API consumed by [TOR](https://tor.myl.cl/): `https://api.myl.cl/cards/edition/{slug}` |
 | Import | `pnpm catalog:import-myl-tor` / `catalog:enrich-myl`. Fallback pack: `catalog:import-myl`. **None from marketplaces.** No Serena/Stribog/Tradeck scrape. |
 | Fixtures | Mitra, La Mayoría, Relámpago, Stonehenge, Excalibur, El Dorado + live PE/PB editions from TOR. |
-| Limits | Raza from catalog values only. Legality filter omitted until a dated banlist exists. PARTIAL vs full live catalog of later eras. |
+| Limits | Raza from catalog values only. Legality filter omitted until a dated banlist exists. Full TOR menu (PE/PB/2B/FX/Imperio/LBF); some TOR slugs 404 on `api.myl.cl` and are skipped. |
 | Refresh | Operator: `catalog:import-myl-tor`. CI mocks the payload. |
 
 ## One Piece
